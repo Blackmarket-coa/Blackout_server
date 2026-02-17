@@ -2,7 +2,7 @@
     package = "synapse"
     filename = "CHANGES.md"
     directory = "changelog.d"
-    issue_format = "[\\#{issue}](https://github.com/matrix-org/synapse/issues/{issue})"
+    issue_format = "[\\#{issue}](https://github.com/Blackmarket-coa/Blackout_server/issues/{issue})"
 
     [[tool.towncrier.type]]
         directory = "feature"
@@ -95,13 +95,13 @@ manifest-path = "rust/Cargo.toml"
 module-name = "synapse.synapse_rust"
 
 [tool.poetry]
-name = "matrix-synapse"
+name = "blackout-server"
 version = "1.98.0"
 description = "Homeserver for the Matrix decentralised comms protocol"
 authors = ["Matrix.org Team and Contributors <packages@matrix.org>"]
 license = "Apache-2.0"
 readme = "README.rst"
-repository = "https://github.com/matrix-org/synapse"
+repository = "https://github.com/Blackmarket-coa/Blackout_server"
 packages = [
     { include = "synapse" },
 ]

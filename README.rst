@@ -1,18 +1,16 @@
 =========================================================================
-Synapse |support| |development| |documentation| |license| |pypi| |python|
+Blackout Server |support| |development| |documentation| |license| |pypi| |python|
 =========================================================================
 
-Synapse is now actively maintained at `element-hq/synapse <https://github.com/element-hq/synapse>`_
-=================================================================================================
+Blackout Server is a Matrix homeserver distribution based on Synapse and
+tailored for the Blackout project.
 
-Synapse is an open-source `Matrix <https://matrix.org/>`_ homeserver developed
-from 2019 through 2023 as part of the Matrix.org Foundation. The Matrix.org
-Foundation is not able to resource maintenance of Synapse and it
-`continues to be developed by Element <https://github.com/element-hq/synapse>`_;
-additionally you have the choice of `other Matrix homeservers <https://matrix.org/ecosystem/servers/>`_.
+The upstream Synapse project is maintained at
+`element-hq/synapse <https://github.com/element-hq/synapse>`_.
 
-See `The future of Synapse and Dendrite <https://matrix.org/blog/2023/11/06/future-of-synapse-dendrite/>`_
-blog post for more information.
+This repository tracks Blackout-specific packaging and operational defaults
+for deployment alongside the `blackout <https://github.com/Blackmarket-coa/blackout>`_
+stack.
 
 =========================================================================
 
