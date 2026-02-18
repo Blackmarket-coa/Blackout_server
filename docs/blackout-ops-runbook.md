@@ -79,3 +79,39 @@ Operational guidance:
 1. Set `blackout.enabled: false`.
 2. Restart Synapse.
 3. Re-enable search/media settings if required for the deployment.
+
+## Phone-hosted low-resource profile
+
+Recommended defaults for phone/edge deployments:
+
+```yaml
+blackout:
+  enabled: true
+  signal_event_ttl: "48h"
+enable_search: false
+enable_media_repo: false
+```
+
+Operational baseline:
+- Capacity target: 200–500 registered users, 20–50 concurrently active peers.
+- Prefer small rooms for mesh signaling; sustained fan-out above ~50 active peers per room usually needs temporary relays.
+
+Reliability caveats for phone-grade hosts:
+- Battery saver and radio sleep can delay federation and purge workers.
+- Intermittent connectivity can increase federation reject spikes.
+- SQLite/Postgres WAL files may grow quickly under churn; enforce backup + checkpoint cadence.
+
+## Scalability thresholds and SLO guidance
+
+Recommended warning/critical thresholds:
+- Federation reject rate (`synapse_blackout_federation_event_rejections_total`):
+  - Warning: >2% of inbound timeline PDUs over 5m.
+  - Critical: >5% over 15m.
+- Signal TTL purge lag (oldest pending signal expiry minus now):
+  - Warning: >10 minutes.
+  - Critical: >30 minutes.
+
+Mesh topology guidance:
+- Keep direct mesh rooms in the 8–24 active-peer range when possible.
+- At 25–50 peers, designate temporary relay/super-peer nodes and rotate periodically.
+- Publish topology hints in `message_metadata` (for example relay preference / hierarchy tier) and roll back relay assignment if reject rates increase after promotion.
