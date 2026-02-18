@@ -79,3 +79,35 @@ Operational guidance:
 1. Set `blackout.enabled: false`.
 2. Restart Synapse.
 3. Re-enable search/media settings if required for the deployment.
+
+
+## Phone-hosted low-resource profile
+
+Recommended baseline for constrained/mobile-hosted homeservers:
+
+- `blackout.enabled: true`
+- `blackout.signal_event_ttl: "48h"`
+- `enable_search: false` and `enable_media_repo: false` (forced under blackout)
+- Keep worker/background topology conservative; avoid optional heavy workers.
+
+Capacity baseline and caveats:
+
+- Target ~200–500 registered users and ~20–50 concurrently active peers.
+- Expect battery, thermal, and network churn; plan automated restart/health checks.
+- Monitor WAL/database growth and run regular backups with restore drills.
+
+## Scalability thresholds and relay policy
+
+Suggested operating guardrails for blackout mesh signaling:
+
+- Room fan-out target: 20–50 active peers; introduce temporary relays above 50.
+- Warning threshold: federation blackout reject rate >1% over 15m.
+- Critical threshold: federation blackout reject rate >5% over 15m.
+- Warning threshold: signal purge lag >15m.
+- Critical threshold: signal purge lag >60m.
+
+Temporary relay/super-peer selection guidance:
+
+- Prefer stable, always-on nodes with low packet loss and sufficient uplink.
+- Publish relay topology hints in `message_metadata.topology_hints`.
+- Roll back relay assignment if reject rates or ICE failures increase for 2 consecutive windows.

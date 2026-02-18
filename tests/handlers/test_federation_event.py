@@ -16,9 +16,8 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
 from synapse.api.errors import AuthError, FederationError, StoreError
-from synapse.api.room_versions import RoomVersion
+from synapse.api.room_versions import RoomVersion, RoomVersions
 from synapse.event_auth import (
     check_state_dependent_auth_rules,
     check_state_independent_auth_rules,
@@ -1193,6 +1192,46 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
         )
 
         with self.assertRaisesRegex(FederationError, "sender key has been revoked"):
+            self.get_success(
+                self.hs.get_federation_event_handler().on_receive_pdu(
+                    self.OTHER_SERVER_NAME, pdu
+                )
+            )
+
+
+    def test_federation_ingress_rejects_invalid_chunk_merkle(self) -> None:
+        remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
+
+        pdu = make_event_from_dict(
+            self.add_hashes_and_signatures_from_other_server(
+                {
+                    "type": "m.blackout.signal",
+                    "room_id": "!room:test",
+                    "sender": remote_user_id,
+                    "origin_server_ts": 1,
+                    "depth": 1,
+                    "prev_events": [],
+                    "auth_events": [],
+                    "content": {
+                        "message_metadata": {
+                            "message_id": "msg-1",
+                            "sender_key_id": "ed25519:remote-device",
+                        },
+                        "chunk_announcements": [
+                            {
+                                "chunk_id": "chunk-1",
+                                "chunk_hash": "a" * 64,
+                                "merkle_root": "invalid-merkle",
+                                "replication_factor": 2,
+                            }
+                        ],
+                    },
+                }
+            ),
+            room_version=RoomVersions.V10,
+        )
+
+        with self.assertRaisesRegex(FederationError, "merkle_root"):
             self.get_success(
                 self.hs.get_federation_event_handler().on_receive_pdu(
                     self.OTHER_SERVER_NAME, pdu

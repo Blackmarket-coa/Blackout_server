@@ -91,6 +91,10 @@ from synapse.util.async_helpers import Linearizer, concurrently_execute
 from synapse.util.iterutils import batch_iter, partition, sorted_topologically_batched
 from synapse.util.retryutils import NotRetryingDestination
 from synapse.util.stringutils import shortstr
+from synapse.util.blackout import (
+    extract_sender_key_identifiers_from_signal_content,
+    validate_blackout_signal_content,
+)
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
@@ -114,6 +118,10 @@ blackout_federation_event_rejections_counter = Counter(
 blackout_federation_signal_revoked_key_rejections_counter = Counter(
     "synapse_blackout_federation_signal_revoked_key_rejections_total",
     "Federated blackout signal events rejected due to revoked sender keys",
+)
+blackout_federation_signal_redundancy_metadata_missing_counter = Counter(
+    "synapse_blackout_federation_signal_redundancy_metadata_missing_total",
+    "Federated blackout signal chunk announcements accepted without replication factor metadata",
 )
 
 # Added to debug performance and track progress on optimizations
@@ -183,17 +191,6 @@ class FederationEventHandler:
         self._config = hs.config
         self._ephemeral_messages_enabled = hs.config.server.enable_ephemeral_messages
         self._blackout_enabled = hs.config.server.blackout_enabled
-        self._blackout_signal_allowed_content = frozenset(
-            {
-                "ice_candidates",
-                "sdp_offer",
-                "sdp_answer",
-                "message_metadata",
-                "chunk_announcements",
-                EventContentFields.SELF_DESTRUCT_AFTER,
-            }
-        )
-
         self._send_events = ReplicationFederationSendEventsRestServlet.make_client(hs)
         if hs.config.worker.worker_app:
             self._multi_user_device_resync = (
@@ -210,24 +207,8 @@ class FederationEventHandler:
 
         self._room_pdu_linearizer = Linearizer("fed_room_pdu")
 
-    def _extract_sender_key_identifiers(self, content: dict) -> List[str]:
-        message_metadata = content.get("message_metadata")
-        if not isinstance(message_metadata, dict):
-            return []
-
-        key_identifiers = []
-        sender_key_id = message_metadata.get("sender_key_id")
-        sender_key = message_metadata.get("sender_key")
-
-        if isinstance(sender_key_id, str):
-            key_identifiers.append(sender_key_id)
-        if isinstance(sender_key, str):
-            key_identifiers.append(sender_key)
-
-        return key_identifiers
-
     async def _enforce_blackout_signal_device_revocation(self, event: EventBase) -> None:
-        for key_identifier in self._extract_sender_key_identifiers(event.content):
+        for key_identifier in extract_sender_key_identifiers_from_signal_content(event.content):
             revoked_ts = await self._store.get_revoked_device_key_timestamp(
                 event.sender, key_identifier
             )
@@ -276,33 +257,28 @@ class FederationEventHandler:
             )
 
         if event.type == EventTypes.BlackoutSignal:
-            if not isinstance(event.content, dict):
-                raise FederationError(
-                    "ERROR",
-                    400,
-                    "m.blackout.signal content must be a JSON object",
-                    affected=event.event_id,
-                )
-
-            unknown = set(event.content) - self._blackout_signal_allowed_content
-            if unknown:
+            try:
+                result = validate_blackout_signal_content(event.content)
+            except ValueError as e:
                 blackout_federation_event_rejections_counter.labels(
                     reason="invalid_signal_content"
                 ).inc()
                 logger.info(
-                    "Rejecting federated signal content in blackout mode: room_id=%s event_id=%s sender=%s unknown_keys=%s",
+                    "Rejecting federated signal content in blackout mode: room_id=%s event_id=%s sender=%s reason=%s",
                     event.room_id,
                     event.event_id,
                     event.sender,
-                    ",".join(sorted(unknown)),
+                    str(e),
                 )
                 raise FederationError(
                     "ERROR",
                     400,
-                    "m.blackout.signal content contains unsupported fields: %s"
-                    % ", ".join(sorted(unknown)),
+                    str(e),
                     affected=event.event_id,
                 )
+
+            if result.missing_redundancy_metadata:
+                blackout_federation_signal_redundancy_metadata_missing_counter.inc()
 
             await self._enforce_blackout_signal_device_revocation(event)
             blackout_federation_signal_events_accepted_counter.inc()
