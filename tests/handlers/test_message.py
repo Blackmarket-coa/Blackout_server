@@ -16,7 +16,8 @@ from typing import Tuple
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventTypes
+from synapse.api.constants import EventContentFields, EventTypes
+from synapse.api.errors import Codes, SynapseError
 from synapse.events import EventBase
 from synapse.events.snapshot import EventContext, UnpersistedEventContextBase
 from synapse.rest import admin
@@ -330,3 +331,98 @@ class ServerAclValidationTestCase(unittest.HomeserverTestCase):
             "POST", path, content={}, access_token=self.access_token
         )
         self.assertEqual(channel.code, 403)
+
+
+class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
+    servlets = [
+        admin.register_servlets,
+        login.register_servlets,
+        room.register_servlets,
+    ]
+
+    def default_config(self):
+        config = super().default_config()
+        config["blackout"] = {"enabled": True, "signal_event_ttl": "48h"}
+        return config
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.handler = self.hs.get_event_creation_handler()
+        self.user_id = self.register_user("tester", "foobar")
+        self.access_token = self.login("tester", "foobar", device_id="dev-1")
+        self.room_id = self.helper.create_room_as(self.user_id, tok=self.access_token)
+        self.requester = create_requester(self.user_id, device_id="dev-1")
+
+    def test_room_message_blocked_in_blackout_mode(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.Message,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {"msgtype": "m.text", "body": "hello"},
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 403)
+        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+
+
+    def test_non_signal_timeline_event_blocked(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.Reaction,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "m.relates_to": {
+                                "event_id": "$dummy",
+                                "rel_type": "m.annotation",
+                                "key": "👍",
+                            }
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 403)
+        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+
+    def test_blackout_signal_gets_ttl(self) -> None:
+        event, _ = self.get_success(
+            self.handler.create_and_send_nonmember_event(
+                self.requester,
+                {
+                    "type": EventTypes.BlackoutSignal,
+                    "room_id": self.room_id,
+                    "sender": self.user_id,
+                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                },
+            )
+        )
+
+        self.assertIn(EventContentFields.SELF_DESTRUCT_AFTER, event.content)
+        expiry = event.content[EventContentFields.SELF_DESTRUCT_AFTER]
+        self.assertIsInstance(expiry, int)
+        self.assertGreater(expiry, self.clock.time_msec())
+
+    def test_blackout_signal_rejects_unknown_fields(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {"unexpected": "value"},
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)

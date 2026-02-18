@@ -102,6 +102,15 @@ soft_failed_event_counter = Counter(
     "synapse_federation_soft_failed_events_total",
     "Events received over federation that we marked as soft_failed",
 )
+blackout_federation_signal_events_accepted_counter = Counter(
+    "synapse_blackout_federation_signal_events_accepted_total",
+    "Federated signal events accepted while blackout mode is enabled",
+)
+blackout_federation_event_rejections_counter = Counter(
+    "synapse_blackout_federation_event_rejections_total",
+    "Federated timeline events rejected while blackout mode is enabled",
+    ["reason"],
+)
 
 # Added to debug performance and track progress on optimizations
 backfill_processing_after_timer = Histogram(
@@ -169,6 +178,17 @@ class FederationEventHandler:
 
         self._config = hs.config
         self._ephemeral_messages_enabled = hs.config.server.enable_ephemeral_messages
+        self._blackout_enabled = hs.config.server.blackout_enabled
+        self._blackout_signal_allowed_content = frozenset(
+            {
+                "ice_candidates",
+                "sdp_offer",
+                "sdp_answer",
+                "message_metadata",
+                "chunk_announcements",
+                EventContentFields.SELF_DESTRUCT_AFTER,
+            }
+        )
 
         self._send_events = ReplicationFederationSendEventsRestServlet.make_client(hs)
         if hs.config.worker.worker_app:
@@ -185,6 +205,63 @@ class FederationEventHandler:
         self.room_queues: Dict[str, List[Tuple[EventBase, str]]] = {}
 
         self._room_pdu_linearizer = Linearizer("fed_room_pdu")
+
+    def _enforce_blackout_event_rules(self, event: EventBase) -> None:
+        if not self._blackout_enabled:
+            return
+
+        if not event.is_state() and event.type not in (
+            EventTypes.BlackoutSignal,
+            EventTypes.Dummy,
+        ):
+            blackout_federation_event_rejections_counter.labels(
+                reason="unsupported_timeline_type"
+            ).inc()
+            logger.info(
+                "Rejecting federated event in blackout mode: room_id=%s event_id=%s type=%s origin=%s",
+                event.room_id,
+                event.event_id,
+                event.type,
+                event.sender,
+            )
+            raise FederationError(
+                "ERROR",
+                403,
+                "%s events are disabled in blackout signaling-only mode"
+                % (event.type,),
+                affected=event.event_id,
+            )
+
+        if event.type == EventTypes.BlackoutSignal:
+            if not isinstance(event.content, dict):
+                raise FederationError(
+                    "ERROR",
+                    400,
+                    "m.blackout.signal content must be a JSON object",
+                    affected=event.event_id,
+                )
+
+            unknown = set(event.content) - self._blackout_signal_allowed_content
+            if unknown:
+                blackout_federation_event_rejections_counter.labels(
+                    reason="invalid_signal_content"
+                ).inc()
+                logger.info(
+                    "Rejecting federated signal content in blackout mode: room_id=%s event_id=%s sender=%s unknown_keys=%s",
+                    event.room_id,
+                    event.event_id,
+                    event.sender,
+                    ",".join(sorted(unknown)),
+                )
+                raise FederationError(
+                    "ERROR",
+                    400,
+                    "m.blackout.signal content contains unsupported fields: %s"
+                    % ", ".join(sorted(unknown)),
+                    affected=event.event_id,
+                )
+
+            blackout_federation_signal_events_accepted_counter.inc()
 
     async def on_receive_pdu(self, origin: str, pdu: EventBase) -> None:
         """Process a PDU received via a federation /send/ transaction
@@ -230,6 +307,8 @@ class FederationEventHandler:
         except SynapseError as err:
             logger.warning("Received event failed sanity checks")
             raise FederationError("ERROR", err.code, err.msg, affected=pdu.event_id)
+
+        self._enforce_blackout_event_rules(pdu)
 
         # If we are currently in the process of joining this room, then we
         # queue up events for later processing.

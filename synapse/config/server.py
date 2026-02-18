@@ -392,7 +392,8 @@ class ServerConfig(Config):
         # to false if the media repository is running as a separate endpoint;
         # doing so ensures that we will not run cache cleanup jobs on the
         # master, potentially causing inconsistency.
-        self.enable_media_repo = config.get("enable_media_repo", True)
+        requested_enable_media_repo = config.get("enable_media_repo", True)
+        self.enable_media_repo = requested_enable_media_repo
 
         # Whether to require authentication to retrieve profile data (avatars,
         # display names) of other users through the client API.
@@ -458,7 +459,35 @@ class ServerConfig(Config):
         # whether to enable search. If disabled, new entries will not be inserted
         # into the search tables and they will not be indexed. Users will receive
         # errors when attempting to search for messages.
-        self.enable_search = config.get("enable_search", True)
+        requested_enable_search = config.get("enable_search", True)
+        self.enable_search = requested_enable_search
+
+        # Blackout signaling-only mode. When enabled, only signaling events are accepted
+        # for non-state room events and signaling events are given an automatic expiry.
+        blackout_config = config.get("blackout", {}) or {}
+        if not isinstance(blackout_config, dict):
+            raise ConfigError("blackout must be a mapping")
+
+        self.blackout_enabled = bool(blackout_config.get("enabled", False))
+        self.blackout_signal_event_ttl = self.parse_duration(
+            blackout_config.get("signal_event_ttl", "48h")
+        )
+
+        min_ttl = self.parse_duration("24h")
+        max_ttl = self.parse_duration("72h")
+        if not (min_ttl <= self.blackout_signal_event_ttl <= max_ttl):
+            raise ConfigError("blackout.signal_event_ttl must be between 24h and 72h")
+
+        # In blackout mode, force-disable heavyweight components.
+        if self.blackout_enabled:
+            if requested_enable_media_repo:
+                logger.warning(
+                    "blackout mode enabled: forcing enable_media_repo=False"
+                )
+            if requested_enable_search:
+                logger.warning("blackout mode enabled: forcing enable_search=False")
+            self.enable_media_repo = False
+            self.enable_search = False
 
         self.filter_timeline_limit = config.get("filter_timeline_limit", 100)
 

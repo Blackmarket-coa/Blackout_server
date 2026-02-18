@@ -20,6 +20,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Tuple
 
 from canonicaljson import encode_canonical_json
+from prometheus_client import Counter
 
 from twisted.internet.interfaces import IDelayedCall
 
@@ -61,6 +62,7 @@ from synapse.replication.http.send_event import ReplicationSendEventRestServlet
 from synapse.replication.http.send_events import ReplicationSendEventsRestServlet
 from synapse.storage.databases.main.events_worker import EventRedactBehaviour
 from synapse.types import (
+    JsonDict,
     PersistedEventPosition,
     Requester,
     RoomAlias,
@@ -80,6 +82,16 @@ if TYPE_CHECKING:
     from synapse.server import HomeServer
 
 logger = logging.getLogger(__name__)
+
+blackout_signal_events_accepted_counter = Counter(
+    "synapse_blackout_signal_events_accepted_total",
+    "Signal events accepted while blackout mode is enabled",
+)
+blackout_event_rejections_counter = Counter(
+    "synapse_blackout_event_rejections_total",
+    "Timeline events rejected while blackout mode is enabled",
+    ["reason"],
+)
 
 
 class MessageHandler:
@@ -547,6 +559,18 @@ class EventCreationHandler:
         self._message_handler = hs.get_message_handler()
 
         self._ephemeral_events_enabled = hs.config.server.enable_ephemeral_messages
+        self._blackout_enabled = hs.config.server.blackout_enabled
+        self._blackout_signal_event_ttl = hs.config.server.blackout_signal_event_ttl
+        self._blackout_signal_allowed_content = frozenset(
+            {
+                "ice_candidates",
+                "sdp_offer",
+                "sdp_answer",
+                "message_metadata",
+                "chunk_announcements",
+                EventContentFields.SELF_DESTRUCT_AFTER,
+            }
+        )
 
         self._external_cache = hs.get_external_cache()
 
@@ -560,6 +584,46 @@ class EventCreationHandler:
                 self.clock,
                 expiry_ms=30 * 60 * 1000,
             )
+
+    def _validate_blackout_signal_content(self, content: JsonDict) -> None:
+        if not isinstance(content, dict):
+            raise SynapseError(400, "m.blackout.signal content must be a JSON object")
+
+        unknown = set(content) - self._blackout_signal_allowed_content
+        if unknown:
+            blackout_event_rejections_counter.labels(reason="invalid_signal_content").inc()
+            raise SynapseError(
+                400,
+                "m.blackout.signal content contains unsupported fields: %s"
+                % ", ".join(sorted(unknown)),
+            )
+
+    def _enforce_blackout_event_rules(self, event_dict: JsonDict) -> None:
+        if not self._blackout_enabled:
+            return
+
+        event_type = event_dict["type"]
+        is_state_event = "state_key" in event_dict
+
+        if not is_state_event and event_type not in (
+            EventTypes.BlackoutSignal,
+            EventTypes.Dummy,
+        ):
+            blackout_event_rejections_counter.labels(reason="unsupported_timeline_type").inc()
+            raise SynapseError(
+                403,
+                "%s events are disabled in blackout signaling-only mode" % (event_type,),
+                Codes.FORBIDDEN,
+            )
+
+        if event_type == EventTypes.BlackoutSignal:
+            content = event_dict.setdefault("content", {})
+            self._validate_blackout_signal_content(content)
+            content.setdefault(
+                EventContentFields.SELF_DESTRUCT_AFTER,
+                self.clock.time_msec() + self._blackout_signal_event_ttl,
+            )
+            blackout_signal_events_accepted_counter.inc()
 
     async def create_event(
         self,
@@ -644,6 +708,8 @@ class EventCreationHandler:
             Tuple of created event, Context
         """
         await self.auth_blocking.check_auth_blocking(requester=requester)
+
+        self._enforce_blackout_event_rules(event_dict)
 
         if event_dict["type"] == EventTypes.Create and event_dict["state_key"] == "":
             room_version_id = event_dict["content"]["room_version"]

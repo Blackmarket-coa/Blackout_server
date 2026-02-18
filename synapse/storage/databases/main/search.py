@@ -80,6 +80,10 @@ class SearchWorkerStore(SQLBaseStore):
         """
         if not self.hs.config.server.enable_search:
             return
+
+        # Defensive: blackout mode should never index room events.
+        if self.hs.config.server.blackout_enabled:
+            return
         if isinstance(self.database_engine, PostgresEngine):
             sql = """
             INSERT INTO event_search

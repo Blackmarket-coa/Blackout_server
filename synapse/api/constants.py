@@ -124,6 +124,9 @@ class EventTypes:
 
     Reaction: Final = "m.reaction"
 
+    # Blackout signaling-only event.
+    BlackoutSignal: Final = "m.blackout.signal"
+
 
 class ToDeviceEventTypes:
     RoomKeyRequest: Final = "m.room_key_request"

@@ -148,6 +148,15 @@ turn_user_lifetime: "1h"
 turn_allow_guests: True
 {% endif %}
 
+## Blackout signaling-only mode ##
+# Enables a lightweight signaling-only server mode.
+# - Disables m.room.message and m.room.encrypted event persistence.
+# - Forces media repository and search off.
+# - Automatically sets signal-event expiry.
+blackout:
+  enabled: false
+  signal_event_ttl: "48h"
+
 ## Registration ##
 
 enable_registration: {{ "True" if SYNAPSE_ENABLE_REGISTRATION else "False" }}
