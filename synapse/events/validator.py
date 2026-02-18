@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections.abc
+import re
 from typing import TYPE_CHECKING, List, Type, Union, cast
 
 import jsonschema
@@ -43,6 +44,153 @@ from synapse.http.servlet import validate_json_object
 from synapse.rest.models import RequestBodyModel
 from synapse.storage.controllers.state import server_acl_evaluator_from_event
 from synapse.types import EventID, JsonDict, RoomID, StrCollection, UserID
+
+
+_BLACKOUT_SIGNAL_ALLOWED_CONTENT = frozenset(
+    {
+        "ice_candidates",
+        "sdp_offer",
+        "sdp_answer",
+        "message_metadata",
+        "chunk_announcements",
+        EventContentFields.SELF_DESTRUCT_AFTER,
+    }
+)
+_BLACKOUT_HASH_RE = re.compile(r"^(?:[a-fA-F0-9]{64}|[A-Za-z0-9+/]{43}=)$")
+
+
+def validate_blackout_signal_content(content: JsonDict) -> None:
+    if not isinstance(content, dict):
+        raise SynapseError(400, "m.blackout.signal content must be a JSON object")
+
+    unknown = set(content) - _BLACKOUT_SIGNAL_ALLOWED_CONTENT
+    if unknown:
+        raise SynapseError(
+            400,
+            "m.blackout.signal content contains unsupported fields: %s"
+            % ", ".join(sorted(unknown)),
+            Codes.BAD_JSON,
+        )
+
+    message_metadata = content.get("message_metadata")
+    if not isinstance(message_metadata, dict):
+        raise SynapseError(400, "message_metadata must be a JSON object", Codes.BAD_JSON)
+
+    for key in ("message_id", "sender_key_id"):
+        value = message_metadata.get(key)
+        if not isinstance(value, str) or not value:
+            raise SynapseError(
+                400,
+                "message_metadata.%s must be a non-empty string" % (key,),
+                Codes.BAD_JSON,
+            )
+
+    sender_key = message_metadata.get("sender_key")
+    if sender_key is not None and (not isinstance(sender_key, str) or not sender_key):
+        raise SynapseError(
+            400,
+            "message_metadata.sender_key must be a non-empty string",
+            Codes.BAD_JSON,
+        )
+
+    ice_candidates = content.get("ice_candidates")
+    if ice_candidates is not None:
+        if not isinstance(ice_candidates, list):
+            raise SynapseError(400, "ice_candidates must be a list", Codes.BAD_JSON)
+
+        for candidate in ice_candidates:
+            if not isinstance(candidate, dict):
+                raise SynapseError(
+                    400, "ice_candidates entries must be objects", Codes.BAD_JSON
+                )
+            if not isinstance(candidate.get("candidate"), str):
+                raise SynapseError(
+                    400,
+                    "ice_candidates[].candidate must be a string",
+                    Codes.BAD_JSON,
+                )
+
+    for key, expected_type in (("sdp_offer", "offer"), ("sdp_answer", "answer")):
+        if key not in content:
+            continue
+        envelope = content[key]
+        if not isinstance(envelope, dict):
+            raise SynapseError(400, "%s must be an object" % (key,), Codes.BAD_JSON)
+        if envelope.get("type") != expected_type:
+            raise SynapseError(
+                400,
+                "%s.type must be %r" % (key, expected_type),
+                Codes.BAD_JSON,
+            )
+        if not isinstance(envelope.get("sdp"), str):
+            raise SynapseError(
+                400,
+                "%s.sdp must be a string" % (key,),
+                Codes.BAD_JSON,
+            )
+
+    chunk_announcements = content.get("chunk_announcements")
+    if chunk_announcements is not None:
+        if not isinstance(chunk_announcements, list):
+            raise SynapseError(
+                400, "chunk_announcements must be a list", Codes.BAD_JSON
+            )
+        for announcement in chunk_announcements:
+            if not isinstance(announcement, dict):
+                raise SynapseError(
+                    400,
+                    "chunk_announcements entries must be objects",
+                    Codes.BAD_JSON,
+                )
+
+            if not isinstance(announcement.get("chunk_id"), str):
+                raise SynapseError(
+                    400,
+                    "chunk_announcements[].chunk_id must be a string",
+                    Codes.BAD_JSON,
+                )
+
+            chunk_hash = announcement.get("chunk_hash")
+            if not isinstance(chunk_hash, str) or not _BLACKOUT_HASH_RE.match(chunk_hash):
+                raise SynapseError(
+                    400,
+                    "chunk_announcements[].chunk_hash must be 64-char hex or base64 SHA-256",
+                    Codes.BAD_JSON,
+                )
+
+            merkle_root = announcement.get("merkle_root")
+            if merkle_root is not None and (
+                not isinstance(merkle_root, str)
+                or not _BLACKOUT_HASH_RE.match(merkle_root)
+            ):
+                raise SynapseError(
+                    400,
+                    "chunk_announcements[].merkle_root must be 64-char hex or base64 SHA-256",
+                    Codes.BAD_JSON,
+                )
+
+            replication_factor = announcement.get("replication_factor")
+            if replication_factor is not None and (
+                not isinstance(replication_factor, int)
+                or replication_factor < 1
+                or replication_factor > 10
+            ):
+                raise SynapseError(
+                    400,
+                    "chunk_announcements[].replication_factor must be an integer between 1 and 10",
+                    Codes.BAD_JSON,
+                )
+
+            replica_hints = announcement.get("replica_hints")
+            if replica_hints is not None:
+                if not isinstance(replica_hints, list) or not all(
+                    isinstance(hint, str) for hint in replica_hints
+                ):
+                    raise SynapseError(
+                        400,
+                        "chunk_announcements[].replica_hints must be a list of strings",
+                        Codes.BAD_JSON,
+                    )
 
 
 class EventValidator:

@@ -59,6 +59,7 @@ from synapse.event_auth import (
     validate_event_for_room_version,
 )
 from synapse.events import EventBase
+from synapse.events.validator import validate_blackout_signal_content
 from synapse.events.snapshot import EventContext, UnpersistedEventContextBase
 from synapse.federation.federation_client import InvalidResponseError, PulledPduInfo
 from synapse.logging.context import nested_logging_context
@@ -183,17 +184,6 @@ class FederationEventHandler:
         self._config = hs.config
         self._ephemeral_messages_enabled = hs.config.server.enable_ephemeral_messages
         self._blackout_enabled = hs.config.server.blackout_enabled
-        self._blackout_signal_allowed_content = frozenset(
-            {
-                "ice_candidates",
-                "sdp_offer",
-                "sdp_answer",
-                "message_metadata",
-                "chunk_announcements",
-                EventContentFields.SELF_DESTRUCT_AFTER,
-            }
-        )
-
         self._send_events = ReplicationFederationSendEventsRestServlet.make_client(hs)
         if hs.config.worker.worker_app:
             self._multi_user_device_resync = (
@@ -276,31 +266,23 @@ class FederationEventHandler:
             )
 
         if event.type == EventTypes.BlackoutSignal:
-            if not isinstance(event.content, dict):
-                raise FederationError(
-                    "ERROR",
-                    400,
-                    "m.blackout.signal content must be a JSON object",
-                    affected=event.event_id,
-                )
-
-            unknown = set(event.content) - self._blackout_signal_allowed_content
-            if unknown:
+            try:
+                validate_blackout_signal_content(event.content)
+            except SynapseError as e:
                 blackout_federation_event_rejections_counter.labels(
                     reason="invalid_signal_content"
                 ).inc()
                 logger.info(
-                    "Rejecting federated signal content in blackout mode: room_id=%s event_id=%s sender=%s unknown_keys=%s",
+                    "Rejecting federated signal content in blackout mode: room_id=%s event_id=%s sender=%s error=%s",
                     event.room_id,
                     event.event_id,
                     event.sender,
-                    ",".join(sorted(unknown)),
+                    e.msg,
                 )
                 raise FederationError(
                     "ERROR",
-                    400,
-                    "m.blackout.signal content contains unsupported fields: %s"
-                    % ", ".join(sorted(unknown)),
+                    e.code,
+                    e.msg,
                     affected=event.event_id,
                 )
 

@@ -52,7 +52,7 @@ from synapse.events import EventBase, relation_from_event
 from synapse.events.builder import EventBuilder
 from synapse.events.snapshot import EventContext, UnpersistedEventContextBase
 from synapse.events.utils import SerializeEventConfig, maybe_upsert_event_field
-from synapse.events.validator import EventValidator
+from synapse.events.validator import EventValidator, validate_blackout_signal_content
 from synapse.handlers.directory import DirectoryHandler
 from synapse.handlers.worker_lock import NEW_EVENT_DURING_PURGE_LOCK_NAME
 from synapse.logging import opentracing
@@ -95,6 +95,14 @@ blackout_event_rejections_counter = Counter(
 blackout_signal_revoked_key_rejections_counter = Counter(
     "synapse_blackout_signal_revoked_key_rejections_total",
     "Blackout signal events rejected due to revoked sender keys at local ingress",
+)
+blackout_signal_redundancy_metadata_invalid_counter = Counter(
+    "synapse_blackout_signal_redundancy_metadata_invalid_total",
+    "Blackout signal events containing invalid redundancy metadata",
+)
+blackout_signal_redundancy_metadata_missing_counter = Counter(
+    "synapse_blackout_signal_redundancy_metadata_missing_total",
+    "Blackout signal events missing declared redundancy metadata",
 )
 
 
@@ -565,17 +573,6 @@ class EventCreationHandler:
         self._ephemeral_events_enabled = hs.config.server.enable_ephemeral_messages
         self._blackout_enabled = hs.config.server.blackout_enabled
         self._blackout_signal_event_ttl = hs.config.server.blackout_signal_event_ttl
-        self._blackout_signal_allowed_content = frozenset(
-            {
-                "ice_candidates",
-                "sdp_offer",
-                "sdp_answer",
-                "message_metadata",
-                "chunk_announcements",
-                EventContentFields.SELF_DESTRUCT_AFTER,
-            }
-        )
-
         self._external_cache = hs.get_external_cache()
 
         # Stores the state groups we've recently added to the joined hosts
@@ -590,17 +587,7 @@ class EventCreationHandler:
             )
 
     def _validate_blackout_signal_content(self, content: JsonDict) -> None:
-        if not isinstance(content, dict):
-            raise SynapseError(400, "m.blackout.signal content must be a JSON object")
-
-        unknown = set(content) - self._blackout_signal_allowed_content
-        if unknown:
-            blackout_event_rejections_counter.labels(reason="invalid_signal_content").inc()
-            raise SynapseError(
-                400,
-                "m.blackout.signal content contains unsupported fields: %s"
-                % ", ".join(sorted(unknown)),
-            )
+        validate_blackout_signal_content(content)
 
     def _extract_sender_key_identifiers(self, content: JsonDict) -> List[str]:
         message_metadata = content.get("message_metadata")
@@ -636,6 +623,26 @@ class EventCreationHandler:
                     Codes.FORBIDDEN,
                 )
 
+    def _track_redundancy_metadata(self, content: JsonDict) -> None:
+        chunk_announcements = content.get("chunk_announcements")
+        if not isinstance(chunk_announcements, list):
+            return
+
+        for announcement in chunk_announcements:
+            if not isinstance(announcement, dict):
+                continue
+
+            has_factor = "replication_factor" in announcement
+            has_hints = "replica_hints" in announcement
+
+            if not has_factor and not has_hints:
+                blackout_signal_redundancy_metadata_missing_counter.inc()
+                continue
+
+            if has_factor and has_hints and isinstance(announcement.get("replica_hints"), list):
+                if len(announcement["replica_hints"]) < announcement.get("replication_factor", 0):
+                    blackout_signal_redundancy_metadata_invalid_counter.inc()
+
     async def _enforce_blackout_event_rules(self, event_dict: JsonDict) -> None:
         if not self._blackout_enabled:
             return
@@ -656,7 +663,12 @@ class EventCreationHandler:
 
         if event_type == EventTypes.BlackoutSignal:
             content = event_dict.setdefault("content", {})
-            self._validate_blackout_signal_content(content)
+            try:
+                self._validate_blackout_signal_content(content)
+            except SynapseError:
+                blackout_event_rejections_counter.labels(reason="invalid_signal_content").inc()
+                raise
+            self._track_redundancy_metadata(content)
             await self._enforce_blackout_signal_device_revocation(
                 event_dict["sender"], content
             )

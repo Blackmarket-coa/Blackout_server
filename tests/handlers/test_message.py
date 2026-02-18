@@ -401,7 +401,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                     "type": EventTypes.BlackoutSignal,
                     "room_id": self.room_id,
                     "sender": self.user_id,
-                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}, "message_metadata": {"message_id": "msg-ttl", "sender_key_id": "ed25519:dev-1"}},
                 },
             )
         )
@@ -450,6 +450,75 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(exc.exception.code, 403)
         self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+
+
+    def test_blackout_signal_rejects_missing_message_metadata(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_rejects_invalid_chunk_hash(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-2",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "chunk_announcements": [
+                                {"chunk_id": "chunk-1", "chunk_hash": "not-a-hash"}
+                            ],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_rejects_invalid_merkle_root(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-3",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "chunk_announcements": [
+                                {
+                                    "chunk_id": "chunk-1",
+                                    "chunk_hash": "a" * 64,
+                                    "merkle_root": "broken-merkle",
+                                }
+                            ],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
 
     def test_blackout_signal_rejects_unknown_fields(self) -> None:
         with self.assertRaises(SynapseError) as exc:
