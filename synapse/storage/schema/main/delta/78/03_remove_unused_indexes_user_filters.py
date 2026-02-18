@@ -16,7 +16,7 @@ from synapse.storage.database import LoggingTransaction
 from synapse.storage.engines import BaseDatabaseEngine, Sqlite3Engine
 
 
-def run_update(
+def run_upgrade(
     cur: LoggingTransaction,
     database_engine: BaseDatabaseEngine,
     config: HomeServerConfig,
