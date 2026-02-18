@@ -15,6 +15,9 @@
 import logging
 from typing import TYPE_CHECKING, Optional
 
+from prometheus_client import Counter
+
+from synapse.api.constants import EventTypes
 from synapse.events.utils import prune_event_dict
 from synapse.metrics.background_process_metrics import wrap_as_background_process
 from synapse.storage._base import SQLBaseStore
@@ -32,6 +35,11 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+blackout_signal_events_purged_counter = Counter(
+    "synapse_blackout_signal_events_purged_total",
+    "Blackout signal events purged after expiry",
+)
 
 
 class CensorEventsStore(EventsWorkerStore, CacheInvalidationWorkerStore, SQLBaseStore):
@@ -204,6 +212,9 @@ class CensorEventsStore(EventsWorkerStore, CacheInvalidationWorkerStore, SQLBase
         await self.db_pool.runInteraction(
             "delete_expired_event", delete_expired_event_txn
         )
+
+        if event is not None and event.type == EventTypes.BlackoutSignal:
+            blackout_signal_events_purged_counter.inc()
 
     def _delete_event_expiry_txn(self, txn: LoggingTransaction, event_id: str) -> None:
         """Delete the expiry timestamp associated with an event ID without deleting the

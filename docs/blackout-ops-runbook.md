@@ -48,6 +48,35 @@ Actions:
   `sdp_answer`, `message_metadata`, `chunk_announcements`).
 - Check upstream peers for outdated schema.
 
+### High purge lag / expired signal backlog
+
+Likely cause: background expiry processing is behind, or workers are not running expected tasks.
+
+Actions:
+- Check that `enable_ephemeral_messages` is enabled on blackout nodes.
+- Track age of oldest row in `event_expiry` and alert when backlog age exceeds the configured TTL window.
+- Verify the purge metric `synapse_blackout_signal_events_purged_total` continues to increase over time.
+- Check worker placement and DB latency if purge throughput drops.
+
+### TURN relay failures
+
+Likely cause: coturn misconfiguration, secret mismatch, or firewall/port exhaustion.
+
+Actions:
+- Verify `turn_shared_secret` in Synapse matches TURN server shared secret exactly.
+- Validate UDP/TCP listener ports and relay port-range firewall rules.
+- Check coturn logs for auth failures and relay allocation errors.
+- Confirm clients can fetch TURN credentials from `/_matrix/client/r0/voip/turnServer`.
+
+## Staging/CI validation before production
+
+Because local environments may miss package metadata or Docker tooling, require reproducible validation in CI/staging:
+
+- Run targeted federation blackout tests (`tests/test_federation.py`, `tests/handlers/test_federation_event.py`).
+- Run blackout metric tests (`tests/storage/test_event_metrics.py`).
+- Validate TURN compose profile with `docker compose -f docker/compose.turn.yaml config` and a staging smoke call.
+- Confirm purge metrics and federation rejection metrics on dashboards before rollout.
+
 ## Rollback
 
 1. Set `blackout.enabled: false`.

@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
+from synapse.api.constants import EventTypes
 from synapse.api.errors import FederationError
 from synapse.api.room_versions import RoomVersion, RoomVersions
 from synapse.events import EventBase, make_event_from_dict
@@ -367,3 +368,122 @@ class StripUnsignedFromEventsTestCase(unittest.TestCase):
         # Invite_room_state field is only permitted in event type m.room.member
         self.assertNotIn("invite_room_state", filtered_event3.unsigned)
         self.assertNotIn("more warez", filtered_event3.unsigned)
+
+
+class BlackoutFederationCrossServerTests(unittest.HomeserverTestCase):
+    def default_config(self) -> JsonDict:
+        config = super().default_config()
+        config["blackout"] = {"enabled": True, "signal_event_ttl": "48h"}
+        return config
+
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
+        self.http_client = Mock()
+        return self.setup_test_homeserver(
+            federation_http_client=self.http_client, config=self.default_config()
+        )
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        user_id = UserID("us", "test")
+        requester = create_requester(user_id)
+        room_creator = self.hs.get_room_creation_handler()
+        self.room_id = self.get_success(
+            room_creator.create_room(
+                requester, room_creator._presets_dict["public_chat"], ratelimit=False
+            )
+        )[0]
+
+        self.store = self.hs.get_datastores().main
+
+        most_recent = next(
+            iter(
+                self.get_success(self.store.get_latest_event_ids_in_room(self.room_id))
+            )
+        )
+
+        join_event = make_event_from_dict(
+            {
+                "room_id": self.room_id,
+                "sender": "@baduser:test.serv",
+                "state_key": "@baduser:test.serv",
+                "event_id": "$join_blackout:test.serv",
+                "depth": 1000,
+                "origin_server_ts": 1,
+                "type": EventTypes.Member,
+                "origin": "test.serv",
+                "content": {"membership": "join"},
+                "auth_events": [],
+                "prev_state": [(most_recent, {})],
+                "prev_events": [(most_recent, {})],
+            }
+        )
+
+        self.federation_event_handler = self.hs.get_federation_event_handler()
+
+        async def _check_event_auth(
+            origin: Optional[str], event: EventBase, context: EventContext
+        ) -> None:
+            return None
+
+        self.federation_event_handler._check_event_auth = _check_event_auth  # type: ignore[method-assign]
+
+        self.get_success(
+            self.federation_event_handler.on_receive_pdu("test.serv", join_event)
+        )
+
+    def test_cross_server_blackout_allows_signal_event(self) -> None:
+        most_recent = next(
+            iter(
+                self.get_success(self.store.get_latest_event_ids_in_room(self.room_id))
+            )
+        )
+
+        signal_event = make_event_from_dict(
+            {
+                "room_id": self.room_id,
+                "sender": "@baduser:test.serv",
+                "event_id": "$signal:test.serv",
+                "depth": 1001,
+                "origin_server_ts": 2,
+                "type": EventTypes.BlackoutSignal,
+                "origin": "test.serv",
+                "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                "auth_events": [],
+                "prev_events": [(most_recent, {})],
+            }
+        )
+
+        self.assertEqual(
+            self.get_success(
+                self.federation_event_handler.on_receive_pdu("test.serv", signal_event)
+            ),
+            None,
+        )
+
+    def test_cross_server_blackout_rejects_non_signal_timeline_event(self) -> None:
+        most_recent = next(
+            iter(
+                self.get_success(self.store.get_latest_event_ids_in_room(self.room_id))
+            )
+        )
+
+        message_event = make_event_from_dict(
+            {
+                "room_id": self.room_id,
+                "sender": "@baduser:test.serv",
+                "event_id": "$msg:test.serv",
+                "depth": 1001,
+                "origin_server_ts": 2,
+                "type": EventTypes.Message,
+                "origin": "test.serv",
+                "content": {"msgtype": "m.text", "body": "hello"},
+                "auth_events": [],
+                "prev_events": [(most_recent, {})],
+            }
+        )
+
+        with self.assertRaises(FederationError) as exc:
+            self.get_success(
+                self.federation_event_handler.on_receive_pdu("test.serv", message_event)
+            )
+
+        self.assertEqual(exc.exception.code, 403)

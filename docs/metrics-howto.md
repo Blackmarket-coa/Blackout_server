@@ -323,6 +323,7 @@ For blackout signaling-only deployments, monitor these counters:
 - `synapse_blackout_event_rejections_total{reason=...}`
 - `synapse_blackout_federation_signal_events_accepted_total`
 - `synapse_blackout_federation_event_rejections_total{reason=...}`
+- `synapse_blackout_signal_events_purged_total`
 
 Suggested alerts:
 
@@ -330,3 +331,4 @@ Suggested alerts:
   still sending normal Matrix timeline events.
 - Sustained growth of `invalid_signal_content` rejections indicates protocol drift or
   malformed/abusive peers.
+- Flatline of `synapse_blackout_signal_events_purged_total` with growing signal traffic indicates expiry/purge backlog.
