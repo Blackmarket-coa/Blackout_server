@@ -451,7 +451,6 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(exc.exception.code, 403)
         self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
 
-
     def test_blackout_signal_rejects_missing_message_metadata(self) -> None:
         with self.assertRaises(SynapseError) as exc:
             self.get_success(
@@ -485,6 +484,52 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                             "chunk_announcements": [
                                 {"chunk_id": "chunk-1", "chunk_hash": "not-a-hash"}
                             ],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_rejects_non_sha256_chunk_hash(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "chunk_announcements": [
+                                {"chunk_id": "chunk-1", "chunk_hash": "a" * 96}
+                            ],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_rejects_invalid_ice_candidate_shape(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "ice_candidates": [{"sdpMid": "0"}],
                         },
                     },
                 )
