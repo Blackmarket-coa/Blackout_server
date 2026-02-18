@@ -166,3 +166,36 @@ Here are a few things to try:
 
    If the TURN server is working correctly, you should see at least one `relay`
    entry in the results.
+
+## Blackout production profile (coturn)
+
+For Blackout signaling-only deployments, the repository includes a minimal coturn profile:
+
+- `docker/turn/turnserver.conf`
+- `docker/compose.turn.yaml`
+
+Quick start:
+
+```sh
+cd docker
+export TURN_SHARED_SECRET="<strong-random-secret>"
+export TURN_REALM="turn.example.com"
+docker compose -f compose.turn.yaml up -d
+```
+
+Then configure Synapse (`homeserver.yaml`) to match:
+
+```yaml
+turn_uris:
+  - "turn:turn.example.com:3478?transport=udp"
+  - "turn:turn.example.com:3478?transport=tcp"
+turn_shared_secret: "<same-strong-random-secret>"
+turn_user_lifetime: "1h"
+```
+
+Blackout sizing guidance:
+
+- Baseline: ~200–500 registered users and ~20–50 concurrently active peers.
+- Keep relay UDP port range narrow and explicitly firewall it.
+- Monitor TURN relay saturation, packet loss, and auth failures before increasing peer caps.
+- For phone-hosted server experiments, expect volatility from battery/network churn and prefer fixed-power TURN hosts.

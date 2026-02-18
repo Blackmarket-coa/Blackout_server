@@ -469,6 +469,9 @@ class ServerConfig(Config):
             raise ConfigError("blackout must be a mapping")
 
         self.blackout_enabled = bool(blackout_config.get("enabled", False))
+        self.blackout_skip_push_actions_for_signal = bool(
+            blackout_config.get("skip_push_actions_for_signal", False)
+        )
         self.blackout_signal_event_ttl = self.parse_duration(
             blackout_config.get("signal_event_ttl", "48h")
         )

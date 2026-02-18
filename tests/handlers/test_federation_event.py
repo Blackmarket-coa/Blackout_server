@@ -16,7 +16,8 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import AuthError, StoreError
+from synapse.api.constants import EventTypes
+from synapse.api.errors import AuthError, FederationError, StoreError
 from synapse.api.room_versions import RoomVersion
 from synapse.event_auth import (
     check_state_dependent_auth_rules,

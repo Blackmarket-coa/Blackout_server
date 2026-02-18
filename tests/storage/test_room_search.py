@@ -23,7 +23,12 @@ from synapse.api.errors import StoreError
 from synapse.rest.client import login, room
 from synapse.server import HomeServer
 from synapse.storage.databases.main import DataStore
-from synapse.storage.databases.main.search import Phrase, SearchToken, _tokenize_query
+from synapse.storage.databases.main.search import (
+    Phrase,
+    SearchEntry,
+    SearchToken,
+    _tokenize_query,
+)
 from synapse.storage.engines import PostgresEngine
 from synapse.storage.engines.sqlite import Sqlite3Engine
 from synapse.util import Clock
@@ -372,3 +377,50 @@ class MessageSearchTest(HomeserverTestCase):
             raise SkipTest("Test only applies when sqlite is used as the database")
 
         self._check_test_cases(store, self.COMMON_CASES)
+
+
+class BlackoutEventSearchInsertionTest(HomeserverTestCase):
+    servlets = [
+        synapse.rest.admin.register_servlets_for_client_rest_resource,
+        login.register_servlets,
+        room.register_servlets,
+    ]
+
+    def default_config(self):
+        config = super().default_config()
+        config["blackout"] = {"enabled": True, "signal_event_ttl": "48h"}
+        config["enable_search"] = True
+        return config
+
+    def test_blackout_mode_skips_search_row_insertion(self) -> None:
+        store = self.hs.get_datastores().main
+
+        # Force-search on in process memory to exercise the blackout defensive guard.
+        self.hs.config.server.enable_search = True
+
+        entry = SearchEntry(
+            key="content.body",
+            value="hello",
+            event_id="$blackout-search:test",
+            room_id="!room:test",
+            stream_ordering=1,
+            origin_server_ts=self.clock.time_msec(),
+        )
+
+        self.get_success(
+            store.db_pool.runInteraction(
+                "blackout_skip_search_insert",
+                store.store_search_entries_txn,
+                [entry],
+            )
+        )
+
+        f = self.get_failure(
+            store.db_pool.simple_select_one_onecol(
+                "event_search",
+                {"event_id": entry.event_id},
+                "event_id",
+            ),
+            StoreError,
+        )
+        self.assertEqual(f.value.code, 404)

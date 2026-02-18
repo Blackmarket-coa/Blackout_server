@@ -19,7 +19,7 @@ from parameterized import parameterized
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.constants import EventContentFields, RelationTypes
+from synapse.api.constants import EventContentFields, EventTypes, RelationTypes
 from synapse.api.room_versions import RoomVersions
 from synapse.push.bulk_push_rule_evaluator import BulkPushRuleEvaluator
 from synapse.rest import admin
@@ -164,6 +164,67 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
             )
         )
         self.assertEqual(len(highlighted_actions), int(should_permit))
+
+
+    @override_config(
+        {
+            "blackout": {
+                "enabled": True,
+                "skip_push_actions_for_signal": True,
+                "signal_event_ttl": "48h",
+            }
+        }
+    )
+    def test_blackout_signal_push_actions_can_be_skipped(self) -> None:
+        bulk_evaluator = BulkPushRuleEvaluator(self.hs)
+
+        event, unpersisted_context = self.get_success(
+            self.event_creation_handler.create_event(
+                self.requester,
+                {
+                    "type": EventTypes.BlackoutSignal,
+                    "room_id": self.room_id,
+                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                    "sender": self.alice,
+                },
+            )
+        )
+        context = self.get_success(unpersisted_context.persist(event))
+
+        bulk_evaluator._action_for_event_by_user = AsyncMock()  # type: ignore[method-assign]
+        self.get_success(bulk_evaluator.action_for_events_by_user([(event, context)]))
+
+        bulk_evaluator._action_for_event_by_user.assert_not_called()
+
+    @override_config(
+        {
+            "blackout": {
+                "enabled": True,
+                "skip_push_actions_for_signal": False,
+                "signal_event_ttl": "48h",
+            }
+        }
+    )
+    def test_blackout_signal_push_actions_default_conservative(self) -> None:
+        bulk_evaluator = BulkPushRuleEvaluator(self.hs)
+
+        event, unpersisted_context = self.get_success(
+            self.event_creation_handler.create_event(
+                self.requester,
+                {
+                    "type": EventTypes.BlackoutSignal,
+                    "room_id": self.room_id,
+                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                    "sender": self.alice,
+                },
+            )
+        )
+        context = self.get_success(unpersisted_context.persist(event))
+
+        bulk_evaluator._action_for_event_by_user = AsyncMock()  # type: ignore[method-assign]
+        self.get_success(bulk_evaluator.action_for_events_by_user([(event, context)]))
+
+        bulk_evaluator._action_for_event_by_user.assert_called_once()
 
     @override_config({"push": {"enabled": False}})
     def test_action_for_event_by_user_disabled_by_config(self) -> None:
