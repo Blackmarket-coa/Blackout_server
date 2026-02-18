@@ -313,3 +313,20 @@ The twisted-specific reactor metrics have been renamed.
 | -------------------------------------- | ----------------------- |
 | python_twisted_reactor_pending_calls   | reactor_pending_calls   |
 | python_twisted_reactor_tick_time       | reactor_tick_time       |
+
+
+## Blackout mode metrics
+
+For blackout signaling-only deployments, monitor these counters:
+
+- `synapse_blackout_signal_events_accepted_total`
+- `synapse_blackout_event_rejections_total{reason=...}`
+- `synapse_blackout_federation_signal_events_accepted_total`
+- `synapse_blackout_federation_event_rejections_total{reason=...}`
+
+Suggested alerts:
+
+- High rate of `unsupported_timeline_type` rejections indicates misconfigured clients
+  still sending normal Matrix timeline events.
+- Sustained growth of `invalid_signal_content` rejections indicates protocol drift or
+  malformed/abusive peers.

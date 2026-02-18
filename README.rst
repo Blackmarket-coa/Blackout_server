@@ -36,6 +36,41 @@ which can be used to customise its behaviour after installation.
 There are additional details on how to `configure Synapse for federation here
 <https://matrix-org.github.io/synapse/latest/federate.html>`_.
 
+
+Blackout signaling-only mode
+============================
+
+Blackout Server includes an optional ``blackout`` homeserver configuration block
+for running as a lightweight signaling broker:
+
+.. code-block:: yaml
+
+    blackout:
+      enabled: true
+      signal_event_ttl: "48h"
+
+When enabled, the server:
+
+* accepts ``m.blackout.signal`` events for signaling metadata.
+* rejects all non-state room events except ``m.blackout.signal`` (and internal dummy events).
+* auto-applies event expiry for signaling events (TTL must be 24h-72h).
+* disables media repository and search indexing.
+
+``m.blackout.signal`` payloads are restricted to signaling metadata fields:
+``ice_candidates``, ``sdp_offer``, ``sdp_answer``, ``message_metadata``, and
+``chunk_announcements``.
+
+TURN/STUN for phone-hosted deployments
+--------------------------------------
+
+For NAT traversal, configure TURN/STUN in Synapse using ``turn_uris`` and
+``turn_shared_secret``. For production use, run a dedicated ``coturn`` service
+with a minimal shared-secret setup. Synapse should coordinate ICE credentials;
+payload relay should remain peer-to-peer by default, with TURN as fallback.
+
+For implementation sequencing, see `Phase 2 PR plan <docs/blackout_phase2_pr_plan.md>`_.
+For operations guidance, see `Blackout Ops Runbook <docs/blackout-ops-runbook.md>`_.
+
 .. _reverse-proxy:
 
 Using a reverse proxy with Synapse
