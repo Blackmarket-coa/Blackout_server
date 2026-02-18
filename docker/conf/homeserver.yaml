@@ -154,6 +154,11 @@ turn_allow_guests: True
 # - Disables m.room.message and m.room.encrypted event persistence.
 # - Forces media repository and search off.
 # - Automatically sets signal-event expiry.
+# Phone-hosted low-resource profile recommendation:
+#   blackout.enabled: true
+#   enable_search: false
+#   enable_media_repo: false
+#   Prefer 200-500 registered users and 20-50 active peers.
 blackout:
   enabled: false
   signal_event_ttl: "48h"

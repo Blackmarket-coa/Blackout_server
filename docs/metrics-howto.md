@@ -340,3 +340,21 @@ Suggested alerts and thresholds:
 - Sustained growth of `invalid_signal_content` rejections indicates protocol drift or
   malformed/abusive peers.
 - Flatline of `synapse_blackout_signal_events_purged_total` with growing signal traffic indicates expiry/purge backlog.
+
+## Blackout-mode dashboards and alerts
+
+Track these blackout metrics in dedicated panels:
+
+- `synapse_blackout_signal_events_accepted_total`
+- `synapse_blackout_event_rejections_total`
+- `synapse_blackout_federation_event_rejections_total`
+- `synapse_blackout_signal_revoked_key_rejections_total`
+- `synapse_blackout_federation_signal_revoked_key_rejections_total`
+- `synapse_blackout_signal_redundancy_metadata_missing_total`
+- `synapse_blackout_signal_redundancy_metadata_invalid_total`
+- `synapse_blackout_signal_events_purged_total`
+
+Suggested alerts:
+- Federation reject ratio >2% for 5m (warning), >5% for 15m (critical).
+- Purge lag age >10m (warning), >30m (critical).
+- Sudden increases in revoked-key rejections or invalid redundancy metadata.

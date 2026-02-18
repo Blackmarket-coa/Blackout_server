@@ -401,7 +401,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                     "type": EventTypes.BlackoutSignal,
                     "room_id": self.room_id,
                     "sender": self.user_id,
-                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}, "message_metadata": {"message_id": "msg-ttl", "sender_key_id": "ed25519:dev-1"}},
                 },
             )
         )
