@@ -326,7 +326,9 @@ For blackout signaling-only deployments, monitor these counters:
 - `synapse_blackout_federation_event_rejections_total{reason=...}`
 - `synapse_blackout_signal_events_purged_total`
 - `synapse_blackout_signal_redundancy_metadata_missing_total`
+- `synapse_blackout_signal_redundancy_metadata_invalid_total`
 - `synapse_blackout_federation_signal_redundancy_metadata_missing_total`
+- `synapse_blackout_federation_signal_redundancy_metadata_invalid_total`
 
 Suggested alerts and thresholds:
 
@@ -352,6 +354,7 @@ Track these blackout metrics in dedicated panels:
 - `synapse_blackout_federation_signal_revoked_key_rejections_total`
 - `synapse_blackout_signal_redundancy_metadata_missing_total`
 - `synapse_blackout_signal_redundancy_metadata_invalid_total`
+- `synapse_blackout_federation_signal_redundancy_metadata_invalid_total`
 - `synapse_blackout_signal_events_purged_total`
 
 Suggested alerts:

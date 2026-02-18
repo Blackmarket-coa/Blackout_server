@@ -10,6 +10,7 @@ _HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
 @dataclass(frozen=True)
 class BlackoutSignalValidationResult:
     missing_redundancy_metadata: bool = False
+    invalid_redundancy_metadata: bool = False
 
 
 def _is_fixed_length_hash(value: Any) -> bool:
@@ -73,6 +74,7 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
         raise ValueError("chunk_announcements must be a list")
 
     missing_redundancy_metadata = False
+    invalid_redundancy_metadata = False
     for idx, chunk in enumerate(chunk_announcements):
         prefix = f"chunk_announcements[{idx}]"
         if not isinstance(chunk, dict):
@@ -112,8 +114,13 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
                     f"{prefix}.replica_hints must contain non-empty string entries"
                 )
 
+        if isinstance(replication_factor, int) and isinstance(replica_hints, list):
+            if len(replica_hints) < replication_factor:
+                invalid_redundancy_metadata = True
+
     return BlackoutSignalValidationResult(
-        missing_redundancy_metadata=missing_redundancy_metadata
+        missing_redundancy_metadata=missing_redundancy_metadata,
+        invalid_redundancy_metadata=invalid_redundancy_metadata,
     )
 
 
