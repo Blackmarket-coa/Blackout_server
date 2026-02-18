@@ -184,6 +184,9 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
 
         if devices:
             user_devices = devices[user_id]
+            revoked_by_device = await self.get_revoked_device_key_timestamps_for_devices(
+                user_id, user_devices.keys()
+            )
             results = []
             for device_id, device in user_devices.items():
                 result: JsonDict = {"device_id": device_id}
@@ -197,6 +200,11 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                     device_display_name = device.display_name
                 if device_display_name:
                     result["device_display_name"] = device_display_name
+
+                revoked_ts = revoked_by_device.get(device_id)
+                if revoked_ts is not None:
+                    result["org.matrix.msc_blackout_device_revoked"] = True
+                    result["org.matrix.msc_blackout_device_revoked_ts"] = revoked_ts
 
                 results.append(result)
 
@@ -231,6 +239,9 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
         # "unsigned" section
         rv: Dict[str, Dict[str, JsonDict]] = {}
         for user_id, device_keys in results.items():
+            revoked_by_device = await self.get_revoked_device_key_timestamps_for_devices(
+                user_id, device_keys.keys()
+            )
             rv[user_id] = {}
             for device_id, device_info in device_keys.items():
                 r = device_info.keys
@@ -244,9 +255,7 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                     if display_name is not None:
                         r["unsigned"]["device_display_name"] = display_name
 
-                revoked_ts = await self.get_revoked_device_key_timestamp_for_device(
-                    user_id, device_id
-                )
+                revoked_ts = revoked_by_device.get(device_id)
                 if revoked_ts is not None:
                     r["unsigned"]["org.matrix.msc_blackout_device_revoked"] = True
                     r["unsigned"][
@@ -396,6 +405,34 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
             retcol="revoked_ts",
             allow_none=True,
             desc="get_revoked_device_key_timestamp_for_device",
+        )
+
+    async def get_revoked_device_key_timestamps_for_devices(
+        self, user_id: str, device_ids: Collection[str]
+    ) -> Dict[str, int]:
+        """Get revocation timestamps for a set of devices for a single user."""
+
+        if not device_ids:
+            return {}
+
+        def _get_revoked_device_key_timestamps_for_devices_txn(
+            txn: LoggingTransaction,
+        ) -> Dict[str, int]:
+            device_clause, device_args = make_in_list_sql_clause(
+                self.database_engine, "device_id", device_ids
+            )
+            sql = (
+                "SELECT device_id, MAX(revoked_ts)"
+                " FROM e2e_device_key_revocations"
+                " WHERE user_id = ? AND %s"
+                " GROUP BY device_id"
+            ) % (device_clause,)
+            txn.execute(sql, [user_id] + device_args)
+            return {device_id: revoked_ts for device_id, revoked_ts in txn}
+
+        return await self.db_pool.runInteraction(
+            "get_revoked_device_key_timestamps_for_devices",
+            _get_revoked_device_key_timestamps_for_devices_txn,
         )
 
     async def _get_e2e_device_keys(

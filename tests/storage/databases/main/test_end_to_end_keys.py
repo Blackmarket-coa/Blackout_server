@@ -154,3 +154,32 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
             self.store.get_revoked_device_key_timestamp_for_device(user_id, device_id)
         )
         self.assertEqual(revoked_for_device_ts, revoked_ts)
+
+    def test_get_revoked_device_key_timestamps_for_devices(self) -> None:
+        user_id = "@alice:test"
+        device_ids = ["A", "B"]
+
+        for i, device_id in enumerate(device_ids):
+            self.get_success(
+                self.store.set_e2e_device_keys(
+                    user_id,
+                    device_id,
+                    1_000 + i,
+                    {
+                        "user_id": user_id,
+                        "device_id": device_id,
+                        "keys": {f"ed25519:{device_id}": f"key-{device_id}"},
+                    },
+                )
+            )
+            self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
+
+        revoked_by_device = self.get_success(
+            self.store.get_revoked_device_key_timestamps_for_devices(
+                user_id, ["A", "B", "C"]
+            )
+        )
+
+        self.assertCountEqual(revoked_by_device.keys(), ["A", "B"])
+        self.assertIsInstance(revoked_by_device["A"], int)
+        self.assertIsInstance(revoked_by_device["B"], int)
