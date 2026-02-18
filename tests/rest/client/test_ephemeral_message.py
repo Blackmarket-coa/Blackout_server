@@ -105,3 +105,61 @@ class EphemeralMessageTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, expected_code, channel.result)
 
         return channel.json_body
+
+
+class BlackoutSignalEphemeralMessageTestCase(unittest.HomeserverTestCase):
+    user_id = "@user:test"
+
+    servlets = [
+        admin.register_servlets,
+        room.register_servlets,
+    ]
+
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
+        config = self.default_config()
+        config["enable_ephemeral_messages"] = True
+        config["blackout"] = {"enabled": True, "signal_event_ttl": "24h"}
+
+        self.hs = self.setup_test_homeserver(config=config)
+        return self.hs
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.room_id = self.helper.create_room_as(self.user_id)
+
+    def test_blackout_signal_event_expiry_delay(self) -> None:
+        """Signal events in blackout mode should expire after their assigned TTL."""
+        res = self.helper.send_event(
+            room_id=self.room_id,
+            type=EventTypes.BlackoutSignal,
+            content={
+                "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                EventContentFields.SELF_DESTRUCT_AFTER: self.clock.time_msec() + 1000,
+            },
+        )
+        event_id = res["event_id"]
+
+        event_content = self.get_event(self.room_id, event_id)["content"]
+        self.assertTrue(bool(event_content), event_content)
+
+        self.reactor.advance(1)
+
+        event_content = self.get_event(self.room_id, event_id)["content"]
+        self.assertFalse(bool(event_content), event_content)
+
+    def test_blackout_blocks_room_message_storage(self) -> None:
+        self.helper.send(
+            self.room_id,
+            body="blocked",
+            expect_code=HTTPStatus.FORBIDDEN,
+        )
+
+    def get_event(
+        self, room_id: str, event_id: str, expected_code: int = HTTPStatus.OK
+    ) -> JsonDict:
+        url = "/_matrix/client/r0/rooms/%s/event/%s" % (room_id, event_id)
+
+        channel = self.make_request("GET", url)
+
+        self.assertEqual(channel.code, expected_code, channel.result)
+
+        return channel.json_body

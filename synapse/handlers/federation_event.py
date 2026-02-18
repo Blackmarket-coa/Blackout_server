@@ -217,6 +217,13 @@ class FederationEventHandler:
             blackout_federation_event_rejections_counter.labels(
                 reason="unsupported_timeline_type"
             ).inc()
+            logger.info(
+                "Rejecting federated event in blackout mode: room_id=%s event_id=%s type=%s origin=%s",
+                event.room_id,
+                event.event_id,
+                event.type,
+                event.sender,
+            )
             raise FederationError(
                 "ERROR",
                 403,
@@ -239,6 +246,13 @@ class FederationEventHandler:
                 blackout_federation_event_rejections_counter.labels(
                     reason="invalid_signal_content"
                 ).inc()
+                logger.info(
+                    "Rejecting federated signal content in blackout mode: room_id=%s event_id=%s sender=%s unknown_keys=%s",
+                    event.room_id,
+                    event.event_id,
+                    event.sender,
+                    ",".join(sorted(unknown)),
+                )
                 raise FederationError(
                     "ERROR",
                     400,

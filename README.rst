@@ -70,6 +70,7 @@ payload relay should remain peer-to-peer by default, with TURN as fallback.
 
 For implementation sequencing, see `Phase 2 PR plan <docs/blackout_phase2_pr_plan.md>`_.
 For operations guidance, see `Blackout Ops Runbook <docs/blackout-ops-runbook.md>`_.
+For security/scalability backlog execution, see `Parts 3-6 plan <docs/blackout_parts3_6_execution_plan.md>`_.
 
 .. _reverse-proxy:
 
