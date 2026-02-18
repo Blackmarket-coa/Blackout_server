@@ -111,6 +111,10 @@ blackout_federation_event_rejections_counter = Counter(
     "Federated timeline events rejected while blackout mode is enabled",
     ["reason"],
 )
+blackout_federation_signal_revoked_key_rejections_counter = Counter(
+    "synapse_blackout_federation_signal_revoked_key_rejections_total",
+    "Federated blackout signal events rejected due to revoked sender keys",
+)
 
 # Added to debug performance and track progress on optimizations
 backfill_processing_after_timer = Histogram(
@@ -206,7 +210,46 @@ class FederationEventHandler:
 
         self._room_pdu_linearizer = Linearizer("fed_room_pdu")
 
-    def _enforce_blackout_event_rules(self, event: EventBase) -> None:
+    def _extract_sender_key_identifiers(self, content: dict) -> List[str]:
+        message_metadata = content.get("message_metadata")
+        if not isinstance(message_metadata, dict):
+            return []
+
+        key_identifiers = []
+        sender_key_id = message_metadata.get("sender_key_id")
+        sender_key = message_metadata.get("sender_key")
+
+        if isinstance(sender_key_id, str):
+            key_identifiers.append(sender_key_id)
+        if isinstance(sender_key, str):
+            key_identifiers.append(sender_key)
+
+        return key_identifiers
+
+    async def _enforce_blackout_signal_device_revocation(self, event: EventBase) -> None:
+        for key_identifier in self._extract_sender_key_identifiers(event.content):
+            revoked_ts = await self._store.get_revoked_device_key_timestamp(
+                event.sender, key_identifier
+            )
+            if revoked_ts is not None:
+                blackout_federation_event_rejections_counter.labels(
+                    reason="revoked_device_key"
+                ).inc()
+                blackout_federation_signal_revoked_key_rejections_counter.inc()
+                logger.info(
+                    "Rejecting federated signal from revoked device key in blackout mode: room_id=%s event_id=%s sender=%s",
+                    event.room_id,
+                    event.event_id,
+                    event.sender,
+                )
+                raise FederationError(
+                    "ERROR",
+                    403,
+                    "m.blackout.signal sender key has been revoked",
+                    affected=event.event_id,
+                )
+
+    async def _enforce_blackout_event_rules(self, event: EventBase) -> None:
         if not self._blackout_enabled:
             return
 
@@ -261,6 +304,7 @@ class FederationEventHandler:
                     affected=event.event_id,
                 )
 
+            await self._enforce_blackout_signal_device_revocation(event)
             blackout_federation_signal_events_accepted_counter.inc()
 
     async def on_receive_pdu(self, origin: str, pdu: EventBase) -> None:
@@ -308,7 +352,7 @@ class FederationEventHandler:
             logger.warning("Received event failed sanity checks")
             raise FederationError("ERROR", err.code, err.msg, affected=pdu.event_id)
 
-        self._enforce_blackout_event_rules(pdu)
+        await self._enforce_blackout_event_rules(pdu)
 
         # If we are currently in the process of joining this room, then we
         # queue up events for later processing.

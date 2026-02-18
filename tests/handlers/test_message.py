@@ -411,6 +411,46 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.assertIsInstance(expiry, int)
         self.assertGreater(expiry, self.clock.time_msec())
 
+    def test_blackout_signal_rejects_revoked_sender_key(self) -> None:
+        self.get_success(
+            self.hs.get_datastores().main.set_e2e_device_keys(
+                self.user_id,
+                "dev-1",
+                self.clock.time_msec(),
+                {
+                    "user_id": self.user_id,
+                    "device_id": "dev-1",
+                    "keys": {"ed25519:dev-1": "revoked-key-material"},
+                },
+            )
+        )
+        self.get_success(
+            self.hs.get_datastores().main.delete_e2e_keys_by_device(
+                self.user_id, "dev-1"
+            )
+        )
+
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            }
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 403)
+        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+
     def test_blackout_signal_rejects_unknown_fields(self) -> None:
         with self.assertRaises(SynapseError) as exc:
             self.get_success(

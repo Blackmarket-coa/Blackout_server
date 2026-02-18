@@ -22,6 +22,8 @@ blackout:
 - Confirm counters increment:
   - `synapse_blackout_signal_events_accepted_total`
   - `synapse_blackout_event_rejections_total`
+  - `synapse_blackout_signal_revoked_key_rejections_total`
+  - `synapse_blackout_federation_signal_revoked_key_rejections_total`
 
 ## Federation checks
 
@@ -47,6 +49,30 @@ Actions:
 - Compare payload keys with allowlist (`ice_candidates`, `sdp_offer`,
   `sdp_answer`, `message_metadata`, `chunk_announcements`).
 - Check upstream peers for outdated schema.
+
+### High revoked-device-key rejections
+
+Likely cause: compromised device, stale sender metadata, or malicious replay.
+
+Actions:
+- Inspect `synapse_blackout_signal_revoked_key_rejections_total` and
+  `synapse_blackout_federation_signal_revoked_key_rejections_total` trend lines.
+- Correlate rejected user IDs/device IDs with recent logout/device-delete activity.
+- If rejections are unexpected, rotate active device keys and invalidate sessions.
+
+## Retention policy for `e2e_device_key_revocations`
+
+Policy decision: **immutable revocation history by default**.
+
+Rationale:
+- Revocations are security-critical denylist signals.
+- Re-accepting previously revoked key identifiers after TTL can re-open compromise windows.
+
+Operational guidance:
+- Keep rows indefinitely unless there is a legal/data-retention requirement forcing expiry.
+- If expiry is required, use a long minimum (>= 180 days) and pair with client key rotation
+  policy + audit logging.
+- During DB maintenance, never bulk-delete recent revocations without incident review.
 
 ## Rollback
 
