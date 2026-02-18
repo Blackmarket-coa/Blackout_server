@@ -92,6 +92,10 @@ blackout_event_rejections_counter = Counter(
     "Timeline events rejected while blackout mode is enabled",
     ["reason"],
 )
+blackout_signal_revoked_key_rejections_counter = Counter(
+    "synapse_blackout_signal_revoked_key_rejections_total",
+    "Blackout signal events rejected due to revoked sender keys at local ingress",
+)
 
 
 class MessageHandler:
@@ -625,6 +629,7 @@ class EventCreationHandler:
                 blackout_event_rejections_counter.labels(
                     reason="revoked_device_key"
                 ).inc()
+                blackout_signal_revoked_key_rejections_counter.inc()
                 raise SynapseError(
                     403,
                     "m.blackout.signal sender key has been revoked",

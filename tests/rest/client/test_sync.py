@@ -26,7 +26,7 @@ from synapse.api.constants import (
     ReceiptTypes,
     RelationTypes,
 )
-from synapse.rest.client import devices, knock, login, read_marker, receipts, room, sync
+from synapse.rest.client import devices, keys, knock, login, read_marker, receipts, room, sync
 from synapse.server import HomeServer
 from synapse.types import JsonDict
 from synapse.util import Clock
@@ -688,7 +688,74 @@ class DeviceListSyncTestCase(unittest.HomeserverTestCase):
         login.register_servlets,
         sync.register_servlets,
         devices.register_servlets,
+        room.register_servlets,
+        keys.register_servlets,
     ]
+
+    def test_revoked_device_metadata_flows_through_sync_and_keys_query(self) -> None:
+        """Ensure revoked metadata is observable by clients after device-list changes."""
+
+        alice = self.register_user("alice", "password")
+        alice_tok = self.login("alice", "password", device_id="ALICE_DEVICE")
+
+        bob = self.register_user("bob", "password")
+        bob_tok = self.login("bob", "password", device_id="BOB_DEVICE")
+
+        room_id = self.helper.create_room_as(alice, tok=alice_tok)
+        self.helper.invite(room_id, src=alice, tok=alice_tok, targ=bob)
+        self.helper.join(room_id, user=bob, tok=bob_tok)
+
+        # Initial sync to get a baseline token.
+        channel = self.make_request("GET", "/sync", access_token=bob_tok)
+        self.assertEqual(channel.code, 200, channel.json_body)
+        next_batch = channel.json_body["next_batch"]
+
+        # Revoke Alice's device keys and emit a device-list update.
+        store = self.hs.get_datastores().main
+        self.get_success(
+            store.set_e2e_device_keys(
+                alice,
+                "ALICE_DEVICE",
+                self.clock.time_msec(),
+                {
+                    "user_id": alice,
+                    "device_id": "ALICE_DEVICE",
+                    "keys": {"ed25519:ALICE_DEVICE": "alice-revoked-key"},
+                },
+            )
+        )
+        self.get_success(store.delete_e2e_keys_by_device(alice, "ALICE_DEVICE"))
+        self.get_success(
+            self.hs.get_device_handler().notify_device_update(alice, ["ALICE_DEVICE"])
+        )
+
+        incremental = self.make_request(
+            "GET",
+            f"/sync?since={next_batch}",
+            access_token=bob_tok,
+        )
+        self.assertEqual(incremental.code, 200, incremental.json_body)
+
+        changed = incremental.json_body.get("device_lists", {}).get("changed", [])
+        self.assertIn(alice, changed, incremental.json_body)
+
+        query = self.make_request(
+            "POST",
+            "/_matrix/client/r0/keys/query",
+            {"device_keys": {alice: ["ALICE_DEVICE"]}},
+            access_token=bob_tok,
+        )
+        self.assertEqual(query.code, 200, query.json_body)
+
+        device_keys = query.json_body["device_keys"][alice]["ALICE_DEVICE"]
+        self.assertTrue(
+            device_keys["unsigned"]["org.matrix.msc_blackout_device_revoked"],
+            query.json_body,
+        )
+        self.assertIsInstance(
+            device_keys["unsigned"]["org.matrix.msc_blackout_device_revoked_ts"],
+            int,
+        )
 
     def test_user_with_no_rooms_receives_self_device_list_updates(self) -> None:
         """Tests that a user with no rooms still receives their own device list updates"""

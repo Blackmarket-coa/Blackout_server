@@ -1139,3 +1139,61 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
                 bert_member_event.event_id,
                 "Rejected kick event unexpectedly became part of room state.",
             )
+
+
+class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCase):
+    servlets = [
+        admin.register_servlets,
+        login.register_servlets,
+        room.register_servlets,
+    ]
+
+    def default_config(self) -> JsonDict:
+        config = super().default_config()
+        config["blackout"] = {"enabled": True, "signal_event_ttl": "48h"}
+        return config
+
+    def test_federation_ingress_rejects_revoked_sender_key(self) -> None:
+        store = self.hs.get_datastores().main
+        remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
+
+        self.get_success(
+            store.db_pool.simple_insert(
+                table="e2e_device_key_revocations",
+                values={
+                    "user_id": remote_user_id,
+                    "device_id": "remote-device",
+                    "key_identifier": "id:ed25519:remote-device",
+                    "revoked_ts": self.clock.time_msec(),
+                },
+                desc="insert_revoked_remote_device_key",
+            )
+        )
+
+        pdu = make_event_from_dict(
+            self.add_hashes_and_signatures_from_other_server(
+                {
+                    "type": "m.blackout.signal",
+                    "room_id": "!room:test",
+                    "sender": remote_user_id,
+                    "origin_server_ts": 1,
+                    "depth": 1,
+                    "prev_events": [],
+                    "auth_events": [],
+                    "content": {
+                        "message_metadata": {
+                            "message_id": "msg-1",
+                            "sender_key_id": "ed25519:remote-device",
+                        }
+                    },
+                }
+            ),
+            room_version=RoomVersions.V10,
+        )
+
+        with self.assertRaisesRegex(FederationError, "sender key has been revoked"):
+            self.get_success(
+                self.hs.get_federation_event_handler().on_receive_pdu(
+                    self.OTHER_SERVER_NAME, pdu
+                )
+            )

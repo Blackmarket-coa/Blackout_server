@@ -111,6 +111,10 @@ blackout_federation_event_rejections_counter = Counter(
     "Federated timeline events rejected while blackout mode is enabled",
     ["reason"],
 )
+blackout_federation_signal_revoked_key_rejections_counter = Counter(
+    "synapse_blackout_federation_signal_revoked_key_rejections_total",
+    "Federated blackout signal events rejected due to revoked sender keys",
+)
 
 # Added to debug performance and track progress on optimizations
 backfill_processing_after_timer = Histogram(
@@ -231,6 +235,7 @@ class FederationEventHandler:
                 blackout_federation_event_rejections_counter.labels(
                     reason="revoked_device_key"
                 ).inc()
+                blackout_federation_signal_revoked_key_rejections_counter.inc()
                 logger.info(
                     "Rejecting federated signal from revoked device key in blackout mode: room_id=%s event_id=%s sender=%s",
                     event.room_id,

@@ -321,12 +321,21 @@ For blackout signaling-only deployments, monitor these counters:
 
 - `synapse_blackout_signal_events_accepted_total`
 - `synapse_blackout_event_rejections_total{reason=...}`
+- `synapse_blackout_signal_revoked_key_rejections_total`
 - `synapse_blackout_federation_signal_events_accepted_total`
 - `synapse_blackout_federation_event_rejections_total{reason=...}`
+- `synapse_blackout_federation_signal_revoked_key_rejections_total`
 
-Suggested alerts:
+Suggested alerts and thresholds:
 
 - High rate of `unsupported_timeline_type` rejections indicates misconfigured clients
   still sending normal Matrix timeline events.
+  - **Warning**: >1/min sustained for 10m.
+  - **Critical**: >10/min sustained for 10m.
 - Sustained growth of `invalid_signal_content` rejections indicates protocol drift or
   malformed/abusive peers.
+  - **Warning**: >0.5% of blackout signal ingress over 15m.
+  - **Critical**: >2% over 15m.
+- Any non-zero revoked-key rejection rate should be treated as potential compromise activity.
+  - **Warning**: >0/min for 5m (investigate sender/device provenance).
+  - **Critical**: >5/min for 5m (assume active abuse or compromised fleet).
