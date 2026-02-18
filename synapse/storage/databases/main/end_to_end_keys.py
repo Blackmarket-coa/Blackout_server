@@ -95,6 +95,9 @@ class EndToEndKeyBackgroundStore(SQLBaseStore):
 
 
 class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorkerStore):
+    _REVOKED_KEY_IDENTIFIER_PREFIX = "id:"
+    _REVOKED_KEY_VALUE_PREFIX = "val:"
+
     def __init__(
         self,
         database: DatabasePool,
@@ -241,6 +244,15 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                     if display_name is not None:
                         r["unsigned"]["device_display_name"] = display_name
 
+                revoked_ts = await self.get_revoked_device_key_timestamp_for_device(
+                    user_id, device_id
+                )
+                if revoked_ts is not None:
+                    r["unsigned"]["org.matrix.msc_blackout_device_revoked"] = True
+                    r["unsigned"][
+                        "org.matrix.msc_blackout_device_revoked_ts"
+                    ] = revoked_ts
+
                 rv[user_id][device_id] = r
 
         return rv
@@ -345,6 +357,46 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
 
         log_kv(result)
         return result
+
+    async def get_revoked_device_key_timestamp(
+        self, user_id: str, key_identifier: str
+    ) -> Optional[int]:
+        """Get the latest revocation timestamp for a device key identifier.
+
+        The key identifier may be a key ID (for example ``ed25519:ABC``) or
+        raw key material. We check both namespaces.
+        """
+
+        return await self.db_pool.simple_select_one_onecol(
+            table="e2e_device_key_revocations",
+            keyvalues={
+                "user_id": user_id,
+                "key_identifier": self._REVOKED_KEY_IDENTIFIER_PREFIX + key_identifier,
+            },
+            retcol="revoked_ts",
+            allow_none=True,
+            desc="get_revoked_device_key_timestamp",
+        ) or await self.db_pool.simple_select_one_onecol(
+            table="e2e_device_key_revocations",
+            keyvalues={
+                "user_id": user_id,
+                "key_identifier": self._REVOKED_KEY_VALUE_PREFIX + key_identifier,
+            },
+            retcol="revoked_ts",
+            allow_none=True,
+            desc="get_revoked_device_key_timestamp_by_value",
+        )
+
+    async def get_revoked_device_key_timestamp_for_device(
+        self, user_id: str, device_id: str
+    ) -> Optional[int]:
+        return await self.db_pool.simple_select_one_onecol(
+            table="e2e_device_key_revocations",
+            keyvalues={"user_id": user_id, "device_id": device_id},
+            retcol="revoked_ts",
+            allow_none=True,
+            desc="get_revoked_device_key_timestamp_for_device",
+        )
 
     async def _get_e2e_device_keys(
         self,
@@ -1523,6 +1575,54 @@ class EndToEndKeyStore(EndToEndKeyWorkerStore, SQLBaseStore):
                     "user_id": user_id,
                 }
             )
+            key_json = self.db_pool.simple_select_one_onecol_txn(
+                txn,
+                table="e2e_device_keys_json",
+                keyvalues={"user_id": user_id, "device_id": device_id},
+                retcol="key_json",
+                allow_none=True,
+            )
+
+            if key_json:
+                key_data = db_to_json(key_json)
+                key_map = key_data.get("keys", {}) if isinstance(key_data, dict) else {}
+                if isinstance(key_map, dict):
+                    revocation_rows = []
+                    revoked_ts = self._clock.time_msec()
+                    for key_id, key_value in key_map.items():
+                        if isinstance(key_id, str):
+                            revocation_rows.append(
+                                {
+                                    "user_id": user_id,
+                                    "device_id": device_id,
+                                    "key_identifier": self._REVOKED_KEY_IDENTIFIER_PREFIX
+                                    + key_id,
+                                    "revoked_ts": revoked_ts,
+                                }
+                            )
+                        if isinstance(key_value, str):
+                            revocation_rows.append(
+                                {
+                                    "user_id": user_id,
+                                    "device_id": device_id,
+                                    "key_identifier": self._REVOKED_KEY_VALUE_PREFIX
+                                    + key_value,
+                                    "revoked_ts": revoked_ts,
+                                }
+                            )
+
+                    for row in revocation_rows:
+                        self.db_pool.simple_upsert_txn(
+                            txn,
+                            table="e2e_device_key_revocations",
+                            keyvalues={
+                                "user_id": row["user_id"],
+                                "device_id": row["device_id"],
+                                "key_identifier": row["key_identifier"],
+                            },
+                            values={"revoked_ts": row["revoked_ts"]},
+                        )
+
             self.db_pool.simple_delete_txn(
                 txn,
                 table="e2e_device_keys_json",

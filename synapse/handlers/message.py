@@ -598,7 +598,40 @@ class EventCreationHandler:
                 % ", ".join(sorted(unknown)),
             )
 
-    def _enforce_blackout_event_rules(self, event_dict: JsonDict) -> None:
+    def _extract_sender_key_identifiers(self, content: JsonDict) -> List[str]:
+        message_metadata = content.get("message_metadata")
+        if not isinstance(message_metadata, dict):
+            return []
+
+        key_identifiers = []
+        sender_key_id = message_metadata.get("sender_key_id")
+        sender_key = message_metadata.get("sender_key")
+
+        if isinstance(sender_key_id, str):
+            key_identifiers.append(sender_key_id)
+        if isinstance(sender_key, str):
+            key_identifiers.append(sender_key)
+
+        return key_identifiers
+
+    async def _enforce_blackout_signal_device_revocation(
+        self, sender: str, content: JsonDict
+    ) -> None:
+        for key_identifier in self._extract_sender_key_identifiers(content):
+            revoked_ts = await self.store.get_revoked_device_key_timestamp(
+                sender, key_identifier
+            )
+            if revoked_ts is not None:
+                blackout_event_rejections_counter.labels(
+                    reason="revoked_device_key"
+                ).inc()
+                raise SynapseError(
+                    403,
+                    "m.blackout.signal sender key has been revoked",
+                    Codes.FORBIDDEN,
+                )
+
+    async def _enforce_blackout_event_rules(self, event_dict: JsonDict) -> None:
         if not self._blackout_enabled:
             return
 
@@ -619,6 +652,9 @@ class EventCreationHandler:
         if event_type == EventTypes.BlackoutSignal:
             content = event_dict.setdefault("content", {})
             self._validate_blackout_signal_content(content)
+            await self._enforce_blackout_signal_device_revocation(
+                event_dict["sender"], content
+            )
             content.setdefault(
                 EventContentFields.SELF_DESTRUCT_AFTER,
                 self.clock.time_msec() + self._blackout_signal_event_ttl,
@@ -709,7 +745,7 @@ class EventCreationHandler:
         """
         await self.auth_blocking.check_auth_blocking(requester=requester)
 
-        self._enforce_blackout_event_rules(event_dict)
+        await self._enforce_blackout_event_rules(event_dict)
 
         if event_dict["type"] == EventTypes.Create and event_dict["state_key"] == "":
             room_version_id = event_dict["content"]["room_version"]

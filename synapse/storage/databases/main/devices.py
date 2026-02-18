@@ -624,6 +624,13 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
                     if keys:
                         result["keys"] = keys
 
+                    revoked_ts = await self.get_revoked_device_key_timestamp_for_device(
+                        user_id, device_id
+                    )
+                    if revoked_ts is not None:
+                        result["org.matrix.msc_blackout_device_revoked"] = True
+                        result["org.matrix.msc_blackout_device_revoked_ts"] = revoked_ts
+
                     device_display_name = None
                     if (
                         self.hs.config.federation.allow_device_name_lookup_over_federation

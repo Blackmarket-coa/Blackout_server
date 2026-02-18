@@ -136,6 +136,45 @@ class DeviceStoreTestCase(HomeserverTestCase):
         # Check original device_ids are contained within these updates
         self._check_devices_in_updates(device_ids, device_updates)
 
+
+    def test_get_device_updates_by_remote_includes_revocation_metadata(self) -> None:
+        user_id = "@user_id:test"
+        device_id = "device_id1"
+
+        self.get_success(self.store.store_device(user_id, device_id, "display_name"))
+        self.get_success(
+            self.store.set_e2e_device_keys(
+                user_id,
+                device_id,
+                self.clock.time_msec(),
+                {
+                    "user_id": user_id,
+                    "device_id": device_id,
+                    "keys": {"ed25519:device_id1": "revoked-key-material"},
+                },
+            )
+        )
+        self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
+
+        self.add_device_change(user_id, [device_id], "somehost")
+
+        _, device_updates = self.get_success(
+            self.store.get_device_updates_by_remote("somehost", -1, limit=10)
+        )
+
+        device_update_payloads = [
+            payload
+            for edu_type, payload in device_updates
+            if edu_type == EduTypes.DEVICE_LIST_UPDATE
+        ]
+        self.assertEqual(1, len(device_update_payloads))
+        self.assertTrue(
+            device_update_payloads[0]["org.matrix.msc_blackout_device_revoked"]
+        )
+        self.assertIsInstance(
+            device_update_payloads[0]["org.matrix.msc_blackout_device_revoked_ts"], int
+        )
+
     def test_get_device_updates_by_remote_can_limit_properly(self) -> None:
         """
         Tests that `get_device_updates_by_remote` returns an appropriate
