@@ -15,8 +15,8 @@ This document covers concrete implementation steps after Phase 2 to execute:
   - Revocation markers/timestamps stored.
   - Revoked sender keys rejected at local + federation blackout ingress.
   - Revocation metadata propagated through device-list/sync-visible flows.
-- [ ] **3.1 Envelope and signaling schema hardening**
-- [ ] **3.2 Integrity hooks (chunk + merkle)**
+- [x] **3.1 Envelope and signaling schema hardening**
+- [x] **3.2 Integrity hooks (chunk + merkle)**
 
 ## 3.1 Envelope and signaling schema hardening
 

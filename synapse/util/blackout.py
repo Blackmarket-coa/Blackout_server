@@ -10,24 +10,25 @@ _HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
 @dataclass(frozen=True)
 class BlackoutSignalValidationResult:
     missing_redundancy_metadata: bool = False
+    invalid_redundancy_metadata: bool = False
 
 
 def _is_fixed_length_hash(value: Any) -> bool:
     if not isinstance(value, str):
         return False
 
-    # Accept fixed-size 32/48/64-byte hashes encoded as hex.
-    if len(value) in (64, 96, 128) and _HEX_RE.fullmatch(value):
+    # Accept SHA-256 hashes encoded as hex.
+    if len(value) == 64 and _HEX_RE.fullmatch(value):
         return True
 
-    # Accept the same lengths when encoded as base64.
+    # Accept SHA-256 hashes encoded as base64.
     padded = value + ("=" * ((4 - (len(value) % 4)) % 4))
     try:
         decoded = base64.b64decode(padded, validate=True)
     except Exception:
         return False
 
-    return len(decoded) in (32, 48, 64)
+    return len(decoded) == 32
 
 
 def _validate_sdp(label: str, sdp: Any, expected_type: str) -> None:
@@ -73,6 +74,7 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
         raise ValueError("chunk_announcements must be a list")
 
     missing_redundancy_metadata = False
+    invalid_redundancy_metadata = False
     for idx, chunk in enumerate(chunk_announcements):
         prefix = f"chunk_announcements[{idx}]"
         if not isinstance(chunk, dict):
@@ -112,8 +114,13 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
                     f"{prefix}.replica_hints must contain non-empty string entries"
                 )
 
+        if isinstance(replication_factor, int) and isinstance(replica_hints, list):
+            if len(replica_hints) < replication_factor:
+                invalid_redundancy_metadata = True
+
     return BlackoutSignalValidationResult(
-        missing_redundancy_metadata=missing_redundancy_metadata
+        missing_redundancy_metadata=missing_redundancy_metadata,
+        invalid_redundancy_metadata=invalid_redundancy_metadata,
     )
 
 
@@ -140,10 +147,26 @@ def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationRe
 
     ice_candidates = content.get("ice_candidates")
     if ice_candidates is not None:
-        if not isinstance(ice_candidates, list) or any(
-            not isinstance(candidate, dict) for candidate in ice_candidates
-        ):
+        if not isinstance(ice_candidates, list):
             raise ValueError("ice_candidates must be a list of candidate objects")
+
+        for idx, candidate in enumerate(ice_candidates):
+            if not isinstance(candidate, dict):
+                raise ValueError("ice_candidates must be a list of candidate objects")
+
+            prefix = f"ice_candidates[{idx}]"
+            if not isinstance(candidate.get("candidate"), str) or not candidate[
+                "candidate"
+            ].strip():
+                raise ValueError(f"{prefix}.candidate must be a non-empty string")
+
+            sdp_m_line_index = candidate.get("sdpMLineIndex")
+            if sdp_m_line_index is not None and not isinstance(sdp_m_line_index, int):
+                raise ValueError(f"{prefix}.sdpMLineIndex must be an integer")
+
+            sdp_mid = candidate.get("sdpMid")
+            if sdp_mid is not None and not isinstance(sdp_mid, str):
+                raise ValueError(f"{prefix}.sdpMid must be a string")
 
     if "sdp_offer" in content:
         _validate_sdp("sdp_offer", content.get("sdp_offer"), expected_type="offer")

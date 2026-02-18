@@ -104,6 +104,10 @@ blackout_signal_redundancy_metadata_missing_counter = Counter(
     "synapse_blackout_signal_redundancy_metadata_missing_total",
     "Blackout signal chunk announcements accepted without replication factor metadata",
 )
+blackout_signal_redundancy_metadata_invalid_counter = Counter(
+    "synapse_blackout_signal_redundancy_metadata_invalid_total",
+    "Blackout signal chunk announcements accepted with invalid redundancy metadata",
+)
 
 
 class MessageHandler:
@@ -595,6 +599,8 @@ class EventCreationHandler:
 
         if result.missing_redundancy_metadata:
             blackout_signal_redundancy_metadata_missing_counter.inc()
+        if result.invalid_redundancy_metadata:
+            blackout_signal_redundancy_metadata_invalid_counter.inc()
 
     async def _enforce_blackout_signal_device_revocation(
         self, sender: str, content: JsonDict
@@ -613,26 +619,6 @@ class EventCreationHandler:
                     "m.blackout.signal sender key has been revoked",
                     Codes.FORBIDDEN,
                 )
-
-    def _track_redundancy_metadata(self, content: JsonDict) -> None:
-        chunk_announcements = content.get("chunk_announcements")
-        if not isinstance(chunk_announcements, list):
-            return
-
-        for announcement in chunk_announcements:
-            if not isinstance(announcement, dict):
-                continue
-
-            has_factor = "replication_factor" in announcement
-            has_hints = "replica_hints" in announcement
-
-            if not has_factor and not has_hints:
-                blackout_signal_redundancy_metadata_missing_counter.inc()
-                continue
-
-            if has_factor and has_hints and isinstance(announcement.get("replica_hints"), list):
-                if len(announcement["replica_hints"]) < announcement.get("replication_factor", 0):
-                    blackout_signal_redundancy_metadata_invalid_counter.inc()
 
     async def _enforce_blackout_event_rules(self, event_dict: JsonDict) -> None:
         if not self._blackout_enabled:
@@ -654,12 +640,7 @@ class EventCreationHandler:
 
         if event_type == EventTypes.BlackoutSignal:
             content = event_dict.setdefault("content", {})
-            try:
-                self._validate_blackout_signal_content(content)
-            except SynapseError:
-                blackout_event_rejections_counter.labels(reason="invalid_signal_content").inc()
-                raise
-            self._track_redundancy_metadata(content)
+            self._validate_blackout_signal_content(content)
             await self._enforce_blackout_signal_device_revocation(
                 event_dict["sender"], content
             )

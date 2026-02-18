@@ -20,6 +20,7 @@ from synapse.api.constants import EventContentFields, EventTypes
 from synapse.api.errors import Codes, SynapseError
 from synapse.events import EventBase
 from synapse.events.snapshot import EventContext, UnpersistedEventContextBase
+from synapse.metrics import REGISTRY
 from synapse.rest import admin
 from synapse.rest.client import login, room
 from synapse.server import HomeServer
@@ -451,7 +452,6 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(exc.exception.code, 403)
         self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
 
-
     def test_blackout_signal_rejects_missing_message_metadata(self) -> None:
         with self.assertRaises(SynapseError) as exc:
             self.get_success(
@@ -492,6 +492,52 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(exc.exception.code, 400)
 
+    def test_blackout_signal_rejects_non_sha256_chunk_hash(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "chunk_announcements": [
+                                {"chunk_id": "chunk-1", "chunk_hash": "a" * 96}
+                            ],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_rejects_invalid_ice_candidate_shape(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "ice_candidates": [{"sdpMid": "0"}],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
     def test_blackout_signal_rejects_invalid_merkle_root(self) -> None:
         with self.assertRaises(SynapseError) as exc:
             self.get_success(
@@ -520,6 +566,45 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
             )
 
         self.assertEqual(exc.exception.code, 400)
+
+
+    def test_blackout_signal_records_invalid_redundancy_metadata_metric(self) -> None:
+        before = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_redundancy_metadata_invalid_total"
+        )
+        baseline = before if before is not None else 0.0
+
+        self.get_success(
+            self.handler.create_and_send_nonmember_event(
+                self.requester,
+                {
+                    "type": EventTypes.BlackoutSignal,
+                    "room_id": self.room_id,
+                    "sender": self.user_id,
+                    "content": {
+                        "message_metadata": {
+                            "message_id": "msg-2",
+                            "sender_key_id": "ed25519:dev-1",
+                        },
+                        "chunk_announcements": [
+                            {
+                                "chunk_id": "chunk-1",
+                                "chunk_hash": "a" * 64,
+                                "replication_factor": 3,
+                                "replica_hints": ["peer-1", "peer-2"],
+                            }
+                        ],
+                    },
+                },
+            )
+        )
+
+        after = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_redundancy_metadata_invalid_total"
+        )
+        self.assertIsNotNone(after)
+        assert after is not None
+        self.assertGreaterEqual(after, baseline + 1.0)
 
     def test_blackout_signal_accepts_offline_retrieval_and_redundancy_metadata(self) -> None:
         event, _ = self.get_success(

@@ -124,6 +124,10 @@ blackout_federation_signal_redundancy_metadata_missing_counter = Counter(
     "synapse_blackout_federation_signal_redundancy_metadata_missing_total",
     "Federated blackout signal chunk announcements accepted without replication factor metadata",
 )
+blackout_federation_signal_redundancy_metadata_invalid_counter = Counter(
+    "synapse_blackout_federation_signal_redundancy_metadata_invalid_total",
+    "Federated blackout signal chunk announcements accepted with invalid redundancy metadata",
+)
 
 # Added to debug performance and track progress on optimizations
 backfill_processing_after_timer = Histogram(
@@ -280,6 +284,8 @@ class FederationEventHandler:
 
             if result.missing_redundancy_metadata:
                 blackout_federation_signal_redundancy_metadata_missing_counter.inc()
+            if result.invalid_redundancy_metadata:
+                blackout_federation_signal_redundancy_metadata_invalid_counter.inc()
 
             await self._enforce_blackout_signal_device_revocation(event)
             blackout_federation_signal_events_accepted_counter.inc()
