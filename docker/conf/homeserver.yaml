@@ -141,6 +141,7 @@ turn_uris:
 turn_shared_secret: "{{ SYNAPSE_TURN_SECRET }}"
 turn_user_lifetime: "1h"
 turn_allow_guests: True
+# Synapse issues TURN credentials; media relay remains peer-to-peer unless TURN fallback is needed.
 {% else %}
 turn_uris: []
 turn_shared_secret: "YOUR_SHARED_SECRET"
@@ -156,6 +157,8 @@ turn_allow_guests: True
 blackout:
   enabled: false
   signal_event_ttl: "48h"
+  # Optional runtime minimization: skip push-action generation for signal events.
+  skip_push_actions_for_signal: false
 
 ## Registration ##
 

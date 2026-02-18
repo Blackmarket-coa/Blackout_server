@@ -16,7 +16,8 @@ from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.api.errors import AuthError, StoreError
+from synapse.api.constants import EventTypes
+from synapse.api.errors import AuthError, FederationError, StoreError
 from synapse.api.room_versions import RoomVersion
 from synapse.event_auth import (
     check_state_dependent_auth_rules,
@@ -1139,3 +1140,49 @@ class FederationEventHandlerTests(unittest.FederatingHomeserverTestCase):
                 bert_member_event.event_id,
                 "Rejected kick event unexpectedly became part of room state.",
             )
+
+
+class BlackoutFederationEventRuleTests(unittest.HomeserverTestCase):
+    def default_config(self) -> JsonDict:
+        config = super().default_config()
+        config["blackout"] = {"enabled": True, "signal_event_ttl": "48h"}
+        return config
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.handler = hs.get_federation_event_handler()
+
+    def _make_event(self, event_type: str, content: JsonDict, is_state: bool = False) -> mock.Mock:
+        event = mock.Mock()
+        event.type = event_type
+        event.content = content
+        event.room_id = "!room:test"
+        event.event_id = "$event:test"
+        event.sender = "@remote:example.com"
+        event.is_state.return_value = is_state
+        return event
+
+    def test_blackout_rejects_non_signal_timeline_events(self) -> None:
+        event = self._make_event(EventTypes.Message, {"body": "hello"})
+
+        with self.assertRaises(FederationError) as exc:
+            self.handler._enforce_blackout_event_rules(event)
+
+        self.assertEqual(exc.exception.code, 403)
+        self.assertIn("disabled in blackout", exc.exception.reason)
+
+    def test_blackout_rejects_signal_unknown_fields(self) -> None:
+        event = self._make_event(EventTypes.BlackoutSignal, {"unexpected": "value"})
+
+        with self.assertRaises(FederationError) as exc:
+            self.handler._enforce_blackout_event_rules(event)
+
+        self.assertEqual(exc.exception.code, 400)
+        self.assertIn("unsupported fields", exc.exception.reason)
+
+    def test_blackout_accepts_valid_signal_payload(self) -> None:
+        event = self._make_event(
+            EventTypes.BlackoutSignal,
+            {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+        )
+
+        self.handler._enforce_blackout_event_rules(event)
