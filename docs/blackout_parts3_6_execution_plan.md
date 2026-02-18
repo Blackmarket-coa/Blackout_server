@@ -146,3 +146,39 @@ Work:
 3. Offline retrieval + redundancy metadata
 4. Scalability policy docs and operational SLOs
 5. Full conformance tests for expiration enforcement
+
+## Immediate execution checklist (current focus)
+
+### A) Integrity schema + merkle validation
+
+- Implement strict `message_metadata` + SDP envelope validators in both local-send and federation ingress paths.
+- Enforce chunk hash format and optional merkle root format with a single reusable validator utility.
+- Persist accepted integrity metadata fields on signal events for downstream inspection.
+- Add negative tests for malformed hash, malformed merkle root, and missing required metadata fields.
+
+### B) Offline retrieval + redundancy metadata
+
+- Add metadata-only offline retrieval markers to `m.blackout.signal` while keeping payload references external.
+- Introduce redundancy declaration fields (replication factor + replica hints) inside chunk announcements.
+- Add ingestion-time checks that redundancy metadata is structurally valid and bounded.
+- Emit basic metrics/counters for missing/invalid redundancy metadata to support later withholding detection.
+
+### C) Scalability policy docs and SLOs
+
+- Document recommended room fan-out ranges for mesh viability under low-resource nodes.
+- Define warning/critical SLO thresholds for federation reject rate and signal TTL purge lag.
+- Add operator runbook guidance for temporary relay/super-peer selection and rollback criteria.
+- Cross-link metrics names, dashboards, and alert suggestions in runbook + metrics docs.
+
+### D) Expiration enforcement conformance testing
+
+- Add integration tests proving TTL purge behavior for signal events across restart and worker topologies.
+- Assert no data resurrection after restart and replication catch-up.
+- Add coverage for backlog growth alarms and stale-purge detection metrics emission.
+- Include a short failure triage guide in test docstrings/comments for operators and maintainers.
+
+## Next steps after the four focus items land
+
+1. Close the loop on Part 6.2 by adding active withholding detection alerts that compare announced vs observed replicas.
+2. Run a small-scale chaos pass (node churn + intermittent federation) to validate phone-profile assumptions under stress.
+3. Publish an operational readiness review with pass/fail gates before default-enabling additional blackout capabilities.
