@@ -589,6 +589,17 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             if query_map
             else {}
         )
+        revoked_ts_by_user_device: Dict[Tuple[str, str], int] = {}
+        for user_id, user_devices in devices.items():
+            revoked_by_device = await self.get_revoked_device_key_timestamps_for_devices(
+                user_id, user_devices.keys()
+            )
+            revoked_ts_by_user_device.update(
+                {
+                    (user_id, device_id): revoked_ts
+                    for device_id, revoked_ts in revoked_by_device.items()
+                }
+            )
 
         results = []
         for user_id, user_devices in devices.items():
@@ -623,6 +634,11 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
                     keys = device.keys
                     if keys:
                         result["keys"] = keys
+
+                    revoked_ts = revoked_ts_by_user_device.get((user_id, device_id))
+                    if revoked_ts is not None:
+                        result["org.matrix.msc_blackout_device_revoked"] = True
+                        result["org.matrix.msc_blackout_device_revoked_ts"] = revoked_ts
 
                     device_display_name = None
                     if (

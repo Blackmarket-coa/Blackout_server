@@ -119,3 +119,67 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
                 (key3, timestamp),
             ],
         )
+
+    def test_device_key_revocation_marker_created_on_device_key_delete(self) -> None:
+        user_id = "@alice:test"
+        device_id = "ALICEDEVICE"
+        key_json = {
+            "user_id": user_id,
+            "device_id": device_id,
+            "algorithms": ["m.olm.curve25519-aes-sha2"],
+            "keys": {
+                "ed25519:ALICEDEVICE": "ed25519-key-material",
+                "curve25519:ALICEDEVICE": "curve25519-key-material",
+            },
+        }
+
+        self.get_success(
+            self.store.set_e2e_device_keys(user_id, device_id, 1_000, key_json)
+        )
+        self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
+
+        revoked_ts = self.get_success(
+            self.store.get_revoked_device_key_timestamp(
+                user_id, "ed25519:ALICEDEVICE"
+            )
+        )
+        self.assertIsNotNone(revoked_ts)
+
+        revoked_by_value_ts = self.get_success(
+            self.store.get_revoked_device_key_timestamp(user_id, "ed25519-key-material")
+        )
+        self.assertEqual(revoked_by_value_ts, revoked_ts)
+
+        revoked_for_device_ts = self.get_success(
+            self.store.get_revoked_device_key_timestamp_for_device(user_id, device_id)
+        )
+        self.assertEqual(revoked_for_device_ts, revoked_ts)
+
+    def test_get_revoked_device_key_timestamps_for_devices(self) -> None:
+        user_id = "@alice:test"
+        device_ids = ["A", "B"]
+
+        for i, device_id in enumerate(device_ids):
+            self.get_success(
+                self.store.set_e2e_device_keys(
+                    user_id,
+                    device_id,
+                    1_000 + i,
+                    {
+                        "user_id": user_id,
+                        "device_id": device_id,
+                        "keys": {f"ed25519:{device_id}": f"key-{device_id}"},
+                    },
+                )
+            )
+            self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
+
+        revoked_by_device = self.get_success(
+            self.store.get_revoked_device_key_timestamps_for_devices(
+                user_id, ["A", "B", "C"]
+            )
+        )
+
+        self.assertCountEqual(revoked_by_device.keys(), ["A", "B"])
+        self.assertIsInstance(revoked_by_device["A"], int)
+        self.assertIsInstance(revoked_by_device["B"], int)

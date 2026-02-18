@@ -22,6 +22,8 @@ blackout:
 - Confirm counters increment:
   - `synapse_blackout_signal_events_accepted_total`
   - `synapse_blackout_event_rejections_total`
+  - `synapse_blackout_signal_revoked_key_rejections_total`
+  - `synapse_blackout_federation_signal_revoked_key_rejections_total`
 
 ## Federation checks
 
@@ -48,34 +50,29 @@ Actions:
   `sdp_answer`, `message_metadata`, `chunk_announcements`).
 - Check upstream peers for outdated schema.
 
-### High purge lag / expired signal backlog
+### High revoked-device-key rejections
 
-Likely cause: background expiry processing is behind, or workers are not running expected tasks.
-
-Actions:
-- Check that `enable_ephemeral_messages` is enabled on blackout nodes.
-- Track age of oldest row in `event_expiry` and alert when backlog age exceeds the configured TTL window.
-- Verify the purge metric `synapse_blackout_signal_events_purged_total` continues to increase over time.
-- Check worker placement and DB latency if purge throughput drops.
-
-### TURN relay failures
-
-Likely cause: coturn misconfiguration, secret mismatch, or firewall/port exhaustion.
+Likely cause: compromised device, stale sender metadata, or malicious replay.
 
 Actions:
-- Verify `turn_shared_secret` in Synapse matches TURN server shared secret exactly.
-- Validate UDP/TCP listener ports and relay port-range firewall rules.
-- Check coturn logs for auth failures and relay allocation errors.
-- Confirm clients can fetch TURN credentials from `/_matrix/client/r0/voip/turnServer`.
+- Inspect `synapse_blackout_signal_revoked_key_rejections_total` and
+  `synapse_blackout_federation_signal_revoked_key_rejections_total` trend lines.
+- Correlate rejected user IDs/device IDs with recent logout/device-delete activity.
+- If rejections are unexpected, rotate active device keys and invalidate sessions.
 
-## Staging/CI validation before production
+## Retention policy for `e2e_device_key_revocations`
 
-Because local environments may miss package metadata or Docker tooling, require reproducible validation in CI/staging:
+Policy decision: **immutable revocation history by default**.
 
-- Run targeted federation blackout tests (`tests/test_federation.py`, `tests/handlers/test_federation_event.py`).
-- Run blackout metric tests (`tests/storage/test_event_metrics.py`).
-- Validate TURN compose profile with `docker compose -f docker/compose.turn.yaml config` and a staging smoke call.
-- Confirm purge metrics and federation rejection metrics on dashboards before rollout.
+Rationale:
+- Revocations are security-critical denylist signals.
+- Re-accepting previously revoked key identifiers after TTL can re-open compromise windows.
+
+Operational guidance:
+- Keep rows indefinitely unless there is a legal/data-retention requirement forcing expiry.
+- If expiry is required, use a long minimum (>= 180 days) and pair with client key rotation
+  policy + audit logging.
+- During DB maintenance, never bulk-delete recent revocations without incident review.
 
 ## Rollback
 
