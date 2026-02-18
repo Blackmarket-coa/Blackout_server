@@ -127,6 +127,10 @@ class BulkPushRuleEvaluator:
         self.should_calculate_push_rules = self.hs.config.push.enable_push
 
         self._related_event_match_enabled = self.hs.config.experimental.msc3664_enabled
+        self._blackout_enabled = self.hs.config.server.blackout_enabled
+        self._blackout_skip_push_actions_for_signal = (
+            self.hs.config.server.blackout_skip_push_actions_for_signal
+        )
 
         self.room_push_rule_cache_metrics = register_cache(
             "cache",
@@ -312,6 +316,16 @@ class BulkPushRuleEvaluator:
         insert the results into the event_push_actions_staging table.
         """
         if not self.should_calculate_push_rules:
+            return
+
+        if (
+            self._blackout_enabled
+            and self._blackout_skip_push_actions_for_signal
+            and all(
+                event.type == EventTypes.BlackoutSignal
+                for event, _ in events_and_context
+            )
+        ):
             return
         # For batched events the power level events may not have been persisted yet,
         # so we pass in the batched events. Thus if the event cannot be found in the
