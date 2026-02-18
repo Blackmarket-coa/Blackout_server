@@ -77,6 +77,10 @@ from synapse.util.async_helpers import Linearizer, gather_results
 from synapse.util.caches.expiringcache import ExpiringCache
 from synapse.util.metrics import measure_func
 from synapse.visibility import get_effective_room_visibility_from_state
+from synapse.util.blackout import (
+    extract_sender_key_identifiers_from_signal_content,
+    validate_blackout_signal_content,
+)
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
@@ -96,13 +100,9 @@ blackout_signal_revoked_key_rejections_counter = Counter(
     "synapse_blackout_signal_revoked_key_rejections_total",
     "Blackout signal events rejected due to revoked sender keys at local ingress",
 )
-blackout_signal_redundancy_metadata_invalid_counter = Counter(
-    "synapse_blackout_signal_redundancy_metadata_invalid_total",
-    "Blackout signal events containing invalid redundancy metadata",
-)
 blackout_signal_redundancy_metadata_missing_counter = Counter(
     "synapse_blackout_signal_redundancy_metadata_missing_total",
-    "Blackout signal events missing declared redundancy metadata",
+    "Blackout signal chunk announcements accepted without replication factor metadata",
 )
 
 
@@ -587,28 +587,19 @@ class EventCreationHandler:
             )
 
     def _validate_blackout_signal_content(self, content: JsonDict) -> None:
-        validate_blackout_signal_content(content)
+        try:
+            result = validate_blackout_signal_content(content)
+        except ValueError as e:
+            blackout_event_rejections_counter.labels(reason="invalid_signal_content").inc()
+            raise SynapseError(400, str(e))
 
-    def _extract_sender_key_identifiers(self, content: JsonDict) -> List[str]:
-        message_metadata = content.get("message_metadata")
-        if not isinstance(message_metadata, dict):
-            return []
-
-        key_identifiers = []
-        sender_key_id = message_metadata.get("sender_key_id")
-        sender_key = message_metadata.get("sender_key")
-
-        if isinstance(sender_key_id, str):
-            key_identifiers.append(sender_key_id)
-        if isinstance(sender_key, str):
-            key_identifiers.append(sender_key)
-
-        return key_identifiers
+        if result.missing_redundancy_metadata:
+            blackout_signal_redundancy_metadata_missing_counter.inc()
 
     async def _enforce_blackout_signal_device_revocation(
         self, sender: str, content: JsonDict
     ) -> None:
-        for key_identifier in self._extract_sender_key_identifiers(content):
+        for key_identifier in extract_sender_key_identifiers_from_signal_content(content):
             revoked_ts = await self.store.get_revoked_device_key_timestamp(
                 sender, key_identifier
             )

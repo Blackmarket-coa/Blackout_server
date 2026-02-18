@@ -164,6 +164,8 @@ blackout:
   signal_event_ttl: "48h"
   # Optional runtime minimization: skip push-action generation for signal events.
   skip_push_actions_for_signal: false
+  # Optional profile hint for low-resource/phone-hosted deployments.
+  low_resource_profile: false
 
 ## Registration ##
 

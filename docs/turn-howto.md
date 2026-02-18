@@ -200,11 +200,11 @@ Blackout sizing guidance:
 - Monitor TURN relay saturation, packet loss, and auth failures before increasing peer caps.
 - For phone-hosted server experiments, expect volatility from battery/network churn and prefer fixed-power TURN hosts.
 
-## Blackout phone-hosted TURN profile
 
-For mobile/edge operators, use conservative TURN sizing and fail-safe defaults:
+## Phone-hosted blackout notes
 
-- Keep relay sessions bounded; start with 20–50 simultaneously active peers.
-- Prefer UDP relay; keep TCP/TLS relay only as fallback for restrictive networks.
-- Monitor battery/network churn effects and expect transient ICE retries.
-- Pair TURN logs with blackout rejection metrics for incident triage.
+When experimenting with phone-hosted blackout servers:
+
+- Keep TURN on stable infrastructure if possible; avoid relying on mobile background longevity.
+- Start with ~20–50 active peers and scale only after monitoring relay saturation and reject rates.
+- Expect intermittent connectivity and use shorter monitoring windows plus automated recovery.

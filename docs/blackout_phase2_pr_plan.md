@@ -239,9 +239,12 @@ This order minimizes operational risk: first guarantee correctness, then interop
 - Operators have dashboards + runbook for rollout and incident handling.
 - TURN fallback deployment profile is documented and reproducible.
 
-## Phase 3–6 follow-on policy notes
 
-- Enforce strict `m.blackout.signal` schema for `ice_candidates`, SDP envelopes, immutable `message_metadata`, and `chunk_announcements` hash/merkle fields.
-- Carry redundancy declarations (`replication_factor`, `replica_hints`) in chunk announcements and alert on missing/invalid metadata.
-- Add operational fan-out thresholds and relay/super-peer playbooks to keep low-resource nodes stable.
-- Maintain explicit SLO thresholds for federation reject rates and TTL purge lag in dashboards and runbooks.
+## Part 3–6 follow-on execution notes
+
+- Enforce strict schema checks for `m.blackout.signal` in both local and federation ingress.
+- Validate chunk hashes/merkle roots and require `message_metadata` core fields.
+- Add metadata-only offline retrieval markers (`offline_retrieval`) for deferred payload fetch.
+- Add redundancy metadata (`replication_factor`, `replica_hints`) within chunk announcements.
+- Track counters for accepted events missing redundancy declarations to support withholding detection.
+- Operate with fan-out and purge-lag SLOs documented in runbook + metrics docs.

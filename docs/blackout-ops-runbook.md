@@ -80,38 +80,34 @@ Operational guidance:
 2. Restart Synapse.
 3. Re-enable search/media settings if required for the deployment.
 
+
 ## Phone-hosted low-resource profile
 
-Recommended defaults for phone/edge deployments:
+Recommended baseline for constrained/mobile-hosted homeservers:
 
-```yaml
-blackout:
-  enabled: true
-  signal_event_ttl: "48h"
-enable_search: false
-enable_media_repo: false
-```
+- `blackout.enabled: true`
+- `blackout.signal_event_ttl: "48h"`
+- `enable_search: false` and `enable_media_repo: false` (forced under blackout)
+- Keep worker/background topology conservative; avoid optional heavy workers.
 
-Operational baseline:
-- Capacity target: 200–500 registered users, 20–50 concurrently active peers.
-- Prefer small rooms for mesh signaling; sustained fan-out above ~50 active peers per room usually needs temporary relays.
+Capacity baseline and caveats:
 
-Reliability caveats for phone-grade hosts:
-- Battery saver and radio sleep can delay federation and purge workers.
-- Intermittent connectivity can increase federation reject spikes.
-- SQLite/Postgres WAL files may grow quickly under churn; enforce backup + checkpoint cadence.
+- Target ~200–500 registered users and ~20–50 concurrently active peers.
+- Expect battery, thermal, and network churn; plan automated restart/health checks.
+- Monitor WAL/database growth and run regular backups with restore drills.
 
-## Scalability thresholds and SLO guidance
+## Scalability thresholds and relay policy
 
-Recommended warning/critical thresholds:
-- Federation reject rate (`synapse_blackout_federation_event_rejections_total`):
-  - Warning: >2% of inbound timeline PDUs over 5m.
-  - Critical: >5% over 15m.
-- Signal TTL purge lag (oldest pending signal expiry minus now):
-  - Warning: >10 minutes.
-  - Critical: >30 minutes.
+Suggested operating guardrails for blackout mesh signaling:
 
-Mesh topology guidance:
-- Keep direct mesh rooms in the 8–24 active-peer range when possible.
-- At 25–50 peers, designate temporary relay/super-peer nodes and rotate periodically.
-- Publish topology hints in `message_metadata` (for example relay preference / hierarchy tier) and roll back relay assignment if reject rates increase after promotion.
+- Room fan-out target: 20–50 active peers; introduce temporary relays above 50.
+- Warning threshold: federation blackout reject rate >1% over 15m.
+- Critical threshold: federation blackout reject rate >5% over 15m.
+- Warning threshold: signal purge lag >15m.
+- Critical threshold: signal purge lag >60m.
+
+Temporary relay/super-peer selection guidance:
+
+- Prefer stable, always-on nodes with low packet loss and sufficient uplink.
+- Publish relay topology hints in `message_metadata.topology_hints`.
+- Roll back relay assignment if reject rates or ICE failures increase for 2 consecutive windows.

@@ -325,8 +325,13 @@ For blackout signaling-only deployments, monitor these counters:
 - `synapse_blackout_federation_signal_events_accepted_total`
 - `synapse_blackout_federation_event_rejections_total{reason=...}`
 - `synapse_blackout_signal_events_purged_total`
+- `synapse_blackout_signal_redundancy_metadata_missing_total`
+- `synapse_blackout_federation_signal_redundancy_metadata_missing_total`
 
 Suggested alerts and thresholds:
+
+- Blackout federation reject rate warning at >1% / 15m; critical at >5% / 15m.
+- Blackout signal TTL purge lag warning at >15m; critical at >60m.
 
 - High rate of `unsupported_timeline_type` rejections indicates misconfigured clients
   still sending normal Matrix timeline events.

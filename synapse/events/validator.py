@@ -44,6 +44,7 @@ from synapse.http.servlet import validate_json_object
 from synapse.rest.models import RequestBodyModel
 from synapse.storage.controllers.state import server_acl_evaluator_from_event
 from synapse.types import EventID, JsonDict, RoomID, StrCollection, UserID
+from synapse.util.blackout import validate_blackout_signal_content
 
 
 _BLACKOUT_SIGNAL_ALLOWED_CONTENT = frozenset(
@@ -381,6 +382,11 @@ class EventValidator:
                 )
 
             self._ensure_state_event(event)
+        elif event.type == EventTypes.BlackoutSignal:
+            try:
+                validate_blackout_signal_content(event.content)
+            except ValueError as e:
+                raise SynapseError(400, str(e), Codes.BAD_JSON)
 
     def _ensure_strings(self, d: JsonDict, keys: StrCollection) -> None:
         for s in keys:

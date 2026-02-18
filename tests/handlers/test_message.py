@@ -479,7 +479,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                         "sender": self.user_id,
                         "content": {
                             "message_metadata": {
-                                "message_id": "msg-2",
+                                "message_id": "msg-1",
                                 "sender_key_id": "ed25519:dev-1",
                             },
                             "chunk_announcements": [
@@ -503,14 +503,15 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                         "sender": self.user_id,
                         "content": {
                             "message_metadata": {
-                                "message_id": "msg-3",
+                                "message_id": "msg-1",
                                 "sender_key_id": "ed25519:dev-1",
                             },
                             "chunk_announcements": [
                                 {
                                     "chunk_id": "chunk-1",
                                     "chunk_hash": "a" * 64,
-                                    "merkle_root": "broken-merkle",
+                                    "merkle_root": "invalid-merkle",
+                                    "replication_factor": 2,
                                 }
                             ],
                         },
@@ -519,6 +520,41 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
             )
 
         self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_accepts_offline_retrieval_and_redundancy_metadata(self) -> None:
+        event, _ = self.get_success(
+            self.handler.create_and_send_nonmember_event(
+                self.requester,
+                {
+                    "type": EventTypes.BlackoutSignal,
+                    "room_id": self.room_id,
+                    "sender": self.user_id,
+                    "content": {
+                        "message_metadata": {
+                            "message_id": "msg-1",
+                            "sender_key_id": "ed25519:dev-1",
+                            "topology_hints": ["relay:a", "relay:b"],
+                        },
+                        "offline_retrieval": {
+                            "manifest_id": "manifest-1",
+                            "external_fetch_required": True,
+                        },
+                        "chunk_announcements": [
+                            {
+                                "chunk_id": "chunk-1",
+                                "chunk_hash": "a" * 64,
+                                "merkle_root": "b" * 64,
+                                "replication_factor": 2,
+                                "replica_hints": ["peer-1", "peer-2"],
+                            }
+                        ],
+                    },
+                },
+            )
+        )
+
+        self.assertEqual(event.content["offline_retrieval"]["manifest_id"], "manifest-1")
+        self.assertEqual(event.content["chunk_announcements"][0]["replication_factor"], 2)
 
     def test_blackout_signal_rejects_unknown_fields(self) -> None:
         with self.assertRaises(SynapseError) as exc:
