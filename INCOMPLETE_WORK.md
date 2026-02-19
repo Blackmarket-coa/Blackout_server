@@ -5,10 +5,10 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers: **510**
+- Total potential incomplete-work markers (excluding this inventory file): **507**
 - Top directories by marker count:
   - `synapse/`: **428**
-  - `tests/`: **43**
+  - `tests/`: **40**
   - `docs/`: **15**
   - `contrib/`: **12**
   - `scripts-dev/`: **8**
@@ -17,15 +17,15 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ### Disabled or unfinished tests
 
-- `tests/rest/client/test_events.py:117` (`def TODO_test_stream_items`) 
-- `tests/federation/test_federation_sender.py:306` (test comment indicates expected failure path not yet enforced)
-- `tests/handlers/test_room_member.py:211` (missing rate-limit test for remote joins)
+- `tests/federation/test_federation_sender.py:488` (known stream-ID discontinuity in sender test setup)
+- `tests/handlers/test_room_member.py:454` (missing cache invalidation coverage when joining after forget)
+- `tests/rest/client/test_profile.py:172` (FIXME around profile display name behavior)
 
 ### NotImplemented placeholders in production code paths
 
-- `synapse/federation/federation_server.py:579` (`raise NotImplementedError("Specify an event")`)
-- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()`)
 - `synapse/storage/databases/main/relations.py:469` (`raise NotImplementedError()`)
+- `synapse/storage/databases/main/relations.py:523` (`raise NotImplementedError()`)
+- `synapse/storage/databases/main/relations.py:610` (`raise NotImplementedError()`)
 
 ### Known tech debt called out with FIXMEs
 
@@ -36,5 +36,5 @@ This file was generated from a quick source scan for common incomplete-work mark
 ## Command used
 
 ```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_stream_items" .
+rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
 ```
