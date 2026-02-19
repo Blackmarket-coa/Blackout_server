@@ -5,10 +5,10 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file): **501**
+- Total potential incomplete-work markers (excluding this inventory file): **496**
 - Top directories by marker count:
-  - `synapse/`: **424**
-  - `tests/`: **38**
+  - `synapse/`: **420**
+  - `tests/`: **37**
   - `docs/`: **15**
   - `contrib/`: **12**
   - `scripts-dev/`: **8**
@@ -19,12 +19,12 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 - `tests/rest/client/test_profile.py:172` (FIXME around profile display name behavior)
 - `tests/rest/client/test_profile.py:182` (FIXME around profile avatar URL behavior)
-- `tests/replication/tcp/streams/test_account_data.py:83` (FIXME linked to stream handling)
+- `tests/federation/test_federation_server.py:262` (TODO to improve auth-chain test coverage)
 
 ### NotImplemented placeholders in production code paths
 
 - `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()`)
-- `synapse/storage/databases/main/roommember.py:1218` (`raise NotImplementedError()`)
+- `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()`)
 - `synapse/handlers/room.py:1722` (`raise NotImplementedError()`)
 
 ### Known tech debt called out with FIXMEs
