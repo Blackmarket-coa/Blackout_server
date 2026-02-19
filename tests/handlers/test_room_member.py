@@ -48,7 +48,9 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         self.intially_unjoined_room_id = f"!example:{self.OTHER_SERVER_NAME}"
 
 
-    def _build_remote_join_event(self, sender: str) -> tuple[FrozenEventV3, FrozenEventV3]:
+    def _build_remote_join_event(
+        self, sender: str
+    ) -> tuple[FrozenEventV3, FrozenEventV3]:
         create_event_source = {
             "auth_events": [],
             "content": {
@@ -104,7 +106,7 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         self,
         create_event: FrozenEventV3,
         join_event: FrozenEventV3,
-    ) -> AsyncMock:
+    ) -> None:
         mock_send_join = AsyncMock(
             return_value=SendJoinResult(
                 join_event,
@@ -141,7 +143,6 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
             return_value=None,
         )
 
-        return mock_send_join
 
     @override_config({"rc_joins_per_room": {"per_second": 0, "burst_count": 2}})
     def test_local_user_local_joins_contribute_to_limit_and_are_limited(self) -> None:
