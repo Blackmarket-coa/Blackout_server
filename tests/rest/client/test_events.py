@@ -114,21 +114,37 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
 
         # left to room (expect no content for room)
 
-    def TODO_test_stream_items(self) -> None:
-        # new user, no content
+    def test_stream_items(self) -> None:
+        room_id = self.helper.create_room_as(self.user_id, tok=self.token)
 
-        # join room, expect 1 item (join)
+        # Join the room as another user and perform a couple of timeline actions.
+        self.helper.join(room=room_id, user=self.other_user, tok=self.other_token)
+        self.helper.send(room_id, body="hello", tok=self.other_token)
+        self.helper.send_state(
+            room_id,
+            "m.room.topic",
+            {"topic": "example topic"},
+            tok=self.other_token,
+        )
 
-        # send message, expect 2 items (join,send)
+        channel = self.make_request(
+            "GET", "/events?access_token=%s&timeout=0" % (self.token,)
+        )
+        self.assertEqual(channel.code, 200, msg=channel.result)
 
-        # set topic, expect 3 items (join,send,topic)
+        room_events = [
+            event
+            for event in channel.json_body["chunk"]
+            if event.get("room_id") == room_id
+        ]
 
-        # someone else join room, expect 4 (join,send,topic,join)
+        room_event_types = [event["type"] for event in room_events]
 
-        # someone else send message, expect 5 (join,send.topic,join,send)
-
-        # someone else set topic, expect 6 (join,send,topic,join,send,topic)
-        pass
+        self.assertEqual(
+            room_event_types,
+            ["m.room.member", "m.room.message", "m.room.topic"],
+            msg=room_events,
+        )
 
 
 class GetEventsTestCase(unittest.HomeserverTestCase):

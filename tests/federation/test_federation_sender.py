@@ -291,6 +291,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
 
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         test_room_id = "!room:host1"
+        self._unexpected_room_ids: List[str] = []
 
         # stub out `get_rooms_for_user` and `get_current_hosts_in_room` so that the
         # server thinks the user shares a room with `@user2:host2`
@@ -303,9 +304,7 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
             if room_id == test_room_id:
                 return {"host2"}
             else:
-                # TODO: We should fail the test when we encounter an unxpected room ID.
-                # We can't just use `self.fail(...)` here because the app code is greedy
-                # with `Exception` and will catch it before the test can see it.
+                self._unexpected_room_ids.append(room_id)
                 return set()
 
         hs.get_datastores().main.get_current_hosts_in_room = get_current_hosts_in_room  # type: ignore[assignment]
@@ -319,6 +318,14 @@ class FederationSenderDevicesTestCases(HomeserverTestCase):
         self.federation_transport_client.send_transaction.side_effect = (
             self.record_transaction
         )
+
+    def tearDown(self) -> None:
+        if self._unexpected_room_ids:
+            self.fail(
+                "unexpected room IDs were looked up: %s"
+                % (", ".join(self._unexpected_room_ids),)
+            )
+        super().tearDown()
 
     async def record_transaction(
         self, txn: Transaction, json_cb: Optional[Callable[[], JsonDict]] = None
