@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -46,6 +46,102 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         self.room_id = self.helper.create_room_as(self.alice, tok=self.alice_token)
 
         self.intially_unjoined_room_id = f"!example:{self.OTHER_SERVER_NAME}"
+
+
+    def _build_remote_join_event(self, sender: str) -> tuple[FrozenEventV3, FrozenEventV3]:
+        create_event_source = {
+            "auth_events": [],
+            "content": {
+                "creator": f"@creator:{self.OTHER_SERVER_NAME}",
+                "room_version": self.hs.config.server.default_room_version.identifier,
+            },
+            "depth": 0,
+            "origin_server_ts": 0,
+            "prev_events": [],
+            "room_id": self.intially_unjoined_room_id,
+            "sender": f"@creator:{self.OTHER_SERVER_NAME}",
+            "state_key": "",
+            "type": EventTypes.Create,
+        }
+        self.add_hashes_and_signatures_from_other_server(
+            create_event_source,
+            self.hs.config.server.default_room_version,
+        )
+        create_event = FrozenEventV3(
+            create_event_source,
+            self.hs.config.server.default_room_version,
+            {},
+            None,
+        )
+
+        join_event_source = {
+            "auth_events": [create_event.event_id],
+            "content": {"membership": "join"},
+            "depth": 1,
+            "origin_server_ts": 100,
+            "prev_events": [create_event.event_id],
+            "sender": sender,
+            "state_key": sender,
+            "room_id": self.intially_unjoined_room_id,
+            "type": EventTypes.Member,
+        }
+        add_hashes_and_signatures(
+            self.hs.config.server.default_room_version,
+            join_event_source,
+            self.hs.hostname,
+            self.hs.signing_key,
+        )
+        join_event = FrozenEventV3(
+            join_event_source,
+            self.hs.config.server.default_room_version,
+            {},
+            None,
+        )
+
+        return create_event, join_event
+
+    def _patch_remote_join_dependencies(
+        self,
+        create_event: FrozenEventV3,
+        join_event: FrozenEventV3,
+    ) -> AsyncMock:
+        mock_send_join = AsyncMock(
+            return_value=SendJoinResult(
+                join_event,
+                self.OTHER_SERVER_NAME,
+                state=[create_event],
+                auth_chain=[create_event],
+                partial_state=False,
+                servers_in_room=frozenset(),
+            )
+        )
+
+        self.patch_object(
+            self.handler.federation_handler.federation_client,
+            "make_membership_event",
+            AsyncMock(
+                return_value=(
+                    self.OTHER_SERVER_NAME,
+                    join_event,
+                    self.hs.config.server.default_room_version,
+                )
+            ),
+        )
+        self.patch_object(
+            self.handler.federation_handler.federation_client,
+            "send_join",
+            mock_send_join,
+        )
+        self.patch(
+            "synapse.event_auth._is_membership_change_allowed",
+            return_value=None,
+        )
+        self.patch(
+            "synapse.handlers.federation_event.check_state_dependent_auth_rules",
+            return_value=None,
+        )
+
+        return mock_send_join
 
     @override_config({"rc_joins_per_room": {"per_second": 0, "burst_count": 2}})
     def test_local_user_local_joins_contribute_to_limit_and_are_limited(self) -> None:
@@ -104,109 +200,30 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         # We also patch out a bunch of event checks on our end. All we're really
         # trying to check here is that remote joins will bump the rate limter when
         # they are persisted.
-        create_event_source = {
-            "auth_events": [],
-            "content": {
-                "creator": f"@creator:{self.OTHER_SERVER_NAME}",
-                "room_version": self.hs.config.server.default_room_version.identifier,
-            },
-            "depth": 0,
-            "origin_server_ts": 0,
-            "prev_events": [],
-            "room_id": self.intially_unjoined_room_id,
-            "sender": f"@creator:{self.OTHER_SERVER_NAME}",
-            "state_key": "",
-            "type": EventTypes.Create,
-        }
-        self.add_hashes_and_signatures_from_other_server(
-            create_event_source,
-            self.hs.config.server.default_room_version,
-        )
-        create_event = FrozenEventV3(
-            create_event_source,
-            self.hs.config.server.default_room_version,
-            {},
-            None,
-        )
+        create_event, join_event = self._build_remote_join_event(self.bob)
+        self._patch_remote_join_dependencies(create_event, join_event)
 
-        join_event_source = {
-            "auth_events": [create_event.event_id],
-            "content": {"membership": "join"},
-            "depth": 1,
-            "origin_server_ts": 100,
-            "prev_events": [create_event.event_id],
-            "sender": self.bob,
-            "state_key": self.bob,
-            "room_id": self.intially_unjoined_room_id,
-            "type": EventTypes.Member,
-        }
-        add_hashes_and_signatures(
-            self.hs.config.server.default_room_version,
-            join_event_source,
-            self.hs.hostname,
-            self.hs.signing_key,
-        )
-        join_event = FrozenEventV3(
-            join_event_source,
-            self.hs.config.server.default_room_version,
-            {},
-            None,
-        )
-
-        mock_make_membership_event = AsyncMock(
-            return_value=(
-                self.OTHER_SERVER_NAME,
-                join_event,
-                self.hs.config.server.default_room_version,
-            )
-        )
-        mock_send_join = AsyncMock(
-            return_value=SendJoinResult(
-                join_event,
-                self.OTHER_SERVER_NAME,
-                state=[create_event],
-                auth_chain=[create_event],
-                partial_state=False,
-                servers_in_room=frozenset(),
+        self.get_success(
+            self.handler.update_membership(
+                requester=create_requester(self.bob),
+                target=UserID.from_string(self.bob),
+                room_id=self.intially_unjoined_room_id,
+                action=Membership.JOIN,
+                remote_room_hosts=[self.OTHER_SERVER_NAME],
             )
         )
 
-        with patch.object(
-            self.handler.federation_handler.federation_client,
-            "make_membership_event",
-            mock_make_membership_event,
-        ), patch.object(
-            self.handler.federation_handler.federation_client,
-            "send_join",
-            mock_send_join,
-        ), patch(
-            "synapse.event_auth._is_membership_change_allowed",
-            return_value=None,
-        ), patch(
-            "synapse.handlers.federation_event.check_state_dependent_auth_rules",
-            return_value=None,
-        ):
-            self.get_success(
-                self.handler.update_membership(
-                    requester=create_requester(self.bob),
-                    target=UserID.from_string(self.bob),
-                    room_id=self.intially_unjoined_room_id,
-                    action=Membership.JOIN,
-                    remote_room_hosts=[self.OTHER_SERVER_NAME],
-                )
-            )
-
-            # Try to join as Chris. Should get denied.
-            self.get_failure(
-                self.handler.update_membership(
-                    requester=create_requester(self.chris),
-                    target=UserID.from_string(self.chris),
-                    room_id=self.intially_unjoined_room_id,
-                    action=Membership.JOIN,
-                    remote_room_hosts=[self.OTHER_SERVER_NAME],
-                ),
-                LimitExceededError,
-            )
+        # Try to join as Chris. Should get denied.
+        self.get_failure(
+            self.handler.update_membership(
+                requester=create_requester(self.chris),
+                target=UserID.from_string(self.chris),
+                room_id=self.intially_unjoined_room_id,
+                action=Membership.JOIN,
+                remote_room_hosts=[self.OTHER_SERVER_NAME],
+            ),
+            LimitExceededError,
+        )
 
     @override_config({"rc_joins_per_room": {"per_second": 0, "burst_count": 1}})
     def test_remote_joins_are_rate_limited_after_a_leave(self) -> None:
@@ -214,120 +231,41 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         #
         # As in `test_remote_joins_contribute_to_rate_limit`, we mock the remote
         # homeserver and patch out event checks unrelated to room join rate-limiting.
-        create_event_source = {
-            "auth_events": [],
-            "content": {
-                "creator": f"@creator:{self.OTHER_SERVER_NAME}",
-                "room_version": self.hs.config.server.default_room_version.identifier,
-            },
-            "depth": 0,
-            "origin_server_ts": 0,
-            "prev_events": [],
-            "room_id": self.intially_unjoined_room_id,
-            "sender": f"@creator:{self.OTHER_SERVER_NAME}",
-            "state_key": "",
-            "type": EventTypes.Create,
-        }
-        self.add_hashes_and_signatures_from_other_server(
-            create_event_source,
-            self.hs.config.server.default_room_version,
-        )
-        create_event = FrozenEventV3(
-            create_event_source,
-            self.hs.config.server.default_room_version,
-            {},
-            None,
-        )
+        create_event, join_event = self._build_remote_join_event(self.bob)
+        self._patch_remote_join_dependencies(create_event, join_event)
 
-        join_event_source = {
-            "auth_events": [create_event.event_id],
-            "content": {"membership": "join"},
-            "depth": 1,
-            "origin_server_ts": 100,
-            "prev_events": [create_event.event_id],
-            "sender": self.bob,
-            "state_key": self.bob,
-            "room_id": self.intially_unjoined_room_id,
-            "type": EventTypes.Member,
-        }
-        add_hashes_and_signatures(
-            self.hs.config.server.default_room_version,
-            join_event_source,
-            self.hs.hostname,
-            self.hs.signing_key,
-        )
-        join_event = FrozenEventV3(
-            join_event_source,
-            self.hs.config.server.default_room_version,
-            {},
-            None,
-        )
-
-        mock_make_membership_event = AsyncMock(
-            return_value=(
-                self.OTHER_SERVER_NAME,
-                join_event,
-                self.hs.config.server.default_room_version,
-            )
-        )
-        mock_send_join = AsyncMock(
-            return_value=SendJoinResult(
-                join_event,
-                self.OTHER_SERVER_NAME,
-                state=[create_event],
-                auth_chain=[create_event],
-                partial_state=False,
-                servers_in_room=frozenset(),
+        # Initial remote join should be accepted.
+        self.get_success(
+            self.handler.update_membership(
+                requester=create_requester(self.bob),
+                target=UserID.from_string(self.bob),
+                room_id=self.intially_unjoined_room_id,
+                action=Membership.JOIN,
+                remote_room_hosts=[self.OTHER_SERVER_NAME],
             )
         )
 
-        with patch.object(
-            self.handler.federation_handler.federation_client,
-            "make_membership_event",
-            mock_make_membership_event,
-        ), patch.object(
-            self.handler.federation_handler.federation_client,
-            "send_join",
-            mock_send_join,
-        ), patch(
-            "synapse.event_auth._is_membership_change_allowed",
-            return_value=None,
-        ), patch(
-            "synapse.handlers.federation_event.check_state_dependent_auth_rules",
-            return_value=None,
-        ):
-            # Initial remote join should be accepted.
-            self.get_success(
-                self.handler.update_membership(
-                    requester=create_requester(self.bob),
-                    target=UserID.from_string(self.bob),
-                    room_id=self.intially_unjoined_room_id,
-                    action=Membership.JOIN,
-                    remote_room_hosts=[self.OTHER_SERVER_NAME],
-                )
+        # A leave should not affect the join limiter bucket.
+        self.get_success(
+            self.handler.update_membership(
+                requester=create_requester(self.bob),
+                target=UserID.from_string(self.bob),
+                room_id=self.intially_unjoined_room_id,
+                action=Membership.LEAVE,
             )
+        )
 
-            # A leave should not affect the join limiter bucket.
-            self.get_success(
-                self.handler.update_membership(
-                    requester=create_requester(self.bob),
-                    target=UserID.from_string(self.bob),
-                    room_id=self.intially_unjoined_room_id,
-                    action=Membership.LEAVE,
-                )
-            )
-
-            # A second remote join in the same room should be denied.
-            self.get_failure(
-                self.handler.update_membership(
-                    requester=create_requester(self.bob),
-                    target=UserID.from_string(self.bob),
-                    room_id=self.intially_unjoined_room_id,
-                    action=Membership.JOIN,
-                    remote_room_hosts=[self.OTHER_SERVER_NAME],
-                ),
-                LimitExceededError,
-            )
+        # A second remote join in the same room should be denied.
+        self.get_failure(
+            self.handler.update_membership(
+                requester=create_requester(self.bob),
+                target=UserID.from_string(self.bob),
+                room_id=self.intially_unjoined_room_id,
+                action=Membership.JOIN,
+                remote_room_hosts=[self.OTHER_SERVER_NAME],
+            ),
+            LimitExceededError,
+        )
 
 
 class TestReplicatedJoinsLimitedByPerRoomRateLimiter(BaseMultiWorkerStreamTestCase):
