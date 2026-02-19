@@ -136,6 +136,7 @@ class EventStreamPermissionsTestCase(unittest.HomeserverTestCase):
             event
             for event in channel.json_body["chunk"]
             if event.get("room_id") == room_id
+            and event.get("sender") == self.other_user
         ]
 
         room_event_types = [event["type"] for event in room_events]
