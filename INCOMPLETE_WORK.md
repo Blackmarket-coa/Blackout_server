@@ -5,10 +5,10 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file): **507**
+- Total potential incomplete-work markers (excluding this inventory file): **501**
 - Top directories by marker count:
-  - `synapse/`: **428**
-  - `tests/`: **40**
+  - `synapse/`: **424**
+  - `tests/`: **38**
   - `docs/`: **15**
   - `contrib/`: **12**
   - `scripts-dev/`: **8**
@@ -17,15 +17,15 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ### Disabled or unfinished tests
 
-- `tests/federation/test_federation_sender.py:488` (known stream-ID discontinuity in sender test setup)
-- `tests/handlers/test_room_member.py:454` (missing cache invalidation coverage when joining after forget)
 - `tests/rest/client/test_profile.py:172` (FIXME around profile display name behavior)
+- `tests/rest/client/test_profile.py:182` (FIXME around profile avatar URL behavior)
+- `tests/replication/tcp/streams/test_account_data.py:83` (FIXME linked to stream handling)
 
 ### NotImplemented placeholders in production code paths
 
-- `synapse/storage/databases/main/relations.py:469` (`raise NotImplementedError()`)
-- `synapse/storage/databases/main/relations.py:523` (`raise NotImplementedError()`)
-- `synapse/storage/databases/main/relations.py:610` (`raise NotImplementedError()`)
+- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()`)
+- `synapse/storage/databases/main/roommember.py:1218` (`raise NotImplementedError()`)
+- `synapse/handlers/room.py:1722` (`raise NotImplementedError()`)
 
 ### Known tech debt called out with FIXMEs
 

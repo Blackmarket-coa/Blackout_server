@@ -1105,7 +1105,6 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
     def _get_joined_hosts_cache(self, room_id: str) -> "_JoinedHostsCache":
         return _JoinedHostsCache()
 
-    @cached(num_args=2)
     async def did_forget(self, user_id: str, room_id: str) -> bool:
         """Returns whether user_id has elected to discard history for room_id.
 
@@ -1293,7 +1292,6 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
                 updatevalues={"forgotten": 1},
             )
 
-            self._invalidate_cache_and_stream(txn, self.did_forget, (user_id, room_id))
             self._invalidate_cache_and_stream(
                 txn, self.get_forgotten_rooms_for_user, (user_id,)
             )

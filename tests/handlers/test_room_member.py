@@ -451,9 +451,6 @@ class RoomMemberMasterHandlerTestCase(HomeserverTestCase):
         )
 
         self.helper.join(self.room_id, user=self.alice, tok=self.alice_token)
-        # TODO: A join to a room does not invalidate the forgotten cache
-        # see https://github.com/matrix-org/synapse/issues/13262
-        self.store.did_forget.invalidate_all()
         self.assertFalse(
             self.get_success(self.store.did_forget(self.alice, self.room_id))
         )
