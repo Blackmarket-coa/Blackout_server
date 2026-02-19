@@ -80,7 +80,7 @@ class AccountDataStreamTestCase(BaseStreamTestCase):
 
         # tell the notifier to catch up to avoid duplicate rows.
         # workaround for https://github.com/matrix-org/synapse/issues/7360
-        # FIXME remove this when the above is fixed
+        # Keep this pre-replication step to avoid duplicate rows in this test harness.
         self.replicate()
 
         # check we're testing what we think we are: no rows should yet have been

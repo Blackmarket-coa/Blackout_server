@@ -184,8 +184,11 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         )
 
     @cached()
-    def get_user_in_room_with_profile(self, room_id: str, user_id: str) -> ProfileInfo:
-        raise NotImplementedError()
+    async def get_user_in_room_with_profile(
+        self, room_id: str, user_id: str
+    ) -> ProfileInfo:
+        profiles = await self.get_subset_users_in_room_with_profiles(room_id, [user_id])
+        return profiles[user_id]
 
     @cachedList(
         cached_method_name="get_user_in_room_with_profile", list_name="user_ids"
@@ -747,7 +750,8 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
     async def does_pair_of_users_share_a_room(
         self, user_id: str, other_user_id: str
     ) -> bool:
-        raise NotImplementedError()
+        result = await self._do_users_share_a_room(user_id, [other_user_id])
+        return bool(result.get(other_user_id))
 
     @cachedList(
         cached_method_name="does_pair_of_users_share_a_room", list_name="other_user_ids"
@@ -893,10 +897,22 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         # is kept here to maintain backwards compatibility.
         name="_get_joined_profile_from_event_id",
     )
-    def _get_user_id_from_membership_event_id(
+    async def _get_user_id_from_membership_event_id(
         self, event_id: str
     ) -> Optional[Tuple[str, ProfileInfo]]:
-        raise NotImplementedError()
+        row = await self.db_pool.simple_select_one(
+            table="room_memberships",
+            keyvalues={"event_id": event_id, "membership": Membership.JOIN},
+            retcols=("user_id", "display_name", "avatar_url"),
+            allow_none=True,
+            desc="_get_user_id_from_membership_event_id",
+        )
+        if not row:
+            return None
+
+        return row["user_id"], ProfileInfo(
+            display_name=row["display_name"], avatar_url=row["avatar_url"]
+        )
 
     @cachedList(
         cached_method_name="_get_user_id_from_membership_event_id",
@@ -1105,7 +1121,6 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
     def _get_joined_hosts_cache(self, room_id: str) -> "_JoinedHostsCache":
         return _JoinedHostsCache()
 
-    @cached(num_args=2)
     async def did_forget(self, user_id: str, room_id: str) -> bool:
         """Returns whether user_id has elected to discard history for room_id.
 
@@ -1216,7 +1231,8 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
     async def _get_membership_from_event_id(
         self, member_event_id: str
     ) -> Optional[EventIdMembership]:
-        raise NotImplementedError()
+        memberships = await self.get_membership_from_event_ids([member_event_id])
+        return memberships.get(member_event_id)
 
     @cachedList(
         cached_method_name="_get_membership_from_event_id", list_name="member_event_ids"
@@ -1293,7 +1309,6 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
                 updatevalues={"forgotten": 1},
             )
 
-            self._invalidate_cache_and_stream(txn, self.did_forget, (user_id, room_id))
             self._invalidate_cache_and_stream(
                 txn, self.get_forgotten_rooms_for_user, (user_id,)
             )

@@ -466,7 +466,15 @@ class RelationsWorkerStore(SQLBaseStore):
 
     @cached()  # type: ignore[synapse-@cached-mutable]
     async def get_references_for_event(self, event_id: str) -> List[JsonDict]:
-        raise NotImplementedError()
+        references_by_event = await self.get_references_for_events([event_id])
+        references = references_by_event.get(event_id)
+        if not references:
+            return []
+
+        return [
+            {"event_id": related_event.event_id, "sender": related_event.sender}
+            for related_event in references
+        ]
 
     @cachedList(cached_method_name="get_references_for_event", list_name="event_ids")
     async def get_references_for_events(
@@ -519,8 +527,9 @@ class RelationsWorkerStore(SQLBaseStore):
         )
 
     @cached()  # type: ignore[synapse-@cached-mutable]
-    def get_applicable_edit(self, event_id: str) -> Optional[EventBase]:
-        raise NotImplementedError()
+    async def get_applicable_edit(self, event_id: str) -> Optional[EventBase]:
+        edits_by_event = await self.get_applicable_edits([event_id])
+        return edits_by_event.get(event_id)
 
     # TODO: This returns a mutable object, which is generally bad.
     @cachedList(cached_method_name="get_applicable_edit", list_name="event_ids")  # type: ignore[synapse-@cached-mutable]
@@ -606,8 +615,11 @@ class RelationsWorkerStore(SQLBaseStore):
         }
 
     @cached()  # type: ignore[synapse-@cached-mutable]
-    def get_thread_summary(self, event_id: str) -> Optional[Tuple[int, EventBase]]:
-        raise NotImplementedError()
+    async def get_thread_summary(
+        self, event_id: str
+    ) -> Optional[Tuple[int, EventBase]]:
+        summaries_by_event = await self.get_thread_summaries([event_id])
+        return summaries_by_event.get(event_id)
 
     # TODO: This returns a mutable object, which is generally bad.
     @cachedList(cached_method_name="get_thread_summary", list_name="event_ids")  # type: ignore[synapse-@cached-mutable]
@@ -781,8 +793,9 @@ class RelationsWorkerStore(SQLBaseStore):
         )
 
     @cached()
-    def get_thread_participated(self, event_id: str, user_id: str) -> bool:
-        raise NotImplementedError()
+    async def get_thread_participated(self, event_id: str, user_id: str) -> bool:
+        participated_by_event = await self.get_threads_participated([event_id], user_id)
+        return participated_by_event.get(event_id, False)
 
     @cachedList(cached_method_name="get_thread_participated", list_name="event_ids")
     async def get_threads_participated(
