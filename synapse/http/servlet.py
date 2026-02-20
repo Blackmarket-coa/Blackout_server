@@ -873,7 +873,7 @@ class RestServlet:
                     )
 
         else:
-            raise NotImplementedError("RestServlet must register something.")
+            raise TypeError("RestServlet subclasses must define PATTERNS or override register().")
 
 
 class ResolveRoomIdMixin:

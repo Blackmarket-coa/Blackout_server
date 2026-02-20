@@ -136,3 +136,15 @@ class TestRestServletCancellation(unittest.HomeserverTestCase):
             expect_cancellation=False,
             expected_body={"result": True},
         )
+
+
+class EmptyRestServlet(RestServlet):
+    pass
+
+
+class RestServletRegistrationTestCase(unittest.TestCase):
+    def test_register_requires_patterns_or_override(self) -> None:
+        servlet = EmptyRestServlet()
+
+        with self.assertRaises(TypeError):
+            servlet.register(Mock())

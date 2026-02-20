@@ -88,8 +88,9 @@ class DeactivateAccountHandler:
                 403, "Deactivation of this user is forbidden", Codes.FORBIDDEN
             )
 
-        # FIXME: Theoretically there is a race here wherein user resets
-        # password using threepid.
+        # See https://github.com/matrix-org/synapse/issues/17374 for the
+        # remaining race where a threepid password reset could be started while
+        # deactivation is in-flight.
 
         # delete threepids first. We remove these from the IS so if this fails,
         # leave the user still active so they can try again.

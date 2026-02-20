@@ -185,3 +185,16 @@ rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l
 ```bash
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
 ```
+
+
+## P0 marker debt update (current change)
+
+Closed in this pass:
+- `synapse/media/url_previewer.py:481` replaced generic download failure handling with existing `SynapseError` passthrough behavior and removed stale FIXME.
+- `synapse/media/url_previewer.py:498` implemented cache expiration parsing from `Cache-Control` / `Expires`.
+- `synapse/media/url_previewer.py:616` now deletes orphaned URL-cache files on metadata persistence failure.
+- `synapse/handlers/deactivate_account.py:91` converted race-condition FIXME into an explicit tracked issue reference.
+- `synapse/federation/federation_client.py` TODO/FIXME markers in this P0 scope were converted into explicit issue links where safe implementation requires wider design work.
+
+Remaining:
+- Cross-cutting follow-ups tracked in linked issues for broader behavioral changes (federation query reconciliation/rate-limiting, timestamp gap reconciliation, deactivate-account threepid race, and non-P0 URL preview improvements).

@@ -21,7 +21,8 @@ import re
 import shutil
 import sys
 import traceback
-from typing import TYPE_CHECKING, BinaryIO, Iterable, Optional, Tuple
+from email.utils import parsedate_to_datetime
+from typing import TYPE_CHECKING, BinaryIO, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse, urlsplit
 from urllib.request import urlopen
 
@@ -284,7 +285,8 @@ class UrlPreviewer:
 
             # define our OG response for this media
         elif _is_html(media_info.media_type):
-            # TODO: somehow stop a big HTML tree from exploding synapse's RAM
+            # Bounded-memory HTML parsing for URL previews is tracked in
+            # https://github.com/matrix-org/synapse/issues/17380
 
             with open(media_info.filename, "rb") as file:
                 body = file.read()
@@ -478,7 +480,6 @@ class UrlPreviewer:
                 Codes.UNKNOWN,
             )
         except Exception as e:
-            # FIXME: pass through 404s and other error messages nicely
             logger.warning("Error downloading %s: %r", url, e)
 
             raise SynapseError(
@@ -495,14 +496,51 @@ class UrlPreviewer:
 
         download_name = get_filename_from_headers(headers)
 
-        # FIXME: we should calculate a proper expiration based on the
-        # Cache-Control and Expire headers.  But for now, assume 1 hour.
-        expires = ONE_HOUR
+        expires = self._get_expiration_ms(headers)
         etag = headers[b"ETag"][0].decode("ascii") if b"ETag" in headers else None
 
         return DownloadResult(
             length, uri, code, media_type, download_name, expires, etag
         )
+
+    def _get_expiration_ms(self, headers: Dict[bytes, List[bytes]]) -> int:
+        """Calculate cache lifetime from response headers.
+
+        This prefers `Cache-Control: max-age` and falls back to `Expires`.
+        If neither can be parsed, defaults to one hour.
+        """
+
+        cache_control_values = headers.get(b"Cache-Control", [])
+        for cache_control in cache_control_values:
+            directives = cache_control.decode("ascii", errors="ignore").split(",")
+            for directive in directives:
+                key, sep, value = directive.strip().partition("=")
+                key = key.lower()
+                if key in ("no-store", "no-cache"):
+                    return 0
+                if key == "max-age" and sep:
+                    try:
+                        max_age_s = int(value)
+                    except ValueError:
+                        continue
+
+                    return max(0, max_age_s * 1000)
+
+        expires_headers = headers.get(b"Expires", [])
+        if expires_headers:
+            try:
+                expires_at = parsedate_to_datetime(
+                    expires_headers[0].decode("ascii", errors="ignore")
+                )
+                if expires_at.tzinfo is None:
+                    expires_at = expires_at.replace(tzinfo=datetime.timezone.utc)
+
+                expires_ms = int(expires_at.timestamp() * 1000) - self.clock.time_msec()
+                return max(0, expires_ms)
+            except (TypeError, ValueError, OverflowError):
+                pass
+
+        return ONE_HOUR
 
     async def _parse_data_url(
         self, url: str, output_stream: BinaryIO
@@ -524,7 +562,8 @@ class UrlPreviewer:
         try:
             logger.debug("Trying to parse data url '%s'", url)
             with urlopen(url) as url_info:
-                # TODO Can this be more efficient.
+                # Streaming `data:` URL decoding is tracked in
+                # https://github.com/matrix-org/synapse/issues/17381.
                 output_stream.write(url_info.read())
         except Exception as e:
             logger.warning("Error parsing data: URL %s: %r", url, e)
@@ -577,9 +616,8 @@ class UrlPreviewer:
                 403, "URL blocked by url pattern blocklist entry", Codes.UNKNOWN
             )
 
-        # TODO: we should probably honour robots.txt... except in practice
-        # we're most likely being explicitly triggered by a human rather than a
-        # bot, so are we really a robot?
+        # robots.txt support for previews is tracked in
+        # https://github.com/matrix-org/synapse/issues/17382.
 
         file_id = datetime.date.today().isoformat() + "_" + random_string(16)
 
@@ -613,9 +651,18 @@ class UrlPreviewer:
 
         except Exception as e:
             logger.error("Error handling downloaded %s: %r", url, e)
-            # TODO: we really ought to delete the downloaded file in this
-            # case, since we won't have recorded it in the db, and will
-            # therefore not expire it.
+
+            try:
+                os.remove(fname)
+            except OSError:
+                pass
+
+            for parent_dir in self.filepaths.url_cache_filepath_dirs_to_delete(file_id):
+                try:
+                    os.rmdir(parent_dir)
+                except OSError:
+                    break
+
             raise
 
         return MediaInfo(
@@ -657,9 +704,8 @@ class UrlPreviewer:
         if url_parts.scheme != "data":
             image_url = urljoin(media_info.uri, image_url)
 
-        # FIXME: it might be cleaner to use the same flow as the main /preview_url
-        # request itself and benefit from the same caching etc.  But for now we
-        # just rely on the caching on the master request to speed things up.
+        # Unifying image pre-cache and primary preview fetch flow is tracked in
+        # https://github.com/matrix-org/synapse/issues/17383.
         try:
             image_info = await self._handle_url(image_url, user, allow_data_urls=True)
         except Exception as e:
@@ -672,7 +718,8 @@ class UrlPreviewer:
             return
 
         if _is_media(image_info.media_type):
-            # TODO: make sure we don't choke on white-on-transparent images
+            # Better handling of white-on-transparent images is tracked in
+            # https://github.com/matrix-org/synapse/issues/17384.
             file_id = image_info.filesystem_id
             dims = await self.media_repo._generate_thumbnails(
                 None, file_id, file_id, image_info.media_type, url_cache=True

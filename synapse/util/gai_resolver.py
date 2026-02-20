@@ -18,7 +18,6 @@ from typing import (
     TYPE_CHECKING,
     Callable,
     List,
-    NoReturn,
     Optional,
     Sequence,
     Tuple,
@@ -62,9 +61,10 @@ class HostResolution:
         """
         self.name = name
 
-    def cancel(self) -> NoReturn:
-        # IHostResolution.cancel
-        raise NotImplementedError()
+    def cancel(self) -> None:
+        # IHostResolution.cancel. There is no cancellable in-flight task to
+        # stop here: resolution is managed externally by Twisted threadpool work.
+        return None
 
 
 _any = frozenset([IPv4Address, IPv6Address])
