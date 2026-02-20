@@ -6,6 +6,7 @@ Related reliability and refactor tracking docs:
 
 - [Distributed self-healing blueprint](./distributed_self_healing_blueprint.md)
 - [Project completion tracker](./project_completion_tracker.md)
+- [Backup and DR operations](./backup_and_dr_operations.md)
 
 ## Enable blackout mode
 
@@ -116,3 +117,10 @@ Temporary relay/super-peer selection guidance:
 - Prefer stable, always-on nodes with low packet loss and sufficient uplink.
 - Publish relay topology hints in `message_metadata.topology_hints`.
 - Roll back relay assignment if reject rates or ICE failures increase for 2 consecutive windows.
+
+
+## Backup and disaster-recovery execution
+
+For concrete E1-E4 implementation details (backup schedule, verification pipeline,
+quarterly drill command, and alert rules), follow
+[`docs/backup_and_dr_operations.md`](./backup_and_dr_operations.md).
