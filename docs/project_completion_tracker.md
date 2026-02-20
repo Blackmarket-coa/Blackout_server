@@ -21,19 +21,19 @@ The project is considered complete when all of the following are true:
 
 From the latest inventory scan:
 
-- Potential incomplete-work markers: **507** (excluding the inventory file itself).
+- Potential incomplete-work markers: **505** (excluding the inventory file itself).
 - Marker concentration:
-  - `synapse/`: 420
+  - `synapse/`: 415
   - `tests/`: 34
-  - `docs/`: 29
+  - `docs/`: 32
   - `contrib/`: 12
   - `scripts-dev/`: 8
 
 ### Baseline refresh notes (2026-02-20)
 
 - Marker inventory was re-run with the same regex used in `INCOMPLETE_WORK.md`.
-- Delta vs prior snapshot is +11 net markers.
-- Most variance came from documentation marker growth, while `synapse/` remained unchanged.
+- Delta vs prior snapshot is **-2** net markers (507 -> 505).
+- `synapse/` marker count decreased (420 -> 415), while docs remain the largest non-code growth area.
 
 ### Initial risk interpretation
 
@@ -55,10 +55,10 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### B. Runtime correctness and unimplemented branches
 
-- [ ] B1. Audit all `NotImplementedError` occurrences.
-- [ ] B2. Tag each as `abstract-interface-ok` or `runtime-path-risk`.
-- [ ] B3. Eliminate/replace all `runtime-path-risk` occurrences.
-- [ ] B4. Add regression tests for each resolved runtime-path-risk branch.
+- [x] B1. Audit all `NotImplementedError` occurrences.
+- [x] B2. Tag each as `abstract-interface-ok` or `runtime-path-risk`.
+- [x] B3. Eliminate/replace all `runtime-path-risk` occurrences.
+- [x] B4. Add regression tests for each resolved runtime-path-risk branch.
 
 ### C. Reliability/SLO implementation
 
@@ -169,3 +169,18 @@ Populate and keep current:
 - Bi-weekly: triage marker backlog and adjust budget.
 - Monthly: SLO review and risk re-ranking.
 - Quarterly: restore/failover drills and checklist recertification.
+
+
+### Runtime-path risk closure notes (2026-02-20)
+
+- Runtime-path risks identified in the inventory were eliminated by replacing `NotImplementedError` branches in request handlers with explicit `SynapseError` responses in:
+  - `synapse/handlers/sync.py`
+  - `synapse/handlers/room.py`
+  - `synapse/federation/federation_server.py`
+- Added regression tests covering:
+  - appservice-user `/sync` rejection path in sync handler logic
+  - missing `event_id` rejection for federation `/state_ids` requests
+  - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
+  - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
+- Runtime-path-risk `NotImplementedError` count is now tracked at **0** for request-serving flows addressed by this tracker.
+

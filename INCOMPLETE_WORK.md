@@ -5,11 +5,11 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file): **496**
+- Total potential incomplete-work markers (excluding this inventory file): **505**
 - Top directories by marker count:
-  - `synapse/`: **420**
-  - `tests/`: **37**
-  - `docs/`: **15**
+  - `synapse/`: **415**
+  - `tests/`: **34**
+  - `docs/`: **32**
   - `contrib/`: **12**
   - `scripts-dev/`: **8**
 
@@ -21,11 +21,11 @@ This file was generated from a quick source scan for common incomplete-work mark
 - `tests/rest/client/test_profile.py:182` (FIXME around profile avatar URL behavior)
 - `tests/federation/test_federation_server.py:262` (TODO to improve auth-chain test coverage)
 
-### NotImplemented placeholders in production code paths
+### NotImplemented placeholders (primarily abstract/interface stubs)
 
-- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()`)
-- `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()`)
-- `synapse/handlers/room.py:1722` (`raise NotImplementedError()`)
+- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()` abstract store method)
+- `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()` abstract stream ID interface)
+- `synapse/handlers/sso.py:130` (`raise NotImplementedError()` abstract IdP redirect handler)
 
 ### Known tech debt called out with FIXMEs
 

@@ -456,8 +456,9 @@ class BasePresenceHandler(abc.ABC):
         )
 
     async def is_visible(self, observed_user: UserID, observer_user: UserID) -> bool:
-        raise NotImplementedError(
-            "Attempting to check presence on a non-presence worker."
+        raise SynapseError(
+            503,
+            "Presence visibility checks are unavailable on this worker.",
         )
 
 

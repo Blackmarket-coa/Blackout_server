@@ -36,6 +36,7 @@ from synapse.api.constants import (
     EventTypes,
     Membership,
 )
+from synapse.api.errors import Codes, SynapseError
 from synapse.api.filtering import FilterCollection
 from synapse.api.presence import UserPresenceState
 from synapse.api.room_versions import KNOWN_ROOM_VERSIONS
@@ -1383,7 +1384,11 @@ class SyncHandler:
         if app_service:
             # We no longer support AS users using /sync directly.
             # See https://github.com/matrix-org/matrix-doc/issues/1144
-            raise NotImplementedError()
+            raise SynapseError(
+                403,
+                "Application service users are not permitted to call /sync directly",
+                errcode=Codes.FORBIDDEN,
+            )
 
         # Note: we get the users room list *before* we get the current token, this
         # avoids checking back in history if rooms are joined after the token is fetched.

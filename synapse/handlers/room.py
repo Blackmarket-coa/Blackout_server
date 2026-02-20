@@ -1719,7 +1719,11 @@ class RoomEventSource(EventSource[RoomStreamToken, EventBase]):
         if app_service:
             # We no longer support AS users using /sync directly.
             # See https://github.com/matrix-org/matrix-doc/issues/1144
-            raise NotImplementedError()
+            raise SynapseError(
+                403,
+                "Application service users are not permitted to call /sync directly",
+                errcode=Codes.FORBIDDEN,
+            )
         else:
             room_events = await self.store.get_membership_changes_for_user(
                 user.to_string(), from_key, to_key
