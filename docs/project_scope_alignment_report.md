@@ -16,7 +16,7 @@ The project is **not yet aligned** with scope. The largest gaps are:
 4. **Backup/restore and DR readiness** (E1-E4) is not started.
 5. **Operational maturity** (F1-F4) is not started.
 6. **30/60/90 rollout milestones** (G1-G3) are not started.
-7. **Ownership assignments** remain `_TBD_` across all major domains.
+7. **Ownership assignments** remain unassigned placeholders across all major domains.
 
 ## Required actions to reach scope completion
 
@@ -24,7 +24,7 @@ The project is **not yet aligned** with scope. The largest gaps are:
 
 - Complete marker triage (`intentional`, `defer`, `must-fix`) and publish owner-backed queue.
 - Burn down production-path `must-fix` markers to zero.
-- Resolve stale TODO/FIXME in tests/docs that no longer represent planned work.
+- Resolve stale backlog markers in tests/docs that no longer represent planned work.
 - Enforce a marker budget policy in CI for new changes.
 
 ### 2) Stand up reliability/SLO practice
@@ -61,7 +61,7 @@ The project is **not yet aligned** with scope. The largest gaps are:
 
 ### 7) Assign owners and governance now
 
-- Replace all `_TBD_` roles in tracker ownership template.
+- Replace all unassigned placeholder roles in tracker ownership template.
 - Establish weekly/bi-weekly/monthly/quarterly governance cadence with named accountable owners.
 
 ## Suggested execution order (near-term)

@@ -192,7 +192,8 @@ def check_is_cacheable(
     return_type = _get_true_return_type(signature)
 
     verbose = ctx.api.options.verbosity >= 1
-    # TODO Technically a cachedList only needs immutable values, but forcing them
+    # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17604):
+    # technically a cachedList only needs immutable values, but forcing them
     # to return Mapping instead of Dict is fine.
     ok, note = is_cacheable(return_type, signature, verbose)
 

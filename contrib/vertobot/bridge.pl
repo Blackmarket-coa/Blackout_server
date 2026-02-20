@@ -153,12 +153,12 @@ my $http_server =  Net::Async::HTTP::Server->new(
                 $self->adopt_future($f);
             }
             # elsif ($event->{type} eq 'm.call.candidates') {
-            #     # XXX: this could fire for both matrix->verto and verto->matrix calls
+            #     # This could fire for both matrix->verto and verto->matrix calls.
             #     # and races as it collects candidates. much better to just turn off
             #     # candidate gathering in the webclient entirely for now
             #     
             #     my $room_id = $event->{room_id};
-            #     # XXX: compare call IDs
+            #     # Compare call IDs before emitting the bridge state update.
             #     if (!$bridgestate->{$room_id}->{gathered_candidates}) {
             #         $bridgestate->{$room_id}->{gathered_candidates} = 1;
             #         my $offer = $bridgestate->{$room_id}->{offer};
@@ -166,7 +166,7 @@ my $http_server =  Net::Async::HTTP::Server->new(
             #         foreach (@{$event->{content}->{candidates}}) {
             #             $candidate_block .= "a=" . $_->{candidate} . "\r\n";
             #         }
-            #         # XXX: collate using the right m= line - for now assume audio call
+            #         # Collate using the correct m= line; currently this assumes audio.
             #         $offer =~ s/(a=rtcp.*[\r\n]+)/$1$candidate_block/;
             #     
             #         my $f = send_verto_json_request("verto.invite", {

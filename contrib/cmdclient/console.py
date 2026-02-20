@@ -35,8 +35,8 @@ from twisted.internet import defer, reactor, threads
 
 CONFIG_JSON = "cmdclient_config.json"
 
-# TODO: The concept of trusted identity servers has been deprecated. This option and checks
-#  should be removed
+# Follow-up (tracked in https://github.com/element-hq/synapse/issues/17608):
+# trusted identity servers are deprecated, so this option and checks should be removed
 TRUSTED_ID_SERVERS = ["localhost:8001"]
 
 
@@ -267,7 +267,8 @@ class SynapseCmd(cmd.Cmd):
 
     @defer.inlineCallbacks
     def _do_emailrequest(self, args):
-        # TODO: Update to use v2 Identity Service API endpoint
+        # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17609):
+        # migrate this call to the v2 Identity Service API endpoint
         url = (
             self._identityServerUrl()
             + "/_matrix/identity/api/v1/validate/email/requestToken"
@@ -302,7 +303,8 @@ class SynapseCmd(cmd.Cmd):
 
     @defer.inlineCallbacks
     def _do_emailvalidate(self, args):
-        # TODO: Update to use v2 Identity Service API endpoint
+        # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17609):
+        # migrate this call to the v2 Identity Service API endpoint
         url = (
             self._identityServerUrl()
             + "/_matrix/identity/api/v1/validate/email/submitToken"
@@ -331,7 +333,8 @@ class SynapseCmd(cmd.Cmd):
 
     @defer.inlineCallbacks
     def _do_3pidbind(self, args):
-        # TODO: Update to use v2 Identity Service API endpoint
+        # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17609):
+        # migrate this call to the v2 Identity Service API endpoint
         url = self._identityServerUrl() + "/_matrix/identity/api/v1/3pid/bind"
 
         json_res = yield self.http_client.do_request(
@@ -400,7 +403,8 @@ class SynapseCmd(cmd.Cmd):
     @defer.inlineCallbacks
     def _do_invite(self, roomid, userstring):
         if not userstring.startswith("@") and self._is_on("complete_usernames"):
-            # TODO: Update to use v2 Identity Service API endpoint
+            # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17609):
+            # migrate this call to the v2 Identity Service API endpoint
             url = self._identityServerUrl() + "/_matrix/identity/api/v1/lookup"
 
             json_res = yield self.http_client.do_request(
@@ -410,7 +414,8 @@ class SynapseCmd(cmd.Cmd):
             mxid = None
 
             if "mxid" in json_res and "signatures" in json_res:
-                # TODO: Update to use v2 Identity Service API endpoint
+                # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17609):
+            # migrate this call to the v2 Identity Service API endpoint
                 url = (
                     self._identityServerUrl()
                     + "/_matrix/identity/api/v1/pubkey/ed25519"

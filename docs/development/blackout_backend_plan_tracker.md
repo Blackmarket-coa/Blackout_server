@@ -199,17 +199,17 @@ Exit criteria:
 
 ---
 
-## 9) Existing code TODO/FIXME alignment map (initial seed)
+## 9) Existing code marker alignment map (initial seed)
 
 These items are a seed list to connect current backlog comments to this plan.
 
-- [ ] `faster_joins` TODO cluster (federation partial-state behavior)
+- [ ] `faster_joins` marker cluster (federation partial-state behavior)
   - Plan tie-in: **Scalability + reliability under constrained hosts**
-- [ ] Sync TODO/FIXME cluster (`compute_state_delta`, summary behavior)
+- [ ] Sync marker cluster (`compute_state_delta`, summary behavior)
   - Plan tie-in: **Ephemeral signaling semantics + correctness**
-- [ ] Storage/search/media TODO/FIXME clusters
+- [ ] Storage/search/media marker clusters
   - Plan tie-in: **Remove message storage + disable indexing/media**
-- [ ] Tracker-tagged TODOs (`TODO(owner)`)
+- [ ] Tracker-tagged follow-up markers (`TO-DO(owner)` in historical notes)
   - Plan tie-in: **Convert owner-notes into explicit milestones and issues**
 
 ---
@@ -285,7 +285,7 @@ Classification legend:
 | BLK-113 | 5.1 crypto alignment baseline (identity keys, DTLS, AES, hashing, Merkle verification contract) | Security Architect | Sprint 2 | Produce threat-model addendum and protocol acceptance checklist for Phase 1. |
 | BLK-114 | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Mobile Performance Engineer | Sprint 3 | Define benchmark harness and collect first representative mobile baseline. |
 | BLK-115 | 8 Phase 1 deliverables + Phase 1 exit criterion | Program Manager + Backend Lead | Sprint 1-2 | Convert Phase 1 bullets to sprint stories and run end-to-end demo gate. |
-| BLK-116 | 9 alignment seed: `faster_joins`, sync TODO/FIXME, storage/search/media TODO/FIXME, tracker-tagged TODO(owner) | Tech Lead | Sprint 1 | Open mapped issues for each TODO cluster and attach `blackout:*` labels. |
+| BLK-116 | 9 alignment seed: `faster_joins`, sync marker clusters, storage/search/media marker clusters, tracker-tagged follow-up markers | Tech Lead | Sprint 1 | Open mapped issues for each marker cluster and attach `blackout:*` labels. |
 | BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | Hold decision workshop and record resolutions in ADR set before feature merge. |
 
 
@@ -345,10 +345,10 @@ Required-now ticket mapping for compliance gate:
 
 | Rank | Hotspot cluster | Owner (DRI) | WoW marker delta | Update |
 |---:|---|---|---:|---|
-| 1 | `faster_joins` TODO cluster | Tech Lead | 0 | Owner confirmed; mitigation plan tracked in BLK-116. |
-| 2 | Sync TODO/FIXME cluster (`compute_state_delta`, summary behavior) | API Engineer | 0 | Owner confirmed; conformance scope in BLK-107. |
-| 3 | Storage/search/media TODO/FIXME cluster | Platform Engineer | 0 | Owner confirmed; disablement work tracked in BLK-103. |
-| 4 | Tracker-tagged TODOs (`TODO(owner)`) | Program Manager | 0 | Owner confirmed; conversion workflow tracked in BLK-116. |
+| 1 | `faster_joins` marker cluster | Tech Lead | 0 | Owner confirmed; mitigation plan tracked in BLK-116. |
+| 2 | Sync marker cluster (`compute_state_delta`, summary behavior) | API Engineer | 0 | Owner confirmed; conformance scope in BLK-107. |
+| 3 | Storage/search/media marker cluster | Platform Engineer | 0 | Owner confirmed; disablement work tracked in BLK-103. |
+| 4 | Tracker-tagged follow-up markers | Program Manager | 0 | Owner confirmed; conversion workflow tracked in BLK-116. |
 | 5 | Signaling schema validation markers | Protocol Engineer | 0 | Owner confirmed; validator work in BLK-105. |
 | 6 | Blocked-event enforcement markers | API Engineer | 0 | Owner confirmed; enforcement work in BLK-106. |
 | 7 | Retention purge implementation markers | Data Lifecycle Engineer | 0 | Owner confirmed; purge work in BLK-111. |

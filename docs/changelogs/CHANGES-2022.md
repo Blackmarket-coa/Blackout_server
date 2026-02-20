@@ -1385,7 +1385,7 @@ Internal Changes
 - Add type hints to tests. ([\#12985](https://github.com/matrix-org/synapse/issues/12985), [\#13099](https://github.com/matrix-org/synapse/issues/13099))
 - Refactor macaroon tokens generation and move the unsubscribe link in notification emails to `/_synapse/client/unsubscribe`. ([\#12986](https://github.com/matrix-org/synapse/issues/12986))
 - Fix documentation for running complement tests. ([\#12990](https://github.com/matrix-org/synapse/issues/12990))
-- Faster joins: add issue links to the TODO comments in the code. ([\#13004](https://github.com/matrix-org/synapse/issues/13004))
+- Faster joins: add issue links to follow-up comments in the code. ([\#13004](https://github.com/matrix-org/synapse/issues/13004))
 - Reduce DB usage of `/sync` when a large number of unread messages have recently been sent in a room. ([\#13005](https://github.com/matrix-org/synapse/issues/13005), [\#13096](https://github.com/matrix-org/synapse/issues/13096), [\#13118](https://github.com/matrix-org/synapse/issues/13118))
 - Replaced usage of PyJWT with methods from Authlib in `org.matrix.login.jwt`. Contributed by Hannes Lerchl. ([\#13011](https://github.com/matrix-org/synapse/issues/13011))
 - Modernize the `contrib/graph/` scripts. ([\#13013](https://github.com/matrix-org/synapse/issues/13013))

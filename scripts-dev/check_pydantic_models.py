@@ -156,8 +156,8 @@ class PatchedBaseModel(PydanticBaseModel):
             # Note that field.type_ and field.outer_type are computed based on the
             # annotation type, see pydantic.fields.ModelField._type_analysis
             if field_type_unwanted(field.outer_type_):
-                # TODO: this only reports the first bad field. Can we find all bad ones
-                #  and report them all?
+                # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17601):
+                # report all bad fields instead of only the first one encountered.
                 raise FieldHasUnwantedTypeException(
                     f"{cls.__module__}.{cls.__qualname__} has field '{field.name}' "
                     f"with unwanted type `{field.outer_type_}`"
@@ -196,8 +196,9 @@ def monkeypatch_pydantic() -> Generator[None, None, None]:
 
 def format_model_checker_exception(e: ModelCheckerException) -> str:
     """Work out which line of code caused e. Format the line in a human-friendly way."""
-    # TODO. FieldHasUnwantedTypeException gives better error messages. Can we ditch the
-    #   patches of constr() etc, and instead inspect fields to look for ConstrainedStr
+    # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17602):
+    # evaluate whether we can replace constr() patching with direct field inspection
+    # for ConstrainedStr
     #   with strict=False? There is some difficulty with the inheritance hierarchy
     #   because StrictStr < ConstrainedStr < str.
     if isinstance(e, FieldHasUnwantedTypeException):
@@ -231,8 +232,8 @@ def do_lint() -> Set[str]:
     with monkeypatch_pydantic():
         logger.debug("Importing synapse")
         try:
-            # TODO: make "synapse" an argument so we can target this script at
-            # a subpackage
+            # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17603):
+            # make "synapse" configurable so this script can target a subpackage
             module = importlib.import_module("synapse")
         except ModelCheckerException as e:
             logger.warning("Bad annotation found when importing synapse")

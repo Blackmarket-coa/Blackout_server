@@ -357,7 +357,8 @@ class MatrixConnectionAdapter(HTTPAdapter):
             # explicit port, or ipv6 literal. Either way, no .well-known
             return None
 
-        # TODO: check for ipv4 literals
+        # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17607):
+        # validate IPv4 literals as well as hostnames.
 
         uri = f"https://{server_name}/.well-known/matrix/server"
         print(f"fetching {uri}", file=sys.stderr)

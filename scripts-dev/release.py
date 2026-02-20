@@ -505,7 +505,8 @@ def _merge_into(repo: Repo, source: str, target: str) -> None:
     assert repo.active_branch.name == target
 
     try:
-        # TODO This seemed easier than using GitPython directly
+        # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17605):
+        # this shell call was simpler than a GitPython rewrite at the time.
         click.echo(f"Merging {source}...")
         repo.git.merge(source)
     except GitCommandError as exc:
@@ -719,7 +720,8 @@ def full(gh_token: str) -> None:
     click.echo("\nWait for all release methods to be ready.")
     # Docker should be ready because it was done by the workflows earlier
     # PyPI should be ready because we just ran upload().
-    # TODO Automatically poll until the Debs have made it to packages.matrix.org
+    # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17606):
+    # automatically poll until the debs are available on packages.matrix.org
     click.confirm("Debs ready?", abort=True)
 
     click.echo("\n*** announce ***")

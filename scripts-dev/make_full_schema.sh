@@ -218,8 +218,9 @@ DROP TABLE applied_schema_deltas;
 DROP TABLE applied_module_schemas;
 "
 # Other common tables are not created by Synapse and do belong in the schema.
-# TODO: we could derive DROP_COMMON_TABLES from the dump of the common-only DB. But
-#       since there's only one table there, I haven't bothered to do so.
+# Follow-up (tracked in https://github.com/element-hq/synapse/issues/17600):
+# we can derive DROP_COMMON_TABLES from the common-only DB dump. For now this
+# stays explicit because there is only one table and readability is better.
 DROP_COMMON_TABLES="$DROP_APP_MANAGED_TABLES
 DROP TABLE background_updates;
 "

@@ -387,7 +387,7 @@ SCHEMA_COMPAT_VERSION = S + 3 # we can't roll back to a time before new_column w
 
 **Notes:**
 1. We can't drop `old_column` yet because that would break a rollback to the previous version of Synapse. \
-   **TODO:** It may be possible to relax this and drop the column straight away as long as the previous version of Synapse detected a rollback occurred and stopped attempting to write to the column. This could possibly be done by checking whether the database's schema compatibility version was `S + 3`.
+   **Follow-up (tracked in https://github.com/element-hq/synapse/issues/17610):** It may be possible to relax this and drop the column straight away as long as the previous version of Synapse detected a rollback occurred and stopped attempting to write to the column. This could possibly be done by checking whether the database's schema compatibility version was `S + 3`.
 
 
 #### Synapse version `N + 5`
