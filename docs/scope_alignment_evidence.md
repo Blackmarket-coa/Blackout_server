@@ -68,6 +68,10 @@ explicit so execution can proceed without governance ambiguity.
 ## 5) Immediate next execution steps
 
 1. Complete A2 marker classification using the assigned bi-weekly triage owner.
-2. Implement C2/C3 instrumentation + alert rules tied to the finalized SLO set.
-3. Produce the first E2 backup verification run and attach it to this evidence log.
-4. Append drill artifacts for D3/D6/F3 as they are completed.
+2. C2/C3 completed: instrumentation and alert/paging policies are published in
+   `docs/reliability_slo_instrumentation.md` and
+   `docs/reliability_slo_alerting_and_paging.md`.
+3. C4 completed: first monthly SLO report published at
+   `docs/reliability_reports/2026-02.md`.
+4. Produce the first E2 backup verification run and attach it to this evidence log.
+5. Append drill artifacts for D3/D6/F3 as they are completed.
