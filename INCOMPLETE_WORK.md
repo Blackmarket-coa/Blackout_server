@@ -5,13 +5,13 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file): **505**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **495**
 - Top directories by marker count:
-  - `synapse/`: **415**
-  - `tests/`: **34**
-  - `docs/`: **32**
+  - `synapse/`: **409**
+  - `tests/`: **32**
+  - `docs/`: **29**
   - `contrib/`: **12**
-  - `scripts-dev/`: **8**
+  - `scripts-dev/`: **9**
 
 ## Representative examples to prioritize
 

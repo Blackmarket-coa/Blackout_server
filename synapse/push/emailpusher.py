@@ -45,7 +45,8 @@ THROTTLE_RESET_AFTER_MS = 12 * 60 * 60 * 1000
 
 # does each email include all unread notifs, or just the ones which have happened
 # since the last mail?
-# XXX: this is currently broken as it includes ones from parted rooms(!)
+# NOTE: This mode is intentionally disabled; when enabled it can include
+# unread notifications from rooms that the user has already left.
 INCLUDE_ALL_UNREAD_NOTIFS = False
 
 

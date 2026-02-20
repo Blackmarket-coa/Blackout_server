@@ -140,5 +140,8 @@ cargo-fmt
 # Ensure all Pydantic models use strict types.
 ./scripts-dev/check_pydantic_models.py lint
 
+# Enforce incomplete-work marker budget.
+./scripts-dev/check_marker_budget.py
+
 # Ensure type hints are correct.
 mypy
