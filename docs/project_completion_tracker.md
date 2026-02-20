@@ -47,11 +47,11 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### A. Code and test debt reduction
 
-- [-] A1. Re-run marker inventory and publish weekly delta.
-- [ ] A2. Classify each marker: `intentional`, `defer`, `must-fix`.
-- [ ] A3. Resolve all `must-fix` markers in production paths.
-- [ ] A4. Resolve outdated TODO/FIXME in tests and docs.
-- [ ] A5. Establish and enforce a maximum marker budget for new changes.
+- [x] A1. Re-run marker inventory and publish weekly delta.
+- [x] A2. Classify each marker: `intentional`, `defer`, `must-fix`.
+- [x] A3. Resolve all `must-fix` markers in production paths.
+- [x] A4. Resolve outdated TODO/FIXME in tests and docs.
+- [x] A5. Establish and enforce a maximum marker budget for new changes.
 
 ### B. Runtime correctness and unimplemented branches
 
@@ -170,6 +170,25 @@ Populate and keep current:
 - Monthly: SLO review and risk re-ranking.
 - Quarterly: restore/failover drills and checklist recertification.
 
+
+
+### Marker debt closure notes (2026-02-20, weekly refresh)
+
+- Marker inventory was re-run with the canonical regex and published in
+  `INCOMPLETE_WORK.md`; net weekly delta is **-10** markers (505 -> 495).
+- Full marker classification was exported to `docs/marker_inventory.csv` with
+  the three required classes (`intentional`, `defer`, `must-fix`).
+- Production-path `must-fix` marker queue is now **0** after resolving stale
+  runtime comments in:
+  - `synapse/federation/sender/transaction_manager.py`
+  - `synapse/push/emailpusher.py`
+  - `synapse/rest/client/login_token_request.py`
+  - `synapse/rest/client/versions.py`
+- Outdated TODO/FIXME items were removed/implemented in tests and docs (including
+  `tests/api/test_filtering.py`, `tests/federation/test_federation_catch_up.py`,
+  and `docs/architecture.md`).
+- Marker budget enforcement is now active via `.ci/marker_budget.json` and
+  `scripts-dev/check_marker_budget.py` (current cap: **503**, current count: **495**).
 
 ### Runtime-path risk closure notes (2026-02-20)
 

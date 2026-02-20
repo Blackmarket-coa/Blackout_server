@@ -23,7 +23,7 @@ from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import EduTypes, EventContentFields
 from synapse.api.errors import SynapseError
-from synapse.api.filtering import Filter
+from synapse.api.filtering import Filter, FilterCollection
 from synapse.api.presence import UserPresenceState
 from synapse.server import HomeServer
 from synapse.types import JsonDict, UserID
@@ -124,8 +124,21 @@ class FilteringTestCase(unittest.HomeserverTestCase):
                 self.fail(e)
 
     def test_limits_are_applied(self) -> None:
-        # TODO
-        pass
+        defaults = FilterCollection(self.hs, {})
+        self.assertEqual(defaults.timeline_limit(), 10)
+        self.assertEqual(defaults.presence_limit(), 10)
+        self.assertEqual(defaults.ephemeral_limit(), 10)
+
+        custom = FilterCollection(
+            self.hs,
+            {
+                "presence": {"limit": 2},
+                "room": {"timeline": {"limit": 3}, "ephemeral": {"limit": 4}},
+            },
+        )
+        self.assertEqual(custom.timeline_limit(), 3)
+        self.assertEqual(custom.presence_limit(), 2)
+        self.assertEqual(custom.ephemeral_limit(), 4)
 
     def test_definition_types_works_with_literals(self) -> None:
         definition = {"types": ["m.room.message", "org.matrix.foo.bar"]}

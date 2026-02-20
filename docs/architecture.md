@@ -29,7 +29,7 @@ As of the end of Oct 2014, Synapse's overall architecture looks like:
                                 '----'
 
 -   Handlers: business logic of synapse itself. Follows a set contract of BaseHandler:
-    -   BaseHandler gives us onNewRoomEvent which: (TODO: flesh this out and make it less cryptic):
+    -   BaseHandler gives us onNewRoomEvent, which runs this flow:
         -   handle_state(event)
         -   auth(event)
         -   persist_event(event)
@@ -57,7 +57,7 @@ As of the end of Oct 2014, Synapse's overall architecture looks like:
     we are only using for things which actually /require/ dynamic
     pluggability however as it can obfuscate the actual flow of control.
 -   Auth: helper singleton to say whether a given event is allowed to do
-    a given thing (TODO: put this on the diagram)
+    a given thing (diagram update still pending)
 -   State: helper singleton: does state conflict resolution. You give it
     an event and it tells you if it actually updates the state or not,
     and annotates the event up properly and handles merge conflict

@@ -48,8 +48,6 @@ class FederationCatchUpTestCases(FederatingHomeserverTestCase):
         state_storage_controller = hs.get_storage_controllers().state
 
         # This mock is crucial for destination_rooms to be populated.
-        # TODO: this seems to no longer be the case---tests pass with this mock
-        # commented out.
         state_storage_controller.get_current_hosts_in_room = AsyncMock(  # type: ignore[method-assign]
             return_value={"test", "host2"}
         )

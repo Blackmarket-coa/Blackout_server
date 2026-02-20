@@ -143,11 +143,9 @@ class TransactionManager:
 
             # Actually send the transaction
 
-            # FIXME (erikj): This is a bit of a hack to make the Pdu age
-            # keys work
-            # FIXME (richardv): I also believe it no longer works. We (now?) store
-            #  "age_ts" in "unsigned" rather than at the top level. See
-            #  https://github.com/matrix-org/synapse/issues/8429.
+            # This conversion path exists to keep compatibility with outgoing PDU age
+            # data. We currently normalize the legacy top-level "age_ts" key into
+            # unsigned["age"] for remote servers.
             def json_data_cb() -> JsonDict:
                 data = transaction.get_dict()
                 now = int(self.clock.time_msec())
