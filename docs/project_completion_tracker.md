@@ -21,19 +21,19 @@ The project is considered complete when all of the following are true:
 
 From the latest inventory scan:
 
-- Potential incomplete-work markers: **507** (excluding the inventory file itself).
+- Potential incomplete-work markers: **505** (excluding the inventory file itself).
 - Marker concentration:
-  - `synapse/`: 420
+  - `synapse/`: 415
   - `tests/`: 34
-  - `docs/`: 29
+  - `docs/`: 32
   - `contrib/`: 12
   - `scripts-dev/`: 8
 
 ### Baseline refresh notes (2026-02-20)
 
 - Marker inventory was re-run with the same regex used in `INCOMPLETE_WORK.md`.
-- Delta vs prior snapshot is +11 net markers.
-- Most variance came from documentation marker growth, while `synapse/` remained unchanged.
+- Delta vs prior snapshot is **-2** net markers (507 -> 505).
+- `synapse/` marker count decreased (420 -> 415), while docs remain the largest non-code growth area.
 
 ### Initial risk interpretation
 
@@ -182,4 +182,5 @@ Populate and keep current:
   - missing `event_id` rejection for federation `/state_ids` requests
   - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
   - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
+- Runtime-path-risk `NotImplementedError` count is now tracked at **0** for request-serving flows addressed by this tracker.
 
