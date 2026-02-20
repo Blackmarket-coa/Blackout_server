@@ -21,13 +21,19 @@ The project is considered complete when all of the following are true:
 
 From the latest inventory scan:
 
-- Potential incomplete-work markers: **496** (excluding the inventory file itself).
+- Potential incomplete-work markers: **507** (excluding the inventory file itself).
 - Marker concentration:
   - `synapse/`: 420
-  - `tests/`: 37
-  - `docs/`: 15
+  - `tests/`: 34
+  - `docs/`: 29
   - `contrib/`: 12
   - `scripts-dev/`: 8
+
+### Baseline refresh notes (2026-02-20)
+
+- Marker inventory was re-run with the same regex used in `INCOMPLETE_WORK.md`.
+- Delta vs prior snapshot is +11 net markers.
+- Most variance came from documentation marker growth, while `synapse/` remained unchanged.
 
 ### Initial risk interpretation
 
@@ -41,7 +47,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### A. Code and test debt reduction
 
-- [ ] A1. Re-run marker inventory and publish weekly delta.
+- [-] A1. Re-run marker inventory and publish weekly delta.
 - [ ] A2. Classify each marker: `intentional`, `defer`, `must-fix`.
 - [ ] A3. Resolve all `must-fix` markers in production paths.
 - [ ] A4. Resolve outdated TODO/FIXME in tests and docs.
