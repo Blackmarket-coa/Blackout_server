@@ -172,6 +172,71 @@ Populate and keep current:
 
 
 
+## 8) Outstanding work (actionable next steps)
+
+Status check (from latest tracker/TODO/FIXME audit):
+
+- `docs/development/blackout_backend_plan_tracker.md`: **107** unchecked items.
+- `docs/project_completion_tracker.md`: **3** unchecked items (`G1`, `G2`, `G3`).
+- Marker hotspot remains concentrated in `synapse/` (**409** markers of 495 total).
+
+### Priority 1 — Close rollout alignment workstream (G1-G3)
+
+- [ ] **G1 closure package (Day 0-30)**
+  - Action: publish a dated milestone checklist artifact at
+    `docs/rollout/day_0_30.md` with owners and evidence links.
+  - Action: map each Day 0-30 milestone to an objective metric and a pass/fail criterion.
+  - Exit criteria: all Day 0-30 items have evidence links and are marked `[x]`.
+- [ ] **G2 closure package (Day 31-60)**
+  - Action: publish `docs/rollout/day_31_60.md` with implementation deltas,
+    production validation logs, and rollback validation evidence.
+  - Action: include one risk register section with mitigations and owner for each risk.
+  - Exit criteria: all Day 31-60 items are tracked, evidenced, and reviewed in weekly update.
+- [ ] **G3 closure package (Day 61-90)**
+  - Action: publish `docs/rollout/day_61_90.md` with hardening, operationalization,
+    and long-tail risk closure steps.
+  - Action: include final acceptance checklist aligned to Gate 3 resilience criteria.
+  - Exit criteria: all Day 61-90 milestones complete and Gate 3 checklist passes.
+
+### Priority 2 — Reduce tracker debt in blackout backend plan
+
+- [ ] **Convert unchecked plan bullets into execution tickets (batch 1)**
+  - Scope: retention policy, purge safety, signaling abuse controls, and health checks.
+  - Action: create a ticket index table in `docs/development/blackout_backend_plan_tracker.md`
+    (`ticket`, `owner`, `target sprint`, `status`, `evidence`).
+  - Exit criteria: first 25 unchecked bullets are mapped to tickets with owners.
+- [ ] **Convert unchecked plan bullets into execution tickets (batch 2)**
+  - Scope: crypto policy gaps (revocation/rotation), malicious peer handling,
+    and offline retrieval strategy.
+  - Exit criteria: second 25 unchecked bullets are mapped and prioritized.
+- [ ] **Convert unchecked plan bullets into execution tickets (batch 3)**
+  - Scope: performance and large-room topology tasks (super-peer, throttling,
+    hierarchy mesh validation).
+  - Exit criteria: remaining unchecked bullets have ticket mappings and sequencing.
+
+### Priority 3 — Marker reduction with measurable weekly targets
+
+- [ ] **Top-file marker burn-down plan**
+  - Action: for each of the top 10 marker-heavy files, classify markers as
+    `intentional`, `defer`, or `must-fix` with an owner and review date.
+  - Action: set weekly net reduction target (minimum **-10 markers/week** until <450).
+  - Exit criteria: marker count trend is downward for 4 consecutive weekly updates.
+- [ ] **Synapse hotspot split by domain**
+  - Action: break `synapse/` markers into domains (`handlers`, `storage`, `federation`, etc.)
+    and assign maintainers per domain.
+  - Exit criteria: domain-level ownership matrix is published and actively updated.
+
+### Tracking discipline updates
+
+- [ ] Weekly update must include:
+  - current unchecked tracker totals,
+  - marker delta week-over-week,
+  - completed actions from Priority 1/2/3,
+  - blockers with explicit owner and next action.
+- [ ] Bi-weekly triage must re-rank remaining unchecked tracker bullets by risk
+      (`availability`, `security`, `durability`, `operability`).
+
+
 ### Marker debt closure notes (2026-02-20, weekly refresh)
 
 - Marker inventory was re-run with the canonical regex and published in
