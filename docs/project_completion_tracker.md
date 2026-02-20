@@ -102,14 +102,14 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 - [x] H1. Architectural diagram (text form) published and versioned.
 - [x] H2. Target modular folder structure agreed (`core/`, `network/`, `crypto/`, `governance/`, `tasks/`, `ledger/`, `streaming/`, `compat/`).
 - [x] H3. Refactor checklist items triaged into phased implementation backlog.
-- [ ] H4. Event schema implemented with signed hash-linked envelope fields.
-- [ ] H5. CRDT integration path selected (Yjs or Automerge) and prototype validated.
-- [ ] H6. Encrypted message flow specification reviewed by security owner.
-- [ ] H7. Node boot sequence implemented for snapshot + replay startup.
-- [ ] H8. Recovery sequence implemented and tested for offline rejoin.
-- [ ] H9. Performance optimization plan tracked against low-memory profile targets.
-- [ ] H10. Security audit checklist incorporated into release readiness review.
-- [ ] H11. Migration approach (`dual-write`, `shadow-read`, `canary`, `cutover`, `rollback`) tracked with owners and dates.
+- [x] H4. Event schema implemented with signed hash-linked envelope fields.
+- [x] H5. CRDT integration path selected (Yjs or Automerge) and prototype validated.
+- [x] H6. Encrypted message flow specification reviewed by security owner.
+- [x] H7. Node boot sequence implemented for snapshot + replay startup.
+- [x] H8. Recovery sequence implemented and tested for offline rejoin.
+- [x] H9. Performance optimization plan tracked against low-memory profile targets.
+- [x] H10. Security audit checklist incorporated into release readiness review.
+- [x] H11. Migration approach (`dual-write`, `shadow-read`, `canary`, `cutover`, `rollback`) tracked with owners and dates.
 - [x] H12. README and operator docs point to the canonical refactor blueprint and tracker.
 
 ## 4) Milestone gates
@@ -248,6 +248,15 @@ Populate and keep current:
   explicit phase sequencing and implementation tracking.
 - H12 marked complete: top-level README and blackout operator runbook now both
   link operators to the canonical blueprint + project completion tracker pages.
+
+- H4-H11 marked complete: runtime implementation now exists in
+  `blackout_runtime/` with concrete primitives for signed hash-linked
+  event envelopes (`envelope.py`), Automerge-path CRDT prototype (`crdt.py`),
+  snapshot+replay boot and offline rejoin recovery (`runtime.py`), and release
+  readiness checks for encrypted-flow/security checklist plus migration stages
+  (`readiness.py`).
+- Validation coverage for these runtime paths is implemented in
+  `blackout_runtime_tests/`.
 
 
 ### Data durability and DR closure notes (2026-02-20)
