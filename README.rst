@@ -55,6 +55,21 @@ Operational and deployment docs
 * Distributed self-healing blueprint:
   `docs/distributed_self_healing_blueprint.md <docs/distributed_self_healing_blueprint.md>`_
 
+
+Self-healing federation refactor blueprint
+==========================================
+
+For the full architecture package describing the migration toward a
+self-healing, decentralized, encrypted, lightweight federation design (including
+text architecture diagram, folder layout, event schema, CRDT example, encrypted
+flow, boot/recovery sequences, and security checklist), see:
+
+* `docs/distributed_self_healing_blueprint.md <docs/distributed_self_healing_blueprint.md>`_
+
+The blueprint is written to preserve compatibility with the current Synapse-based
+runtime while adding a phased migration path for event-sourced replication and
+phone-hosted low-memory nodes.
+
 Quick start
 ===========
 

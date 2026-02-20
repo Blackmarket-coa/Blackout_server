@@ -252,3 +252,217 @@ Each runbook should include:
 - [ ] Blackout-mode rejection/acceptance telemetry reviewed after each release.
 - [ ] Error-budget policy documented and actively enforced.
 - [ ] Required runbook starter set completed and reviewed in the last quarter.
+
+
+## Refactor package for decentralized encrypted federation
+
+The sections below provide the requested implementation package for evolving this codebase toward a self-healing, decentralized, encrypted, lightweight federation system that can run on recycled phones while preserving compatibility.
+
+### 1) Architectural diagram (text form)
+
+```text
++---------------------- Federation Cluster ----------------------+
+|                                                                |
+|  +-------------------+      gossip       +-------------------+ |
+|  | Seed/Bootstrap    |<----------------->| Peer Manager      | |
+|  | HTTP+WS endpoint  |                   | (peer table)      | |
+|  +---------+---------+                   +-----+-------------+ |
+|            |                                   |               |
+|            v                                   v               |
+|  +-------------------+   signed events   +-------------------+ |
+|  | API Gateway       |------------------>| Event Store       | |
+|  | (auth bootstrap,  |<------------------| append-only log   | |
+|  | ws fallback)      |                   | hash-linked chain | |
+|  +---------+---------+                   +-----+-------------+ |
+|            |                                   |               |
+|            v                                   v               |
+|  +-------------------+                   +-------------------+ |
+|  | Crypto Layer      |<----------------->| Replication       | |
+|  | X25519/AES-GCM,   | encrypted blobs   | Engine + Gossip   | |
+|  | signatures, ratchet|                  | anti-entropy      | |
+|  +---------+---------+                   +-----+-------------+ |
+|            |                                   |               |
+|            v                                   v               |
+|  +-------------------+                   +-------------------+ |
+|  | CRDT State Engine |<----------------->| Snapshot Engine   | |
+|  | room/vote/task    | replay + merge    | checkpoint/replay | |
+|  +---------+---------+                   +-----+-------------+ |
+|            |                                   |               |
+|            +------------- encrypted ----------->               |
+|                          storage mirrors                       |
+|                                                                |
++----------------------------------------------------------------+
+```
+
+### 2) Target folder structure
+
+```text
+core/
+  event_store/
+  snapshot/
+  state_rebuild/
+network/
+  peer_manager/
+  gossip/
+  transport/
+    webrtc/
+    websocket/
+    bootstrap_http/
+crypto/
+  identity/
+  e2ee/
+  signatures/
+governance/
+  voting/
+  proposals/
+tasks/
+  allocation/
+  roles/
+ledger/
+  bounty/
+  escrow/
+  multisig/
+streaming/
+  signaling/
+  sfu_fallback/
+compat/
+  matrix_bridge/
+  migration/
+docs/
+  termux_setup.md
+  low_memory_profile.md
+  distributed_self_healing_blueprint.md
+```
+
+### 3) Refactor checklist
+
+- [ ] Introduce append-only signed event log with hash chaining.
+- [ ] Add CRDT state layer (Yjs or Automerge) for room/task/vote convergence.
+- [ ] Add deterministic replay engine from snapshot + log ranges.
+- [ ] Add gossip peer discovery with static seed fallback.
+- [ ] Add replication factor config and anti-entropy pull/push.
+- [ ] Add peer health scoring and automatic rebalancing.
+- [ ] Add lightweight embedded storage profile (SQLite/LiteFS/BadgerDB).
+- [ ] Add binary transport payloads (CBOR or Protobuf) for sync paths.
+- [ ] Add WebRTC transport for bulk media and file transfer, with WS fallback.
+- [ ] Add DID-style key identity and Ed25519 signatures for all events.
+- [ ] Add E2EE envelope model (X25519 + AES-GCM + room key rotation).
+- [ ] Add compatibility layer to preserve existing homeserver behavior during migration.
+- [ ] Add migration scripts for legacy state into event log format.
+- [ ] Add Docker + Termux setup and low-memory deployment profile.
+- [ ] Add security and chaos test suites for recovery and tamper detection.
+
+### 4) Example event schema
+
+```json
+{
+  "eventId": "01J...",
+  "eventType": "MESSAGE_CREATED",
+  "timestamp": 1730000000,
+  "actorPublicKey": "ed25519:base64...",
+  "signature": "base64sig...",
+  "encryptedPayload": "base64cipher...",
+  "previousHash": "sha256:...",
+  "roomId": "room:abc",
+  "crdtClock": { "site": "peer-a", "counter": 1024 }
+}
+```
+
+### 5) Example CRDT integration snippet
+
+```ts
+import * as Y from 'yjs'
+
+const doc = new Y.Doc()
+const messages = doc.getArray('messages')
+
+export function applyEvent(event) {
+  // payload already decrypted/verified at crypto boundary
+  const payload = decodePayload(event.encryptedPayload)
+
+  if (event.eventType === 'MESSAGE_CREATED') {
+    messages.push([{ id: event.eventId, author: payload.author, body: payload.body, ts: event.timestamp }])
+  }
+}
+
+export function exportSnapshot() {
+  return Y.encodeStateAsUpdate(doc)
+}
+
+export function importSnapshot(update) {
+  Y.applyUpdate(doc, update)
+}
+```
+
+### 6) Example encrypted message flow
+
+1. Sender derives shared secret via X25519(identity_key, recipient_prekey).
+2. Sender derives message key with HKDF context (room, epoch, msg_id).
+3. Payload encrypted with AES-256-GCM.
+4. Sender signs event envelope with Ed25519.
+5. Node stores only encrypted blob + metadata + hash links.
+6. Recipient verifies signature, decrypts payload, applies CRDT update.
+
+### 7) Node boot sequence
+
+1. Start with low-memory profile defaults.
+2. Load identity keys and trust roots.
+3. Initialize embedded event store.
+4. Load latest local snapshot.
+5. Join seed peers and gossip-discover neighbors.
+6. Request missing hash ranges from healthy peers.
+7. Verify hash-chain integrity and signatures.
+8. Replay missing events into CRDT state.
+9. Expose bootstrap API + WS fallback + signaling interfaces.
+10. Advertise healthy status and replication capacity.
+
+### 8) Recovery sequence
+
+1. Offline node returns and advertises last known checkpoint hash.
+2. Peers provide compact missing range manifests.
+3. Node downloads encrypted events in batches (binary protocol).
+4. Node verifies hash chain continuity and actor signatures.
+5. Node rehydrates state from snapshot then replays event delta.
+6. CRDT merge resolves concurrent edits deterministically.
+7. Node publishes reconciled checkpoint hash and rejoins quorum.
+
+### 9) Performance optimization notes
+
+- Use bounded in-memory write queue and batched fsync.
+- Compress replication frames and prefer CBOR/Protobuf over JSON.
+- Apply lazy loading for room history by hash/page range.
+- Keep hot indexes minimal for phone-hosted profiles.
+- Separate control-plane traffic from heavy media transport.
+- Add adaptive anti-entropy cadence based on battery/network quality.
+- Enforce backpressure on federation send queues.
+
+### 10) Security audit checklist
+
+- [ ] Event signatures verified before any state mutation.
+- [ ] Hash-chain tamper checks on ingest and replay.
+- [ ] End-to-end encrypted payloads at rest and in transit.
+- [ ] Forward secrecy and room key rotation policy documented.
+- [ ] Replay protection and nonce uniqueness validated.
+- [ ] Key revocation propagation tested across federation.
+- [ ] Snapshot encryption + integrity metadata verified.
+- [ ] Peer authn/authz checks for replication endpoints.
+- [ ] Abuse controls (rate limits, flood protection) validated.
+- [ ] Incident runbooks include key compromise and trust reset paths.
+
+## Migration approach (compatibility-preserving)
+
+To avoid breaking existing functionality, roll out in phases:
+
+1. **Dual-write:** write current persistence path + new event log path.
+2. **Shadow-read:** rebuild CRDT state in background and compare outputs.
+3. **Canary rooms:** enable new replication/recovery on selected rooms.
+4. **Cutover:** switch read path to snapshot + replay state engine.
+5. **Rollback guard:** preserve old read path until SLO stability is proven.
+
+## Lightweight node profile (phone-hosted target)
+
+- Prefer embedded storage and single-process worker model.
+- Keep memory cap target below 1 GB; disable nonessential modules.
+- Use WS fallback when WebRTC cannot establish direct channels.
+- Include Termux-specific startup scripts and watchdog restart guidance.
+- Favor stateless node replacement: key import + snapshot restore + replay.
