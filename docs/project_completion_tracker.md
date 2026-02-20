@@ -63,9 +63,9 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 ### C. Reliability/SLO implementation
 
 - [x] C1. Finalize SLOs (availability, federation recovery, RPO/RTO).
-- [ ] C2. Add instrumentation to measure each SLO directly.
-- [ ] C3. Define alert thresholds and paging policies.
-- [ ] C4. Publish monthly SLO reports.
+- [x] C2. Add instrumentation to measure each SLO directly.
+- [x] C3. Define alert thresholds and paging policies.
+- [x] C4. Publish monthly SLO reports.
 
 ### D. HA architecture and self-healing controls
 
@@ -213,6 +213,18 @@ Populate and keep current:
   all completion domains.
 - Rollout workstream ownership for G1/G2/G3 is documented in
   `docs/scope_alignment_evidence.md` to unblock milestone execution.
+
+### Reliability/SLO implementation closure notes (2026-02-20)
+
+- C2 marked complete via `docs/reliability_slo_instrumentation.md`, which defines
+  direct SLI formulas, required metric streams, and dashboard contracts for
+  availability, federation recovery, and durability objectives.
+- C3 marked complete via `docs/reliability_slo_alerting_and_paging.md`, which
+  defines warning/critical/emergency thresholds plus paging and escalation
+  policies for each SLO.
+- C4 marked complete via `docs/reliability_reports/2026-02.md`, establishing the
+  monthly reporting artifact with attainment, error-budget usage, and follow-up
+  actions.
 
 
 ### Refactor package documentation closure notes (2026-02-20)
