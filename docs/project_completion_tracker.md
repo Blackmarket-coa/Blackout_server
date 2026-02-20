@@ -172,6 +172,41 @@ Populate and keep current:
 
 
 
+## 8) Outstanding work for new scope (compliance + necessity)
+
+This section captures only work that is necessary to satisfy the current scope and
+keeps implementation evidence tied to canonical project docs.
+
+### Scope-compliance checklist (must complete)
+
+- [ ] Define the exact scope boundary in one place (`in-scope`, `out-of-scope`, `deferred`) and link all tracker items to one of those labels.
+- [ ] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
+- [ ] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
+- [ ] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
+
+### Action plan
+
+- [ ] **G1/G2/G3 compliance closure**
+  - Action: convert G1/G2/G3 into dated acceptance checklists with objective pass/fail criteria.
+  - Action: link each checklist item to implementation/test/runbook evidence.
+  - Exit criteria: G1/G2/G3 are either complete with evidence or explicitly deferred with sign-off.
+
+- [ ] **Backlog necessity triage for blackout backend tracker**
+  - Action: group unchecked bullets into `required-now`, `required-later`, `not-in-scope`.
+  - Action: for `required-now`, create ticket mapping with owner and target sprint.
+  - Exit criteria: all unchecked bullets are classified and have explicit next action.
+
+- [ ] **Marker debt compliance gate**
+  - Action: retain marker budget enforcement using canonical inventory exclusions only.
+  - Action: require weekly marker delta and top-hotspot owner assignment in tracker updates.
+  - Exit criteria: marker trend is stable/downward and no scope-critical `must-fix` marker is unowned.
+
+### Weekly reporting minimum
+
+- [ ] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`).
+- [ ] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
+- [ ] Publish: blockers, owner, and next action date.
+
 ### Marker debt closure notes (2026-02-20, weekly refresh)
 
 - Marker inventory was re-run with the canonical regex and published in
