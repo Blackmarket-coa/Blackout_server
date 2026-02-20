@@ -180,4 +180,5 @@ Populate and keep current:
 - Added regression tests covering:
   - appservice-user `/sync` rejection path in sync handler logic
   - missing `event_id` rejection for federation `/state_ids` requests
+  - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
 

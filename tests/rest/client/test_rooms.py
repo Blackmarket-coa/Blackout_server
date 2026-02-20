@@ -2215,6 +2215,24 @@ class RoomSearchTestCase(unittest.HomeserverTestCase):
         # No context was requested, so we should get none.
         self.assertEqual(results["results"][0]["context"], {})
 
+    def test_rejects_invalid_order_by(self) -> None:
+        channel = self.make_request(
+            "POST",
+            "/search?access_token=%s" % (self.access_token,),
+            {
+                "search_categories": {
+                    "room_events": {
+                        "keys": ["content.body"],
+                        "search_term": "Hi",
+                        "order_by": "unknown-order",
+                    }
+                }
+            },
+        )
+
+        self.assertEqual(channel.code, HTTPStatus.BAD_REQUEST, channel.result)
+        self.assertEqual(channel.json_body["errcode"], "M_INVALID_PARAM")
+
     def test_include_context(self) -> None:
         """
         When event_context includes include_profile, profile information will be

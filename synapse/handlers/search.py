@@ -20,7 +20,7 @@ import attr
 from unpaddedbase64 import decode_base64, encode_base64
 
 from synapse.api.constants import EventTypes, Membership
-from synapse.api.errors import NotFoundError, SynapseError
+from synapse.api.errors import Codes, NotFoundError, SynapseError
 from synapse.api.filtering import Filter
 from synapse.events import EventBase
 from synapse.events.utils import SerializeEventConfig
@@ -190,7 +190,11 @@ class SearchHandler:
             raise SynapseError(400, "Invalid search query")
 
         if order_by not in ("rank", "recent"):
-            raise SynapseError(400, "Invalid order by: %r" % (order_by,))
+            raise SynapseError(
+                400,
+                "Invalid order by: %r" % (order_by,),
+                errcode=Codes.INVALID_PARAM,
+            )
 
         if set(group_keys) - {"room_id", "sender"}:
             raise SynapseError(
@@ -322,8 +326,12 @@ class SearchHandler:
             # Unused return values for recent search.
             sender_group = None
         else:
-            # We should never get here due to the guard earlier.
-            raise NotImplementedError()
+            # Defensively return a client error if input validation above changes.
+            raise SynapseError(
+                400,
+                "Invalid order by: %r" % (order_by,),
+                errcode=Codes.INVALID_PARAM,
+            )
 
         logger.info("Found %d events to return", len(search_result.allowed_events))
 
