@@ -439,8 +439,8 @@ class LoggingTransaction:
         if isinstance(self.database_engine, Sqlite3Engine):
             self._do_execute(self.txn.executescript, sql)  # type: ignore[attr-defined]
         else:
-            raise NotImplementedError(
-                f"executescript only exists for sqlite driver, not {type(self.database_engine)}"
+            raise RuntimeError(
+                f"executescript is only available for sqlite, not {type(self.database_engine).__name__}"
             )
 
     def _make_sql_one_line(self, sql: str) -> str:

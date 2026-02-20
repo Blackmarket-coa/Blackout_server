@@ -279,3 +279,15 @@ class CancellationTestCase(unittest.HomeserverTestCase):
             ]
         )
         self.assertEqual(exception_callback.call_count, 6)  # no additional calls
+
+
+class LoggingTransactionExecuteScriptTestCase(unittest.TestCase):
+    def test_executescript_raises_runtimeerror_on_nonsqlite_engine(self) -> None:
+        txn = LoggingTransaction(
+            txn=Mock(),
+            name="test",
+            database_engine=Mock(),
+        )
+
+        with self.assertRaises(RuntimeError):
+            txn.executescript("SELECT 1")
