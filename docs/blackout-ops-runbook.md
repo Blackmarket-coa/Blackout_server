@@ -118,6 +118,35 @@ Temporary relay/super-peer selection guidance:
 - Publish relay topology hints in `message_metadata.topology_hints`.
 - Roll back relay assignment if reject rates or ICE failures increase for 2 consecutive windows.
 
+### Triage playbook for rising federation rejection rates
+
+Use this flow before broad rollback whenever rejection-rate alerts fire:
+
+1. **Confirm scope and threshold window**
+   - Validate whether the alert is warning (`>1%/15m`) or critical (`>5%/15m`).
+   - Check if impact is global or isolated to a small set of destination domains.
+2. **Classify rejection cause from logs/metrics**
+   - Payload validation failures (`invalid blackout signal payload`) usually indicate
+     incompatible sender implementations.
+   - Unsupported event-type rejections indicate non-signaling traffic still being
+     attempted during blackout.
+   - Revoked-device-key rejections indicate stale/compromised sender credentials.
+3. **Apply targeted mitigation first**
+   - For isolated domains: contact remote operators and temporarily bias traffic via
+     stable relay nodes.
+   - For payload-shape drift: pin or roll forward compatible client builds and
+     communicate schema requirements.
+   - For key-revocation spikes: force key refresh / device re-verification workflows.
+4. **Re-check after two 15m windows**
+   - If rejection rate returns below warning threshold and ICE success remains stable,
+     keep blackout posture unchanged.
+   - If still above warning threshold, keep mitigations and open an incident ticket.
+   - If still above critical threshold, initiate controlled rollback preparation.
+5. **Rollback guardrails (last resort)**
+   - Roll back one control at a time (relay policy before disabling blackout mode).
+   - Announce rollback blast radius and expected safety trade-offs.
+   - Capture post-change metrics snapshot for postmortem and policy tuning.
+
 
 ## Backup and disaster-recovery execution
 
