@@ -207,7 +207,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             NoKnownServersError: if remote_room_hosts does not contain a server joined to
                 the room.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def remote_knock(
@@ -226,7 +226,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             user: User who is trying to knock.
             content: A dict that should be used as the content of the knock event.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def remote_reject_invite(
@@ -249,7 +249,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         Returns:
             event id, stream_id of the leave event
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def remote_rescind_knock(
@@ -270,7 +270,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
         Returns:
             A tuple containing (event_id, stream_id of the leave event).
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def _user_left_room(self, target: UserID, room_id: str) -> None:
@@ -281,7 +281,7 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             target
             room_id
         """
-        raise NotImplementedError()
+        ...
 
     async def forget(
         self, user: UserID, room_id: str, do_not_schedule_purge: bool = False

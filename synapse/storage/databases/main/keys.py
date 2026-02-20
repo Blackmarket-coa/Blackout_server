@@ -127,7 +127,10 @@ class KeyStore(CacheInvalidationWorkerStore):
         self, server_name_and_key_id: Tuple[str, str]
     ) -> FetchKeyResult:
         # Cache descriptor placeholder for `get_server_keys_json`; never called directly.
-        raise NotImplementedError()
+        raise RuntimeError(
+            "_get_server_keys_json is a cache descriptor placeholder and must "
+            "not be called directly"
+        )
 
     @cachedList(
         cached_method_name="_get_server_keys_json", list_name="server_name_and_key_ids"
@@ -199,7 +202,10 @@ class KeyStore(CacheInvalidationWorkerStore):
     ) -> Optional[FetchKeyResultForRemote]:
         # Cache descriptor placeholder for `get_server_keys_json_for_remote`;
         # never called directly.
-        raise NotImplementedError()
+        raise RuntimeError(
+            "get_server_key_json_for_remote is a cache descriptor placeholder "
+            "and must not be called directly"
+        )
 
     @cachedList(
         cached_method_name="get_server_key_json_for_remote", list_name="key_ids"

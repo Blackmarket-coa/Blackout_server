@@ -179,11 +179,11 @@ class Pusher(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _start_processing(self) -> None:
         """Start processing push notifications."""
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def on_new_receipts(self) -> None:
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def on_started(self, have_notifs: bool) -> None:
@@ -194,11 +194,11 @@ class Pusher(metaclass=abc.ABCMeta):
                 check for push to send. Set to False only if it's known there
                 is nothing to send
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def on_stop(self) -> None:
-        raise NotImplementedError()
+        ...
 
 
 class PusherConfigException(Exception):

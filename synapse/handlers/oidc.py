@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import binascii
 import inspect
 import json
@@ -1480,7 +1481,7 @@ class UserAttributeDict(TypedDict):
     emails: List[str]
 
 
-class OidcMappingProvider(Generic[C]):
+class OidcMappingProvider(abc.ABC, Generic[C]):
     """A mapping provider maps a UserInfo object to user attributes.
 
     It should provide the API described by this class.
@@ -1493,6 +1494,7 @@ class OidcMappingProvider(Generic[C]):
         """
 
     @staticmethod
+    @abc.abstractmethod
     def parse_config(config: dict) -> C:
         """Parse the dict provided by the homeserver's config
 
@@ -1502,8 +1504,9 @@ class OidcMappingProvider(Generic[C]):
         Returns:
             A custom config object for this module
         """
-        raise NotImplementedError()
+        ...
 
+    @abc.abstractmethod
     def get_remote_user_id(self, userinfo: UserInfo) -> str:
         """Get a unique user ID for this user.
 
@@ -1515,8 +1518,9 @@ class OidcMappingProvider(Generic[C]):
         Returns:
             A unique user ID
         """
-        raise NotImplementedError()
+        ...
 
+    @abc.abstractmethod
     async def map_user_attributes(
         self, userinfo: UserInfo, token: Token, failures: int
     ) -> UserAttributeDict:
@@ -1531,7 +1535,7 @@ class OidcMappingProvider(Generic[C]):
         Returns:
             A dict containing the ``localpart`` and (optionally) the ``display_name``
         """
-        raise NotImplementedError()
+        ...
 
     async def get_extra_attributes(self, userinfo: UserInfo, token: Token) -> JsonDict:
         """Map a `UserInfo` object into additional attributes passed to the client during login.

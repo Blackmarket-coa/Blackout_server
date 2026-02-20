@@ -371,7 +371,7 @@ class _AsyncResource(resource.Resource, metaclass=abc.ABCMeta):
         code: int,
         response_object: Any,
     ) -> None:
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def _send_error_response(
@@ -379,7 +379,7 @@ class _AsyncResource(resource.Resource, metaclass=abc.ABCMeta):
         f: failure.Failure,
         request: "SynapseRequest",
     ) -> None:
-        raise NotImplementedError()
+        ...
 
 
 class DirectServeJsonResource(_AsyncResource):

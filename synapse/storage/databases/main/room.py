@@ -1934,7 +1934,7 @@ class RoomBackgroundUpdateStore(SQLBaseStore):
         # existing (tombstoned, public) rooms in the database.
         #
         # It's overridden by RoomStore for the synapse master.
-        raise NotImplementedError()
+        ...
 
     async def has_auth_chain_index(self, room_id: str) -> bool:
         """Check if the room has (or can have) a chain cover index.

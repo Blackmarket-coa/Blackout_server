@@ -29,7 +29,10 @@ class SignatureWorkerStore(EventsWorkerStore):
     def get_event_reference_hash(self, event_id: str) -> Mapping[str, bytes]:
         # This is a dummy function to allow get_event_reference_hashes
         # to use its cache
-        raise NotImplementedError()
+        raise RuntimeError(
+            "get_event_reference_hash is a cache descriptor placeholder and must "
+            "not be called directly"
+        )
 
     @cachedList(
         cached_method_name="get_event_reference_hash", list_name="event_ids", num_args=1

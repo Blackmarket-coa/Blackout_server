@@ -368,7 +368,7 @@ class BaseFederationRow:
             data: The value of ``data`` from FederationStreamRow.data, type
                 depends on the type of stream
         """
-        raise NotImplementedError()
+        ...
 
     def to_data(self) -> JsonDict:
         """Serialize this row to be sent over the federation stream.
@@ -377,7 +377,7 @@ class BaseFederationRow:
             The value to be sent in FederationStreamRow.data. The type depends
             on the type of stream.
         """
-        raise NotImplementedError()
+        ...
 
     def add_to_buffer(self, buff: "ParsedFederationStreamData") -> None:
         """Add this row to the appropriate field in the buffer ready for this
@@ -389,7 +389,7 @@ class BaseFederationRow:
         Args:
             buff (BufferedToSend)
         """
-        raise NotImplementedError()
+        ...
 
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)

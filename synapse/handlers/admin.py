@@ -304,7 +304,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def write_events(self, room_id: str, events: List[EventBase]) -> None:
         """Write a batch of events for a room."""
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_state(
@@ -315,7 +315,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
         This only gets called for backward extremities rather than for each
         event.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_invite(
@@ -329,7 +329,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
             state: A subset of the state at the invite, with a subset of the
                 event keys (type, state_key content and sender).
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_knock(
@@ -343,7 +343,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
             state: A subset of the state at the knock, with a subset of the
                 event keys (type, state_key content and sender).
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_profile(self, profile: JsonMapping) -> None:
@@ -352,7 +352,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
         Args:
             profile: The user profile.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_devices(self, devices: Sequence[JsonMapping]) -> None:
@@ -361,7 +361,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
         Args:
             devices: The list of devices.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_connections(self, connections: Sequence[JsonMapping]) -> None:
@@ -370,7 +370,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
         Args:
             connections: The list of connections / sessions.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_account_data(
@@ -382,7 +382,7 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
             file_name: file name to write data
             account_data: mapping of global or room account_data
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def write_media_id(self, media_id: str, media_metadata: JsonMapping) -> None:
@@ -403,4 +403,4 @@ class ExfiltrationWriter(metaclass=abc.ABCMeta):
         This functions return value is passed to the caller of
         `export_user_data`.
         """
-        raise NotImplementedError()
+        ...

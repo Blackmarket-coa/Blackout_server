@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import heapq
 import logging
 from typing import (
@@ -127,14 +128,16 @@ class Stream:
         # The token from which we last asked for updates
         self.last_token = self.current_token(self.local_instance_name)
 
+    @abc.abstractmethod
     def current_token(self, instance_name: str) -> Token:
         """This takes an instance name, which is a writer to
         the stream, and returns the position in the stream of the writer (as
         viewed from the current process).
         """
         # We can't make this an abstract class as it makes mypy unhappy.
-        raise NotImplementedError()
+        ...
 
+    @abc.abstractmethod
     def minimal_local_current_token(self) -> Token:
         """Tries to return a minimal current token for the local instance,
         i.e. for writers this would be the last successful write.
@@ -142,7 +145,7 @@ class Stream:
         If local instance is not a writer (or has written yet) then falls back
         to returning the normal "current token".
         """
-        raise NotImplementedError()
+        ...
 
     def can_discard_position(
         self, instance_name: str, prev_token: int, new_token: int
