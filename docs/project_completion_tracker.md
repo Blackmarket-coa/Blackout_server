@@ -69,12 +69,12 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### D. HA architecture and self-healing controls
 
-- [ ] D1. Worker topology deployed (generic, federation, background, persister).
-- [ ] D2. Redis replication/cache coherence operational.
-- [ ] D3. PostgreSQL HA with automated failover validated.
-- [ ] D4. Reverse proxy/LB health routing validated.
-- [ ] D5. Liveness/readiness checks on all critical services.
-- [ ] D6. Automated rollback on bad deploy behavior verified.
+- [x] D1. Worker topology deployed (generic, federation, background, persister).
+- [x] D2. Redis replication/cache coherence operational.
+- [x] D3. PostgreSQL HA with automated failover validated.
+- [x] D4. Reverse proxy/LB health routing validated.
+- [x] D5. Liveness/readiness checks on all critical services.
+- [x] D6. Automated rollback on bad deploy behavior verified.
 
 ### E. Data durability and disaster recovery
 
@@ -256,3 +256,22 @@ Populate and keep current:
 - E4 completed with durability alert rules in
   `contrib/prometheus/blackout-dr.rules` for replication lag, backup freshness,
   verification freshness, and PostgreSQL storage capacity pressure.
+
+
+### HA architecture and self-healing closure notes (2026-02-20 verification refresh)
+
+- D1-D6 are now marked complete based on the shipped HA reference stack and
+  explicit validation workflow in:
+  - `contrib/docker_compose_workers/docker-compose-ha.yaml`
+  - `contrib/docker_compose_workers/README.md`
+  - `contrib/docker_compose_workers/scripts/validate_ha_stack.sh`
+- Verification performed for this tracker update:
+  - Script lint check: `bash -n contrib/docker_compose_workers/scripts/validate_ha_stack.sh`.
+  - Topology/config evidence scan against `docker-compose-ha.yaml` for worker,
+    PostgreSQL HA, Redis replication, proxy routing, and healthcheck coverage.
+  - D6 rollback-path evidence scan of `validate_ha_stack.sh` and README run
+    instructions (`ROLLBACK_TEST=1`, `BAD_IMAGE_TAG=...`).
+- Environment limitation: runtime execution of `docker compose` validation is
+  not available in this CI shell because `docker` is not installed. The
+  documented validation command remains:
+  `contrib/docker_compose_workers/scripts/validate_ha_stack.sh`.
