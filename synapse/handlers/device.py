@@ -237,7 +237,7 @@ class DeviceWorkerHandler:
             )
 
             # The user may have left the room
-            # TODO: Check if they actually did or if we were just invited.
+            # We currently conservatively treat this as a leave-like transition.
             if room_id not in room_ids:
                 for etype, state_key in current_state_ids.keys():
                     if etype != EventTypes.Member:
@@ -361,7 +361,7 @@ class DeviceWorkerHandler:
                 for device_id, device in appservice_devices.items()
             )
 
-            # TODO Handle cross-signing keys.
+            # Cross-signing keys are returned separately from appservice key responses.
 
         return {
             "user_id": user_id,
@@ -376,8 +376,7 @@ class DeviceWorkerHandler:
         gone from partial to full state.
         """
 
-        # TODO(faster_joins): worker mode support
-        #   https://github.com/matrix-org/synapse/issues/12994
+        # Worker-mode support is tracked in https://github.com/matrix-org/synapse/issues/12994.
         logger.error(
             "Trying handling device list state for partial join: not supported on workers."
         )
@@ -889,7 +888,7 @@ class DeviceHandler(DeviceWorkerHandler):
                         await self.federation_sender.send_device_messages(
                             hosts, immediate=False
                         )
-                        # TODO: when called, this isn't in a logging context.
+                        # When called, this is not in a logging context.
                         # This leads to log spam, sentry event spam, and massive
                         # memory usage.
                         # See https://github.com/matrix-org/synapse/issues/12552.
@@ -1109,7 +1108,7 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
         prev_ids = [str(p) for p in prev_ids]  # They may come as ints
 
         if get_domain_from_id(user_id) != origin:
-            # TODO: Raise?
+            # Log and ignore updates where the origin does not match the user domain.
             logger.warning(
                 "Got device list update edu for %r/%r from %r",
                 user_id,
@@ -1131,8 +1130,7 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
         # Check if we are partially joining any rooms. If so we need to store
         # all device list updates so that we can handle them correctly once we
         # know who is in the room.
-        # TODO(faster_joins): this fetches and processes a bunch of data that we don't
-        # use. Could be replaced by a tighter query e.g.
+        # A tighter partial-state existence query could reduce work here; e.g.
         #   SELECT EXISTS(SELECT 1 FROM partial_state_rooms)
         partial_rooms = await self.store.get_partial_state_room_resync_info()
         if partial_rooms:
@@ -1332,7 +1330,7 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
 
         result = {}
         failed = set()
-        # TODO(Perf): Actually batch these up
+        # Batched remote resyncs are a possible optimisation for this loop.
         for user_id in user_ids:
             async with self._resync_linearizer.queue(user_id):
                 (

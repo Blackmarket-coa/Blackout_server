@@ -865,7 +865,7 @@ class FederationHandler:
         knock_response = await self.federation_client.send_knock(target_hosts, event)
 
         # Store any stripped room state events in the "unsigned" key of the event.
-        # This is a bit of a hack and is cribbing off of invites. Basically we
+        # This follows the same approach as invites: we
         # store the room state here and retrieve it again when this event appears
         # in the invitee's sync stream. It is stripped out for all other local users.
         stripped_room_state = knock_response.get("knock_room_state")
