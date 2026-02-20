@@ -16,6 +16,7 @@ from unittest.mock import AsyncMock, Mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
+from synapse.api.errors import SynapseError
 from synapse.handlers.presence import PresenceHandler
 from synapse.rest.client import presence
 from synapse.server import HomeServer
@@ -59,6 +60,21 @@ class PresenceTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(channel.code, HTTPStatus.OK)
         self.assertEqual(self.presence_handler.set_state.call_count, 1)
+
+    def test_get_presence_propagates_worker_unavailable_error(self) -> None:
+        self.hs.config.server.presence_enabled = True
+        self.presence_handler.is_visible = AsyncMock(
+            side_effect=SynapseError(
+                503, "Presence visibility checks are unavailable on this worker."
+            )
+        )
+
+        channel = self.make_request(
+            "GET", "/presence/%s/status" % ("@other:red",)
+        )
+
+        self.assertEqual(channel.code, HTTPStatus.SERVICE_UNAVAILABLE, channel.result)
+        self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN")
 
     @unittest.override_config({"use_presence": False})
     def test_put_presence_disabled(self) -> None:

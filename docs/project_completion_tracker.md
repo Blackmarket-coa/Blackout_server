@@ -181,4 +181,5 @@ Populate and keep current:
   - appservice-user `/sync` rejection path in sync handler logic
   - missing `event_id` rejection for federation `/state_ids` requests
   - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
+  - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
 
