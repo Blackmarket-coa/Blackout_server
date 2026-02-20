@@ -2,6 +2,11 @@
 
 This runbook covers operating Synapse in Blackout signaling-only mode.
 
+Related reliability and refactor tracking docs:
+
+- [Distributed self-healing blueprint](./distributed_self_healing_blueprint.md)
+- [Project completion tracker](./project_completion_tracker.md)
+
 ## Enable blackout mode
 
 1. Set the following in homeserver config:

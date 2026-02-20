@@ -99,9 +99,9 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### H. Decentralized encrypted federation refactor package
 
-- [ ] H1. Architectural diagram (text form) published and versioned.
-- [ ] H2. Target modular folder structure agreed (`core/`, `network/`, `crypto/`, `governance/`, `tasks/`, `ledger/`, `streaming/`, `compat/`).
-- [ ] H3. Refactor checklist items triaged into phased implementation backlog.
+- [x] H1. Architectural diagram (text form) published and versioned.
+- [x] H2. Target modular folder structure agreed (`core/`, `network/`, `crypto/`, `governance/`, `tasks/`, `ledger/`, `streaming/`, `compat/`).
+- [x] H3. Refactor checklist items triaged into phased implementation backlog.
 - [ ] H4. Event schema implemented with signed hash-linked envelope fields.
 - [ ] H5. CRDT integration path selected (Yjs or Automerge) and prototype validated.
 - [ ] H6. Encrypted message flow specification reviewed by security owner.
@@ -110,7 +110,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 - [ ] H9. Performance optimization plan tracked against low-memory profile targets.
 - [ ] H10. Security audit checklist incorporated into release readiness review.
 - [ ] H11. Migration approach (`dual-write`, `shadow-read`, `canary`, `cutover`, `rollback`) tracked with owners and dates.
-- [ ] H12. README and operator docs point to the canonical refactor blueprint and tracker.
+- [x] H12. README and operator docs point to the canonical refactor blueprint and tracker.
 
 ## 4) Milestone gates
 
@@ -184,3 +184,17 @@ Populate and keep current:
   - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
 - Runtime-path-risk `NotImplementedError` count is now tracked at **0** for request-serving flows addressed by this tracker.
 
+
+### Refactor package documentation closure notes (2026-02-20)
+
+- H1 marked complete: text architecture diagram is published in
+  `docs/distributed_self_healing_blueprint.md` under
+  "Refactor package for decentralized encrypted federation" ->
+  "1) Architectural diagram (text form)".
+- H2 marked complete: target modular folder structure is defined in the same
+  blueprint under "2) Target folder structure".
+- H3 marked complete: refactor checklist is published as a triaged backlog in
+  the blueprint under "3) Refactor checklist" for phased implementation
+  tracking.
+- H12 marked complete: top-level README and blackout operator runbook now both
+  link operators to the canonical blueprint + project completion tracker pages.
