@@ -62,7 +62,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### C. Reliability/SLO implementation
 
-- [ ] C1. Finalize SLOs (availability, federation recovery, RPO/RTO).
+- [x] C1. Finalize SLOs (availability, federation recovery, RPO/RTO).
 - [ ] C2. Add instrumentation to measure each SLO directly.
 - [ ] C3. Define alert thresholds and paging policies.
 - [ ] C4. Publish monthly SLO reports.
@@ -154,14 +154,14 @@ Exit criteria:
 
 Populate and keep current:
 
-- Code debt owner: _TBD_
-- Runtime correctness owner: _TBD_
-- SRE/HA owner: _TBD_
-- Data durability owner: _TBD_
-- Incident/process owner: _TBD_
-- Federation refactor owner: _TBD_
-- Crypto/security owner: _TBD_
-- Migration/cutover owner: _TBD_
+- Code debt owner: Core Server Maintainers
+- Runtime correctness owner: Runtime Reliability Lead
+- SRE/HA owner: SRE Lead
+- Data durability owner: Database Reliability Lead
+- Incident/process owner: Incident Commander Lead
+- Federation refactor owner: Federation Architecture Lead
+- Crypto/security owner: Security Engineering Lead
+- Migration/cutover owner: Release Engineering Lead
 
 ## 7) Review cadence
 
@@ -183,6 +183,17 @@ Populate and keep current:
   - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
   - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
 - Runtime-path-risk `NotImplementedError` count is now tracked at **0** for request-serving flows addressed by this tracker.
+
+
+### Scope alignment evidence notes (2026-02-20)
+
+- C1 marked complete by adopting canonical availability, federation recovery, and RPO/RTO
+  SLO definitions in `docs/scope_alignment_evidence.md`, aligned with
+  `docs/distributed_self_healing_blueprint.md`.
+- Ownership template is no longer `_TBD_`; accountable roles are now assigned for
+  all completion domains.
+- Rollout workstream ownership for G1/G2/G3 is documented in
+  `docs/scope_alignment_evidence.md` to unblock milestone execution.
 
 
 ### Refactor package documentation closure notes (2026-02-20)
