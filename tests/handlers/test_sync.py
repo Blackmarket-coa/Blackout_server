@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, Mock, patch
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import EventTypes, JoinRules
-from synapse.api.errors import Codes, ResourceLimitError
+from synapse.api.errors import Codes, ResourceLimitError, SynapseError
 from synapse.api.filtering import Filtering
 from synapse.api.room_versions import RoomVersions
 from synapse.handlers.sync import SyncConfig, SyncResult
@@ -187,6 +187,21 @@ class SyncTestCase(tests.unittest.HomeserverTestCase):
         self.assertNotIn(joined_room, [r.room_id for r in result.joined])
         self.assertNotIn(invite_room, [r.room_id for r in result.invited])
         self.assertNotIn(knock_room, [r.room_id for r in result.knocked])
+
+
+    def test_generate_sync_result_rejects_appservice_user(self) -> None:
+        sync_config = generate_sync_config("@appservice:test")
+
+        self.store.get_app_service_by_user_id = Mock(return_value=Mock())
+
+        failure = self.get_failure(
+            self.sync_handler.generate_sync_result(sync_config),
+            SynapseError,
+        )
+
+        self.assertEqual(failure.value.code, 403)
+        self.assertEqual(failure.value.errcode, Codes.FORBIDDEN)
+        self.assertIn("not permitted", failure.value.msg)
 
     def test_ban_wins_race_with_join(self) -> None:
         """Rooms shouldn't appear under "joined" if a join loses a race to a ban.

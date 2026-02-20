@@ -132,6 +132,20 @@ class StateQueryTests(unittest.FederatingHomeserverTestCase):
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
 
 
+    def test_state_ids_requires_event_id(self) -> None:
+        """/v1/state_ids/<room_id> requires an event_id query parameter"""
+        u1 = self.register_user("u1", "pass")
+        u1_token = self.login("u1", "pass")
+
+        room_1 = self.helper.create_room_as(u1, tok=u1_token)
+        self.inject_room_member(room_1, "@user:other.example.com", "join")
+
+        channel = self.make_signed_federation_request(
+            "GET", f"/_matrix/federation/v1/state_ids/{room_1}"
+        )
+        self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, channel.result)
+        self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN")
+
 class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
     servlets = [
         admin.register_servlets,

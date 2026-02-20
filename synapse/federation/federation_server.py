@@ -576,7 +576,7 @@ class FederationServer(FederationBase):
         self, origin: str, room_id: str, event_id: str
     ) -> Tuple[int, JsonDict]:
         if not event_id:
-            raise NotImplementedError("Specify an event")
+            raise SynapseError(400, "Missing required query parameter 'event_id'")
 
         await self._event_auth_handler.assert_host_in_room(room_id, origin)
         origin_host, _ = parse_server_name(origin)

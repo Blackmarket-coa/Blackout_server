@@ -21,11 +21,11 @@ This file was generated from a quick source scan for common incomplete-work mark
 - `tests/rest/client/test_profile.py:182` (FIXME around profile avatar URL behavior)
 - `tests/federation/test_federation_server.py:262` (TODO to improve auth-chain test coverage)
 
-### NotImplemented placeholders in production code paths
+### NotImplemented placeholders (primarily abstract/interface stubs)
 
-- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()`)
-- `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()`)
-- `synapse/handlers/room.py:1722` (`raise NotImplementedError()`)
+- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()` abstract store method)
+- `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()` abstract stream ID interface)
+- `synapse/handlers/sso.py:130` (`raise NotImplementedError()` abstract IdP redirect handler)
 
 ### Known tech debt called out with FIXMEs
 
