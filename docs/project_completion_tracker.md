@@ -292,3 +292,18 @@ Populate and keep current:
   not available in this CI shell because `docker` is not installed. The
   documented validation command remains:
   `contrib/docker_compose_workers/scripts/validate_ha_stack.sh`.
+
+
+### Repo verification refresh (2026-02-20)
+
+- Re-checked tracker evidence files and implementation paths referenced across
+  sections A-H; all referenced artifacts in this tracker are present in-repo.
+- Current marker posture still matches the latest inventory + budget controls:
+  `INCOMPLETE_WORK.md` reports **495** markers, and
+  `scripts-dev/check_marker_budget.py` passes against cap **503**.
+- HA validation script still passes shell lint (`bash -n`), and automated HA
+  compose runtime validation remains documented but not executable in this shell
+  when `docker` is unavailable.
+- Refactor runtime package evidence for H4-H11 remains consistent with shipped
+  modules under `blackout_runtime/` and passing unit tests under
+  `blackout_runtime_tests/` when run with `PYTHONPATH=.`.
