@@ -67,15 +67,15 @@ explicit so execution can proceed without governance ambiguity.
 
 ## 5) Immediate next execution steps
 
-1. Complete A2 marker classification using the assigned bi-weekly triage owner.
-2. C2/C3 completed: instrumentation and alert/paging policies are published in
-   `docs/reliability_slo_instrumentation.md` and
-   `docs/reliability_slo_alerting_and_paging.md`.
-3. C4 completed: first monthly SLO report published at
-   `docs/reliability_reports/2026-02.md`.
-4. E2 completed: automated backup verification is implemented via `scripts-dev/blackout/backup_verify.sh` and writes dated verification reports under `${BACKUP_ROOT}/verification-reports`.
-5. E3 completed: quarterly restore drill automation is implemented via `scripts-dev/blackout/quarterly_restore_drill.sh` with pass/fail report artifacts.
-6. Append drill artifacts for D3/D6/F3 as they are completed.
+1. Maintain A-workstream marker hygiene: continue weekly inventory publication,
+   bi-weekly triage refresh, and marker-budget enforcement checks.
+2. Close rollout workstream milestones G1-G3 by attaching the listed evidence
+   artifacts (owner-assigned in section 4) and updating
+   `docs/project_completion_tracker.md` statuses.
+3. Append concrete drill evidence artifacts for D3/D6/F3 and cross-link them
+   from this document and the completion tracker closure notes.
+4. Continue monthly C4 reporting by adding the next report artifact under
+   `docs/reliability_reports/` and recording error-budget actions.
 
 
 ## 6) Data durability execution evidence (E1-E4)
