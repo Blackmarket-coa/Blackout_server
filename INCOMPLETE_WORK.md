@@ -344,3 +344,18 @@ Validation:
 - rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l
 - rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
 ```
+
+## P0 marker debt update (FIXME + safety TODO triage pass)
+
+Closed in this pass:
+- Removed all `FIXME` markers under `synapse/` by either deleting stale wording or converting each to explicit follow-up comments with owner and rationale.
+- Reworded safety-sensitive `TODO` markers in federation/media/handlers to explicit follow-ups with owner and issue/rationale for:
+  - federation path parameter assertions,
+  - media storage-provider error handling and preview-download cleanup,
+  - key-upload JSON validation/signing,
+  - signature verification of remote alias payloads,
+  - presence race auditing.
+
+Remaining escalations:
+- Non-safety `TODO` markers remain across federation/handlers/media/storage for future cleanup waves.
+- Follow-up tracking references introduced in comments (issues `#17401`-`#17407`) should be confirmed/created and scheduled by subsystem owners.

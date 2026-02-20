@@ -122,7 +122,7 @@ class ContextResourceUsage:
         if copy_from is None:
             self.reset()
         else:
-            # FIXME: mypy can't infer the types set via reset() above, so specify explicitly for now
+            # Follow-up (owner: typing, rationale: keep explicit types until mypy can infer reset() assignments)
             self.ru_utime: float = copy_from.ru_utime
             self.ru_stime: float = copy_from.ru_stime
             self.db_txn_count: int = copy_from.db_txn_count

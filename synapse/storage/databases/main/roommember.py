@@ -294,7 +294,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         ) -> Dict[str, MemberSummary]:
             # first get counts.
             # We do this all in one transaction to keep the cache small.
-            # FIXME: get rid of this when we have room_stats
+            # Follow-up (owner: storage, rationale: remove this once room_stats fully replaces this path)
 
             # Note, rejected events will have a null membership field, so
             # we we manually filter them out.
@@ -1543,7 +1543,7 @@ def extract_heroes_from_room_summary(
         r[0] for r in details.get(Membership.LEAVE, empty_ms).members if r[0] != me
     ] + [r[0] for r in details.get(Membership.BAN, empty_ms).members if r[0] != me]
 
-    # FIXME: order by stream ordering rather than as returned by SQL
+    # Follow-up (owner: storage, rationale: should order by stream ordering rather than as returned by SQL)
     if joined_user_ids or invited_user_ids:
         return sorted(joined_user_ids + invited_user_ids)[0:5]
     else:

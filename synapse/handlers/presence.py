@@ -979,7 +979,7 @@ class PresenceHandler(BasePresenceHandler):
                 elif should_ping:
                     to_federation_ping[user_id] = new_state
 
-            # TODO: We should probably ensure there are no races hereafter
+            # Follow-up (owner: presence, issue: https://github.com/matrix-org/synapse/issues/17407): audit and eliminate races in this update flow.
 
             presence_updates_counter.inc(len(new_states))
 

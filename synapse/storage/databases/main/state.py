@@ -313,7 +313,7 @@ class StateGroupWorkerStore(EventsWorkerStore, SQLBaseStore):
             "get_partial_current_state_ids", _get_current_state_ids_txn
         )
 
-    # FIXME: how should this be cached?
+    # Follow-up (owner: storage, rationale: define safe cache strategy for this code path)
     @cancellable
     async def get_partial_filtered_current_state_ids(
         self, room_id: str, state_filter: Optional[StateFilter] = None

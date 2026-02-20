@@ -475,7 +475,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
                 previous_update_stream_id, _ = query_map.get(key, (0, None))
 
                 if update_stream_id > previous_update_stream_id:
-                    # FIXME If this overwrites an older update, this discards the
+                    # Follow-up (owner: devices, rationale: if this overwrites an older update, this discards the
                     #  previous OpenTracing context.
                     #  It might make it harder to track down issues using OpenTracing.
                     #  If there's a good reason why it doesn't matter, a comment here
@@ -504,7 +504,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             result["user_id"] = user_id
             results.append((EduTypes.SIGNING_KEY_UPDATE, result))
             # also send the unstable version
-            # FIXME: remove this when enough servers have upgraded
+            # Follow-up (owner: federation, rationale: remove this once enough servers have upgraded
             #        and remove the length budgeting above.
             results.append(("org.matrix.signing_key_update", result))
 
@@ -1213,7 +1213,7 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
             a tuple whose first item is the device ID, and the second item is
             the dehydrated device information
         """
-        # FIXME: make sure device ID still exists in devices table
+        # Follow-up (owner: devices, rationale: ensure device ID still exists in devices table)
         row = await self.db_pool.simple_select_one(
             table="dehydrated_devices",
             keyvalues={"user_id": user_id},

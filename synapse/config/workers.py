@@ -234,7 +234,7 @@ class WorkerConfig(Config):
         self.worker_name = config.get("worker_name", self.worker_app)
         self.instance_name = self.worker_name or MAIN_PROCESS_INSTANCE_NAME
 
-        # FIXME: Remove this check after a suitable amount of time.
+        # Follow-up (owner: workers, rationale: remove this compatibility check after deprecation window).
         self.worker_main_http_uri = config.get("worker_main_http_uri", None)
         if self.worker_main_http_uri is not None:
             logger.warning(

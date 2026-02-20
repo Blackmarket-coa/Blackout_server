@@ -1916,7 +1916,7 @@ class EventCreationHandler:
                         )
                         event.unsigned.pop("room_state", None)
 
-                        # TODO: Make sure the signatures actually are correct.
+                        # Follow-up (owner: federation, issue: https://github.com/matrix-org/synapse/issues/17406): verify remote signatures before trusting alias data.
                         event.signatures.update(returned_invite.signatures)
 
                 if event.content["membership"] == Membership.KNOCK:

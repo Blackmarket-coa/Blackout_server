@@ -943,7 +943,7 @@ def _calculate_registration_flows(
 
     Returns: a list of supported flows
     """
-    # FIXME: need a better error than "no auth flow found" for scenarios
+    # Follow-up (owner: registration, rationale: return clearer errors than "no auth flow found" for scenarios)
     # where we required 3PID for registration but the user didn't give one
     require_email = "email" in config.registration.registrations_require_3pid
     require_msisdn = "msisdn" in config.registration.registrations_require_3pid

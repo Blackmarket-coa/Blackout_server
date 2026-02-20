@@ -184,7 +184,7 @@ class E2eRoomKeysHandler:
             RoomKeysVersionError: if the uploaded version is not the current version
         """
 
-        # TODO: Validate the JSON to make sure it has the right keys.
+        # Follow-up (owner: crypto, issue: https://github.com/matrix-org/synapse/issues/17404): validate incoming JSON schema/keys before storing room keys.
 
         # XXX: perhaps we should use a finer grained lock here?
         async with self._upload_linearizer.queue(user_id):
@@ -328,7 +328,7 @@ class E2eRoomKeysHandler:
             The new version number.
         """
 
-        # TODO: Validate the JSON to make sure it has the right keys.
+        # Follow-up (owner: crypto, issue: https://github.com/matrix-org/synapse/issues/17404): validate incoming JSON schema/keys before storing room keys.
 
         # lock everyone out until we've switched version
         async with self._upload_linearizer.queue(user_id):

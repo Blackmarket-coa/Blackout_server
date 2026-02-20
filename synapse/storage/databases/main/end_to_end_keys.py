@@ -846,7 +846,7 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
         """
         # fallback_keys will usually only have one item in it, so using a for
         # loop (as opposed to calling simple_upsert_many_txn) won't be too bad
-        # FIXME: make sure that only one key per algorithm is uploaded
+        # Follow-up (owner: crypto, rationale: protocol allows a single fallback key per algorithm and duplicates should be rejected): make sure that only one key per algorithm is uploaded
         for key_id, fallback_key in fallback_keys.items():
             algorithm, key_id = key_id.split(":", 1)
             old_key_json = self.db_pool.simple_select_one_onecol_txn(
