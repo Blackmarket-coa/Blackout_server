@@ -172,14 +172,16 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             "GET", "/profile/%s/displayname" % (name or self.owner,)
         )
         self.assertEqual(channel.code, 200, channel.result)
-        return channel.json_body.get("displayname")
+        self.assertIn("displayname", channel.json_body)
+        return channel.json_body["displayname"]
 
     def _get_avatar_url(self, name: Optional[str] = None) -> Optional[str]:
         channel = self.make_request(
             "GET", "/profile/%s/avatar_url" % (name or self.owner,)
         )
         self.assertEqual(channel.code, 200, channel.result)
-        return channel.json_body.get("avatar_url")
+        self.assertIn("avatar_url", channel.json_body)
+        return channel.json_body["avatar_url"]
 
     @unittest.override_config({"max_avatar_size": 50})
     def test_avatar_size_limit_global(self) -> None:
@@ -211,6 +213,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             access_token=self.owner_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(self._get_avatar_url(), "mxc://test/small")
 
     @unittest.override_config({"max_avatar_size": 50})
     def test_avatar_size_limit_per_room(self) -> None:
@@ -245,6 +248,14 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(channel.code, 200, channel.result)
 
+        channel = self.make_request(
+            "GET",
+            f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+            access_token=self.owner_tok,
+        )
+        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.json_body["avatar_url"], "mxc://test/small")
+
     @unittest.override_config({"allowed_avatar_mimetypes": ["image/png"]})
     def test_avatar_allowed_mime_type_global(self) -> None:
         """Tests that the MIME type whitelist for avatars is enforced when updating a
@@ -275,6 +286,7 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             access_token=self.owner_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(self._get_avatar_url(), "mxc://test/good")
 
     @unittest.override_config({"allowed_avatar_mimetypes": ["image/png"]})
     def test_avatar_allowed_mime_type_per_room(self) -> None:
@@ -308,6 +320,14 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             access_token=self.owner_tok,
         )
         self.assertEqual(channel.code, 200, channel.result)
+
+        channel = self.make_request(
+            "GET",
+            f"/rooms/{room_id}/state/m.room.member/{self.owner}",
+            access_token=self.owner_tok,
+        )
+        self.assertEqual(channel.code, 200, channel.result)
+        self.assertEqual(channel.json_body["avatar_url"], "mxc://test/good")
 
     @unittest.override_config(
         {"experimental_features": {"msc4069_profile_inhibit_propagation": True}}

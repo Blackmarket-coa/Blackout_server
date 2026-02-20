@@ -277,6 +277,9 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
             # present in the reduced state response above.
             [],
         )
+        # /send_join with omit_members=true must not duplicate auth events in state.
+        # This remains deterministic for this fixture because room setup is static.
+        self.assertTrue(set(returned_auth_chain_events).isdisjoint(returned_state))
 
         # the room should show that the new user is a member
         r = self.get_success(
