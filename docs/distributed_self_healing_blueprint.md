@@ -478,6 +478,7 @@ export function importSnapshot(update) {
 - [ ] Abuse controls (rate limits, flood protection) validated.
 - [ ] Incident runbooks include key compromise and trust reset paths.
 
+
 ## Migration approach (compatibility-preserving)
 
 To avoid breaking existing functionality, roll out in phases:
