@@ -194,7 +194,7 @@ Populate and keep current:
 - H2 marked complete: target modular folder structure is defined in the same
   blueprint under "2) Target folder structure".
 - H3 marked complete: refactor checklist is published as a triaged backlog in
-  the blueprint under "3) Refactor checklist" for phased implementation
-  tracking.
+  the blueprint under "3a) Phased implementation backlog (triaged)" for
+  explicit phase sequencing and implementation tracking.
 - H12 marked complete: top-level README and blackout operator runbook now both
   link operators to the canonical blueprint + project completion tracker pages.
