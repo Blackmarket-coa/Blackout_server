@@ -16,8 +16,7 @@ The project is **not yet aligned** with scope. The largest gaps are:
 4. **Backup/restore and DR readiness** (E1-E4) is not started.
 5. **Operational maturity** (F1-F4) is not started.
 6. **30/60/90 rollout milestones** (G1-G3) are not started.
-7. **Decentralized encrypted federation refactor package** is only partially complete (H1/H2/H3/H12 done, H4-H11 open).
-8. **Ownership assignments** remain `_TBD_` across all major domains.
+7. **Ownership assignments** remain `_TBD_` across all major domains.
 
 ## Required actions to reach scope completion
 
@@ -60,11 +59,7 @@ The project is **not yet aligned** with scope. The largest gaps are:
 - Meet Gate 1, Gate 2, and Gate 3 exit criteria in tracker.
 - Satisfy blueprint acceptance checklist (no SPOFs, recent restore/failover drills, federation backlog recovery validation, telemetry review, error budget policy, runbook review).
 
-### 7) Finish refactor package implementation backlog
-
-- Implement H4-H11 items: signed hash-linked event envelope, CRDT prototype decision, reviewed encrypted flow spec, snapshot+replay boot, offline rejoin recovery, performance plan for low-memory profile, security audit checklist integration, and migration/cutover plan with owners/dates.
-
-### 8) Assign owners and governance now
+### 7) Assign owners and governance now
 
 - Replace all `_TBD_` roles in tracker ownership template.
 - Establish weekly/bi-weekly/monthly/quarterly governance cadence with named accountable owners.
@@ -74,7 +69,7 @@ The project is **not yet aligned** with scope. The largest gaps are:
 1. **Week 1:** Assign owners, finish A2 classification, finalize SLO definitions (C1), and publish milestone owners for D/E/F/G/H.
 2. **Weeks 2-4:** Deliver minimum viable instrumentation + alerting (C2/C3), and bootstrap backup verification + first restore drill prep (E2/E3).
 3. **Month 2:** Validate HA/failover + rollback drills (D3/D6), complete mandatory runbooks (F2), and execute first chaos drill (F3).
-4. **Month 3:** Close Gate 1 evidence, complete G1/G2/G3 evidence pack, and progress H4/H5/H7/H8 prototypes with explicit go/no-go decisions.
+4. **Month 3:** Close Gate 1 evidence and complete G1/G2/G3 evidence pack.
 
 ## Definition of “aligned with scope”
 
