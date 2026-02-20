@@ -124,8 +124,8 @@ For a complete HA-oriented topology, use `docker-compose-ha.yaml` in this direct
 - D2 Redis replication/cache coherence operational: `redis-primary` and `redis-replica` are configured in master/replica mode.
 - D3 PostgreSQL HA with automated failover validated: `postgres-primary` + `postgres-replica` use repmgr with `postgres-proxy` (pgpool) for automatic failover routing.
 - D4 Reverse proxy/LB health routing validated: `reverse-proxy` (HAProxy) routes Matrix traffic only to healthy backends.
-- D5 Liveness/readiness checks on all critical services: Docker healthchecks are configured for database, cache, homeserver, workers, and proxy services.
-- D6 Automated rollback on bad deploy behavior verified: use the validation script and your CI/CD rollback policy to restore the previous Synapse image when health checks fail.
+- D5 Liveness/readiness checks on all critical services: Docker healthchecks are configured for database, cache, homeserver, all workers (including federation sender process health), and proxy services.
+- D6 Automated rollback on bad deploy behavior verified: the validation script includes an opt-in rollback test mode that intentionally deploys a bad image and verifies health-triggered rollback to the last known good image.
 
 ### Required `homeserver.yaml` additions for this profile
 
@@ -157,4 +157,13 @@ Run the end-to-end validation checks:
 contrib/docker_compose_workers/scripts/validate_ha_stack.sh
 ```
 
-This script covers D1-D5 directly and outlines a D6 rollback verification flow for CI/CD pipelines.
+This script covers D1-D5 directly and provides an executable D6 rollback verification mode.
+
+To run D6 verification end-to-end:
+
+```bash
+ROLLBACK_TEST=1 BAD_IMAGE_TAG=matrixdotorg/synapse:nonexistent-tag \
+  contrib/docker_compose_workers/scripts/validate_ha_stack.sh
+```
+
+In rollback mode, the script attempts a bad deployment, waits for health failure, then restores the previous service configuration and verifies recovery.

@@ -117,7 +117,7 @@ services:
       - backend
 
   synapse:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE_OVERRIDE:-matrixdotorg/synapse:latest}
     container_name: synapse
     restart: unless-stopped
     volumes:
@@ -137,7 +137,7 @@ services:
       - backend
 
   synapse-generic-worker-1:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE_OVERRIDE:-matrixdotorg/synapse:latest}
     restart: unless-stopped
     entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/synapse-generic-worker-1.yaml"]
     environment:
@@ -155,7 +155,7 @@ services:
       - backend
 
   synapse-background-worker-1:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE_OVERRIDE:-matrixdotorg/synapse:latest}
     restart: unless-stopped
     entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/synapse-background-worker-1.yaml"]
     environment:
@@ -173,7 +173,7 @@ services:
       - backend
 
   synapse-persister-1:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE_OVERRIDE:-matrixdotorg/synapse:latest}
     restart: unless-stopped
     entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/synapse-persister-1.yaml"]
     environment:
@@ -191,7 +191,7 @@ services:
       - backend
 
   synapse-federation-sender-1:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE_OVERRIDE:-matrixdotorg/synapse:latest}
     restart: unless-stopped
     entrypoint: ["/start.py", "run", "--config-path=/data/homeserver.yaml", "--config-path=/data/workers/synapse-federation-sender-1.yaml"]
     environment:
@@ -201,7 +201,10 @@ services:
     depends_on:
       - synapse
     healthcheck:
-      disable: true
+      test: ["CMD-SHELL", "pgrep -f 'synapse.app.federation_sender' >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
     networks:
       - backend
 
