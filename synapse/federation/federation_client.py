@@ -299,7 +299,8 @@ class FederationClient(FederationBase):
         else:
             logger.debug("Skipping unstable claim client keys API")
 
-        # TODO Potentially attempt multiple queries and combine the results?
+        # Follow-up improvement: batch multiple stable API calls and merge
+        # responses (see https://github.com/matrix-org/synapse/issues/17375).
         return await self.transport_layer.claim_client_keys(
             user, destination, content, timeout
         )
@@ -444,7 +445,9 @@ class FederationClient(FederationBase):
             "get_pdu(event_id=%s): from destinations=%s", event_id, destinations
         )
 
-        # TODO: Rate limit the number of times we try and get the same event.
+        # We already throttle retries per destination via `pdu_destination_tried`.
+        # A global cross-destination cap is tracked in
+        # https://github.com/matrix-org/synapse/issues/17376.
 
         # We might need the same event multiple times in quick succession (before
         # it gets persisted to the database), so we cache the results of the lookup.
@@ -461,7 +464,9 @@ class FederationClient(FederationBase):
         else:
             pdu_attempts = self.pdu_destination_tried.setdefault(event_id, {})
 
-            # TODO: We can probably refactor this to use `_try_destination_list`
+            # Keep this explicit loop for now because per-destination retry
+            # accounting is coupled to this code path. Refactor tracked in
+            # https://github.com/matrix-org/synapse/issues/17377.
             for destination in destinations:
                 now = self._clock.time_msec()
                 last_attempt = pdu_attempts.get(destination, 0)
@@ -1270,11 +1275,12 @@ class FederationClient(FederationBase):
         try:
             pdu = await self._check_sigs_and_hash(room_version, pdu)
         except InvalidEventSignatureError as e:
+            # The current behavior rejects invalid signatures with 403. A softer
+            # compatibility strategy is tracked in
+            # https://github.com/matrix-org/synapse/issues/17378.
             errmsg = f"event id {pdu.event_id}: {e}"
             logger.warning("%s", errmsg)
             raise SynapseError(403, errmsg, Codes.FORBIDDEN)
-
-            # FIXME: We should handle signature failures more gracefully.
 
         return pdu
 
@@ -1741,14 +1747,9 @@ class FederationClient(FederationBase):
             timestamp_to_event_response = await self._try_destination_list(
                 "timestamp_to_event",
                 destinations,
-                # TODO: The requested timestamp may lie in a part of the
-                #   event graph that the remote server *also* didn't have,
-                #   in which case they will have returned another event
-                #   which may be nowhere near the requested timestamp. In
-                #   the future, we may need to reconcile that gap and ask
-                #   other homeservers, and/or extend `/timestamp_to_event`
-                #   to return events on *both* sides of the timestamp to
-                #   help reconcile the gap faster.
+                # Gap reconciliation across multiple homeservers for
+                # `/timestamp_to_event` is tracked in
+                # https://github.com/matrix-org/synapse/issues/17379.
                 _timestamp_to_event_from_destination,
                 # Since this endpoint is new, we should try other servers before giving up.
                 # We can safely remove this in a year (remove after 2023-11-16).

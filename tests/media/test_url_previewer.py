@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 import os
+from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.server import HomeServer
+from synapse.api.errors import SynapseError
+from synapse.types import UserID
 from synapse.util import Clock
 
 from tests import unittest
@@ -111,3 +115,63 @@ class URLPreviewTests(unittest.HomeserverTestCase):
 
         # The TLD is not blocked.
         self.assertFalse(self.url_previewer._is_url_blocked("https://example.com"))
+
+
+    def test_get_expiration_ms_prefers_cache_control(self) -> None:
+        headers = {
+            b"Cache-Control": [b"public, max-age=120"],
+            b"Expires": [b"Wed, 21 Oct 2030 07:28:00 GMT"],
+        }
+
+        self.assertEqual(self.url_previewer._get_expiration_ms(headers), 120000)
+
+    def test_get_expiration_ms_uses_expires_header(self) -> None:
+        now_s = self.clock.time_msec() // 1000
+        expires = now_s + 90
+
+        with mock.patch("synapse.media.url_previewer.parsedate_to_datetime") as parse_dt:
+            parse_dt.return_value = datetime.datetime.fromtimestamp(
+                expires, tz=datetime.timezone.utc
+            )
+            headers = {b"Expires": [b"ignored by patched parser"]}
+            expiration_ms = self.url_previewer._get_expiration_ms(headers)
+
+        self.assertGreaterEqual(expiration_ms, 89000)
+        self.assertLessEqual(expiration_ms, 90000)
+
+    def test_handle_url_cleans_up_file_on_store_failure(self) -> None:
+        def fail_store_local_media(**kwargs: object) -> object:
+            raise SynapseError(500, "boom")
+
+        with mock.patch(
+            "synapse.media.url_previewer.random_string", return_value="abcdefghijklmnop"
+        ), mock.patch.object(
+            self.url_previewer,
+            "_download_url",
+            new=mock.AsyncMock(
+                return_value=mock.Mock(
+                    media_type="text/plain",
+                    length=3,
+                    download_name=None,
+                    uri="http://example.com",
+                    response_code=200,
+                    expires=1000,
+                    etag=None,
+                )
+            ),
+        ), mock.patch.object(
+            self.url_previewer.store,
+            "store_local_media",
+            side_effect=fail_store_local_media,
+        ):
+            with self.assertRaises(SynapseError):
+                self.get_success(
+                    self.url_previewer._handle_url(
+                        "http://example.com", UserID.from_string("@user:test")
+                    )
+                )
+
+        media_id = f"{datetime.date.today().isoformat()}_abcdefghijklmnop"
+        self.assertFalse(
+            os.path.exists(self.url_previewer.filepaths.url_cache_filepath(media_id))
+        )
