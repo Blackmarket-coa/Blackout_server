@@ -52,6 +52,8 @@ Operational and deployment docs
   `docs/turn-howto.md <docs/turn-howto.md>`_
 * Metrics guidance:
   `docs/metrics-howto.md <docs/metrics-howto.md>`_
+* Distributed self-healing blueprint:
+  `docs/distributed_self_healing_blueprint.md <docs/distributed_self_healing_blueprint.md>`_
 
 Quick start
 ===========
