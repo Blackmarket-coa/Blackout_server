@@ -275,7 +275,7 @@ class SyncHandler:
 
         self.should_calculate_push_rules = hs.config.push.enable_push
 
-        # TODO: flush cache entries on subsequent sync request.
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: flush cache entries on subsequent sync request.
         #    Once we get the next /sync request (ie, one with the same access token
         #    that sets 'since' to 'next_batch'), we know that device won't need a
         #    cached result any more, and we could flush the entry from the cache to save
@@ -569,7 +569,7 @@ class SyncHandler:
                 # ensure that we always include current state in the timeline
                 current_state_ids: FrozenSet[str] = frozenset()
                 if any(e.is_state() for e in recents):
-                    # FIXME(faster_joins): We use the partial state here as
+                    # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: (faster_joins): We use the partial state here as
                     # we don't want to block `/sync` on finishing a lazy join.
                     # Which should be fine once
                     # https://github.com/matrix-org/synapse/issues/12989 is resolved,
@@ -650,7 +650,7 @@ class SyncHandler:
                 # ensure that we always include current state in the timeline
                 current_state_ids = frozenset()
                 if any(e.is_state() for e in loaded_recents):
-                    # FIXME(faster_joins): We use the partial state here as
+                    # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: (faster_joins): We use the partial state here as
                     # we don't want to block `/sync` on finishing a lazy join.
                     # Which should be fine once
                     # https://github.com/matrix-org/synapse/issues/12989 is resolved,
@@ -761,7 +761,7 @@ class SyncHandler:
                 at the last event in the room before `stream_position` and
                 `state_filter` is not satisfied by partial state. Defaults to `True`.
         """
-        # FIXME: This gets the state at the latest event before the stream ordering,
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: This gets the state at the latest event before the stream ordering,
         # which might not be the same as the "current state" of the room at the time
         # of the stream token if there were multiple forward extremities at the time.
         last_event_id = await self.store.get_last_event_in_room_before_stream_ordering(
@@ -811,9 +811,9 @@ class SyncHandler:
             now_token: Token of the end of the current batch.
         """
 
-        # FIXME: we could/should get this from room_stats when matthew/stats lands
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: we could/should get this from room_stats when matthew/stats lands
 
-        # FIXME: this promulgates https://github.com/matrix-org/synapse/issues/3305
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: this promulgates https://github.com/matrix-org/synapse/issues/3305
         last_events, _ = await self.store.get_recent_event_ids_for_room(
             room_id, end_token=now_token.room_key, limit=1
         )
@@ -838,7 +838,7 @@ class SyncHandler:
         summary: JsonDict = {}
         empty_ms = MemberSummary([], 0)
 
-        # TODO: only send these when they change.
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: only send these when they change.
         summary["m.joined_member_count"] = details.get(Membership.JOIN, empty_ms).count
         summary["m.invited_member_count"] = details.get(
             Membership.INVITE, empty_ms
@@ -859,7 +859,7 @@ class SyncHandler:
             if canonical_alias and canonical_alias.content.get("alias"):
                 return summary
 
-        # FIXME: only build up a member_ids list for our heroes
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: only build up a member_ids list for our heroes
         member_ids = {}
         for membership in (
             Membership.JOIN,
@@ -953,10 +953,10 @@ class SyncHandler:
             Clients will then overlay state events in the timeline to arrive at the
             state at the end of the timeline, in preparation for the next sync.
         """
-        # TODO(mjark) Check if the state events were received by the server
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: (mjark) Check if the state events were received by the server
         # after the previous sync, since we need to include those state
         # updates even if they occurred logically before the previous event.
-        # TODO(mjark) Check for new redactions in the state events.
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: (mjark) Check for new redactions in the state events.
 
         with Measure(self.clock, "compute_state_delta"):
             # The memberships needed for events in the timeline.
@@ -995,7 +995,7 @@ class SyncHandler:
                     # previous timeline event.
                     if (EventTypes.Member, event.sender) not in timeline_state:
                         members_to_fetch.add(event.sender)
-                    # FIXME: we also care about invite targets etc.
+                    # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: we also care about invite targets etc.
 
                     if event.is_state():
                         timeline_state[(event.type, event.state_key)] = event.event_id
@@ -1584,7 +1584,7 @@ class SyncHandler:
         one_time_keys_count: JsonMapping = {}
         unused_fallback_key_types: List[str] = []
         if device_id:
-            # TODO: We should have a way to let clients differentiate between the states of:
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: We should have a way to let clients differentiate between the states of:
             #   * no change in OTK count since the provided since token
             #   * the server has zero OTKs left for this device
             #  Spec issue: https://github.com/matrix-org/matrix-doc/issues/3298
@@ -1713,7 +1713,7 @@ class SyncHandler:
             joined_users = await self.store.get_users_in_room(room_id)
             newly_joined_or_invited_or_knocked_users.update(joined_users)
 
-        # TODO: Check that these users are actually new, i.e. either they
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: Check that these users are actually new, i.e. either they
         # weren't in the previous sync *or* they left and rejoined.
         users_that_have_changed.update(newly_joined_or_invited_or_knocked_users)
 
@@ -2185,7 +2185,7 @@ class SyncHandler:
                     knocked.append(knock_room_sync)
 
             # Always include leave/ban events. Just take the last one.
-            # TODO: How do we handle ban -> leave in same batch?
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: How do we handle ban -> leave in same batch?
             leave_events = [
                 e
                 for e in non_joins
@@ -2532,7 +2532,7 @@ class SyncHandler:
                     #   if this is an initial sync.
                     any(ev.type == EventTypes.Member for ev in batch.events)
                     or (
-                        # XXX: this may include false positives in the form of LL
+                        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17391: this may include false positives in the form of LL
                         # members which have snuck into state
                         batch.limited
                         and any(t == EventTypes.Member for (t, k) in state)

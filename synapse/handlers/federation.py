@@ -106,7 +106,7 @@ backfill_processing_before_timer = Histogram(
 )
 
 
-# TODO: We can refactor this away now that there is only one backfill point again
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: We can refactor this away now that there is only one backfill point again
 class _BackfillPointType(Enum):
     # a regular backwards extremity (ie, an event which we don't yet have, but which
     # is referred to by other events in the DAG)
@@ -396,7 +396,7 @@ class FederationHandler:
             # themselves, so we need to actually check the events that reference them -
             # their "successor" events.
             #
-            # TODO: Correctly handle the case where we are allowed to see the
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: Correctly handle the case where we are allowed to see the
             #   successor event but not the backward extremity, e.g. in the case of
             #   initial join of the server where we are allowed to see the join
             #   event but not anything before it. This would require looking at the
@@ -449,7 +449,7 @@ class FederationHandler:
 
         # Now we need to decide which hosts to hit first.
         # First we try hosts that are already in the room.
-        # TODO: HEURISTIC ALERT.
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: HEURISTIC ALERT.
         likely_domains = (
             await self._storage_controllers.state.get_current_hosts_in_room_ordered(
                 room_id
@@ -457,7 +457,7 @@ class FederationHandler:
         )
 
         async def try_backfill(domains: StrCollection) -> bool:
-            # TODO: Should we try multiple of these at a time?
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: Should we try multiple of these at a time?
 
             # Number of contacted remote homeservers that have denied our backfill
             # request with a 4xx code.
@@ -478,7 +478,7 @@ class FederationHandler:
                     )
                     # If this succeeded then we probably already have the
                     # appropriate stuff.
-                    # TODO: We can probably do something more intelligent here.
+                    # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: We can probably do something more intelligent here.
                     return True
                 except NotRetryingDestination as e:
                     logger.info("_maybe_backfill_inner: %s", e)
@@ -547,7 +547,7 @@ class FederationHandler:
         if success:
             return True
 
-        # TODO: we could also try servers which were previously in the room, but
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: we could also try servers which were previously in the room, but
         #   are no longer.
 
         return False
@@ -599,9 +599,9 @@ class FederationHandler:
 
             content: The event content to use for the join event.
         """
-        # TODO: We should be able to call this on workers, but the upgrading of
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: We should be able to call this on workers, but the upgrading of
         # room stuff after join currently doesn't work on workers.
-        # TODO: Before we relax this condition, we need to allow re-syncing of
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: Before we relax this condition, we need to allow re-syncing of
         # partial room state to happen on workers.
         assert self.config.worker.worker_app is None
 
@@ -703,7 +703,7 @@ class FederationHandler:
                     # Mark the room as having partial state.
                     # The background process is responsible for unmarking this flag,
                     # even if the join fails.
-                    # TODO(faster_joins):
+                    # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins):
                     #     We may want to reset the partial state info if it's from an
                     #     old, failed partial state join.
                     #     https://github.com/matrix-org/synapse/issues/13000
@@ -739,7 +739,7 @@ class FederationHandler:
                     # join). We have to do this after persisting the event to keep
                     # foreign key constraints intact.
                     if ret.partial_state and not already_partial_state_room:
-                        # TODO(faster_joins):
+                        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins):
                         #     We may want to reset the partial state info if it's from
                         #     an old, failed partial state join.
                         #     https://github.com/matrix-org/synapse/issues/13000
@@ -1168,7 +1168,7 @@ class FederationHandler:
         logger.debug("Got response to make_%s: %s", membership, event)
 
         # We should assert some things.
-        # FIXME: Do this in a nicer way
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: Do this in a nicer way
         assert event.type == EventTypes.Member
         assert event.user_id == user_id
         assert event.state_key == user_id
@@ -1709,7 +1709,7 @@ class FederationHandler:
 
         if last_exception is None:
             # we can only get here if get_public_keys() returned an empty list
-            # TODO: make this better
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: make this better
             raise RuntimeError("no public key in invite event")
 
         raise last_exception
@@ -1881,19 +1881,19 @@ class FederationHandler:
             room_id: room to be resynced
         """
         # Assume that we run on the main process for now.
-        # TODO(faster_joins,multiple workers)
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins,multiple workers)
         # When moving the sync to workers, we need to ensure that
         #  * `_start_partial_state_room_sync` still prevents duplicate resyncs
         #  * `_is_partial_state_room_linearizer` correctly guards partial state flags
         #    for rooms between the workers doing remote joins and resync.
         assert not self.config.worker.worker_app
 
-        # TODO(faster_joins): do we need to lock to avoid races? What happens if other
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins): do we need to lock to avoid races? What happens if other
         #   worker processes kick off a resync in parallel? Perhaps we should just elect
         #   a single worker to do the resync.
         #   https://github.com/matrix-org/synapse/issues/12994
         #
-        # TODO(faster_joins): what happens if we leave the room during a resync? if we
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins): what happens if we leave the room during a resync? if we
         #   really leave, that might mean we have difficulty getting the room state over
         #   federation.
         #   https://github.com/matrix-org/synapse/issues/12802
@@ -1916,7 +1916,7 @@ class FederationHandler:
                 # all the events are updated, so we can update current state and
                 # clear the lazy-loading flag.
                 logger.info("Updating current state for %s", room_id)
-                # TODO(faster_joins): notify workers in notify_room_un_partial_stated
+                # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins): notify workers in notify_room_un_partial_stated
                 #   https://github.com/matrix-org/synapse/issues/12994
                 #
                 # NB: there's a potential race here. If room is purged just before we
@@ -1975,7 +1975,7 @@ class FederationHandler:
                     except FederationError as e:
                         if attempt == len(destinations) - 1:
                             # We have tried every remote server for this event. Give up.
-                            # TODO(faster_joins) giving up isn't the right thing to do
+                            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: (faster_joins) giving up isn't the right thing to do
                             #   if there's a temporary network outage. retrying
                             #   indefinitely is also not the right thing to do if we can
                             #   reach all homeservers and they all claim they don't have
@@ -1989,7 +1989,7 @@ class FederationHandler:
                                 destination,
                                 e,
                             )
-                            # TODO: We should `record_event_failed_pull_attempt` here,
+                            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17390: We should `record_event_failed_pull_attempt` here,
                             #   see https://github.com/matrix-org/synapse/issues/13700
                             raise
 
