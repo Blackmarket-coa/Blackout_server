@@ -562,9 +562,22 @@ class UrlPreviewer:
         try:
             logger.debug("Trying to parse data url '%s'", url)
             with urlopen(url) as url_info:
-                # Streaming `data:` URL decoding is tracked in
-                # https://github.com/matrix-org/synapse/issues/17381.
-                output_stream.write(url_info.read())
+                length = 0
+                while True:
+                    chunk = url_info.read(16 * 1024)
+                    if not chunk:
+                        break
+
+                    length += len(chunk)
+                    if length > self.max_spider_size:
+                        raise SynapseError(
+                            502,
+                            "Requested file is too large > %r bytes"
+                            % (self.max_spider_size,),
+                            Codes.TOO_LARGE,
+                        )
+
+                    output_stream.write(chunk)
         except Exception as e:
             logger.warning("Error parsing data: URL %s: %r", url, e)
 

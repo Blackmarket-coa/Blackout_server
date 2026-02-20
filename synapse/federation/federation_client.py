@@ -1751,8 +1751,9 @@ class FederationClient(FederationBase):
                 # `/timestamp_to_event` is tracked in
                 # https://github.com/matrix-org/synapse/issues/17379.
                 _timestamp_to_event_from_destination,
-                # Since this endpoint is new, we should try other servers before giving up.
-                # We can safely remove this in a year (remove after 2023-11-16).
+                # Keep unknown-endpoint failover enabled for backward
+                # compatibility; removal strategy is tracked in
+                # https://github.com/matrix-org/synapse/issues/17385.
                 failover_on_unknown_endpoint=True,
             )
             return timestamp_to_event_response

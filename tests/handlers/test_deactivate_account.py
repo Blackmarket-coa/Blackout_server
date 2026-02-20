@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
+
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import AccountDataTypes
@@ -58,6 +60,17 @@ class DeactivateAccountTestCase(HomeserverTestCase):
         )
 
         self.assertEqual(req.code, 200, req)
+
+    def test_deactivate_account_starts_single_user_parter_loop(self) -> None:
+        handler = self.hs.get_deactivate_account_handler()
+
+        with mock.patch(
+            "synapse.handlers.deactivate_account.run_as_background_process"
+        ) as run_bg:
+            handler._start_user_parting()
+            handler._start_user_parting()
+
+        run_bg.assert_called_once_with("user_parter_loop", handler._user_parter_loop)
 
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """
