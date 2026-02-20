@@ -545,7 +545,7 @@ class StateStorageController:
                - list of current_state_delta_stream rows. If it is empty, we are
                  up to date.
         """
-        # FIXME(faster_joins): what do we do here?
+        # Follow-up (owner: storage, issue: https://github.com/matrix-org/synapse/issues/13008): decide behavior here
         #   https://github.com/matrix-org/synapse/issues/13008
 
         return await self.stores.main.get_partial_current_state_deltas(

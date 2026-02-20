@@ -632,7 +632,7 @@ class PaginationHandler:
         if event_filter and event_filter.lazy_load_members and len(events) > 0:
             # TODO: remove redundant members
 
-            # FIXME: we also care about invite targets etc.
+            # Follow-up (owner: rooms, rationale: this should also include invite targets and related membership states).
             state_filter = StateFilter.from_types(
                 (EventTypes.Member, event.sender) for event in events
             )

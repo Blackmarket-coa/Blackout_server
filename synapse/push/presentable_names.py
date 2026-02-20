@@ -145,7 +145,7 @@ async def calculate_room_name(
                         # technically third party invite events are not member
                         # events, but they are close enough
 
-                        # FIXME: no they're not - they look nothing like a member;
+                        # Follow-up (owner: push, rationale: encrypted names are not member-like and should be handled separately;
                         # they have a great big encrypted thing as their name to
                         # prevent leaking the 3PID name...
                         # return "Inviting %s" % (

@@ -250,7 +250,7 @@ class ApplicationServicesHandler:
 
         # Notify appservices of updates in ephemeral event streams.
         # Only the following streams are currently supported.
-        # FIXME: We should use constants for these values.
+        # Follow-up (owner: appservice, rationale: replace literal stream names with shared constants).
         if stream_key not in (
             StreamKeyType.TYPING,
             StreamKeyType.RECEIPT,
@@ -562,7 +562,7 @@ class ApplicationServicesHandler:
         # Filter out users that this appservice is not interested in
         users_appservice_is_interested_in: List[str] = []
         for user in users:
-            # FIXME: We should do this farther up the call stack. We currently repeat
+            # Follow-up (owner: appservice, rationale: do this farther up the call stack; currently repeated
             #  this operation in _handle_presence.
             if isinstance(user, UserID):
                 user = user.to_string()

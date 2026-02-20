@@ -24,7 +24,7 @@ class FederationConfig(Config):
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
         federation_config = config.setdefault("federation", {})
 
-        # FIXME: federation_domain_whitelist needs sytests
+        # Follow-up (owner: federation, rationale: federation_domain_whitelist needs sytests)
         self.federation_domain_whitelist: Optional[dict] = None
         federation_domain_whitelist = config.get("federation_domain_whitelist", None)
 

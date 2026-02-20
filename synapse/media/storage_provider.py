@@ -105,7 +105,7 @@ class StorageProviderWrapper(StorageProvider):
             # against improper implementations.
             await maybe_awaitable(self.backend.store_file(path, file_info))  # type: ignore
         else:
-            # TODO: Handle errors.
+            # Follow-up (owner: media, issue: https://github.com/matrix-org/synapse/issues/17401): propagate storage provider write errors explicitly to avoid silent media-loss paths.
             async def store() -> None:
                 try:
                     return await maybe_awaitable(

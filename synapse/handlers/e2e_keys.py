@@ -70,7 +70,7 @@ class E2eKeysHandler:
                 edu_updater.incoming_signing_key_update,
             )
             # also handle the unstable version
-            # FIXME: remove this when enough servers have upgraded
+            # Follow-up (owner: crypto, rationale: remove this when enough servers have upgraded)
             federation_registry.register_edu_handler(
                 EduTypes.UNSTABLE_SIGNING_KEY_UPDATE,
                 edu_updater.incoming_signing_key_update,
@@ -774,7 +774,7 @@ class E2eKeysHandler:
 
         time_now = self.clock.time_msec()
 
-        # TODO: Validate the JSON to make sure it has the right keys.
+        # Follow-up (owner: crypto, issue: https://github.com/matrix-org/synapse/issues/17404): validate incoming JSON schema/keys before accepting key uploads.
         device_keys = keys.get("device_keys", None)
         if device_keys:
             logger.info(
@@ -790,7 +790,7 @@ class E2eKeysHandler:
                     "device_id": device_id,
                 }
             )
-            # TODO: Sign the JSON with the server key
+            # Follow-up (owner: crypto, issue: https://github.com/matrix-org/synapse/issues/17405): sign the JSON with the server key before federation transmission.
             changed = await self.store.set_e2e_device_keys(
                 user_id, device_id, time_now, device_keys
             )

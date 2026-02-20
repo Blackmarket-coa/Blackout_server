@@ -919,7 +919,7 @@ class ReceiptsWorkerStore(SQLBaseStore):
 
         self._get_receipts_for_user_with_orderings.invalidate((user_id, receipt_type))
 
-        # FIXME: This shouldn't invalidate the whole cache
+        # Follow-up (owner: storage, rationale: avoid invalidating the whole cache)
         self._get_linearized_receipts_for_room.invalidate((room_id,))
 
 

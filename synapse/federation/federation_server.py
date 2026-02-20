@@ -427,8 +427,9 @@ class FederationServer(FederationBase):
         newest_pdu_ts = 0
 
         for p in transaction.pdus:
-            # FIXME (richardv): I don't think this works:
-            #  https://github.com/matrix-org/synapse/issues/8429
+            # Follow-up (owner: federation, issue: https://github.com/matrix-org/synapse/issues/8429): The current implementation is still
+            # suspected to be incorrect for edge-cases tracked in
+            # https://github.com/matrix-org/synapse/issues/8429.
             if "unsigned" in p:
                 unsigned = p["unsigned"]
                 if "age" in unsigned:

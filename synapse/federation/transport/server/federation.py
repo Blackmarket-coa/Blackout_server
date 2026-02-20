@@ -420,7 +420,7 @@ class FederationV1SendJoinServlet(BaseFederationServerServlet):
         room_id: str,
         event_id: str,
     ) -> Tuple[int, Tuple[int, JsonDict]]:
-        # TODO(paul): assert that event_id parsed from path actually
+        # Follow-up (owner: federation, issue: https://github.com/matrix-org/synapse/issues/17403): assert that event_id parsed from path actually
         #   match those given in content
         result = await self.handler.on_send_join_request(origin, content, room_id)
         return 200, (200, result)
@@ -440,7 +440,7 @@ class FederationV2SendJoinServlet(BaseFederationServerServlet):
         room_id: str,
         event_id: str,
     ) -> Tuple[int, JsonDict]:
-        # TODO(paul): assert that event_id parsed from path actually
+        # Follow-up (owner: federation, issue: https://github.com/matrix-org/synapse/issues/17403): assert that event_id parsed from path actually
         #   match those given in content
 
         partial_state = parse_boolean_from_args(query, "omit_members", default=False)
@@ -490,7 +490,7 @@ class FederationV2InviteServlet(BaseFederationServerServlet):
         room_id: str,
         event_id: str,
     ) -> Tuple[int, JsonDict]:
-        # TODO(paul): assert that room_id/event_id parsed from path actually
+        # Follow-up (owner: federation, issue: https://github.com/matrix-org/synapse/issues/17403): assert that room_id/event_id parsed from path actually
         #   match those given in content
 
         room_version = content["room_version"]

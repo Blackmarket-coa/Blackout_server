@@ -357,7 +357,7 @@ def parse_html_to_open_graph(tree: "etree._Element") -> Dict[str, Optional[str]]
         assert isinstance(og["og:description"], str)
         og["og:description"] = summarize_paragraphs([og["og:description"]])
 
-    # TODO: delete the url downloads to stop diskfilling,
+    # Follow-up (owner: media, issue: https://github.com/matrix-org/synapse/issues/17402): delete URL downloads after processing to prevent disk-filling abuse.
     # as we only ever cared about its OG
     return og
 

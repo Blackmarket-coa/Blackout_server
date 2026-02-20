@@ -651,7 +651,7 @@ class BaseHttpClient:
                 response.code, response.phrase.decode("ascii", errors="replace"), body
             )
 
-    # XXX: FIXME: This is horribly copy-pasted from matrixfederationclient.
+    # Follow-up (owner: http, rationale: this is copy-pasted from matrixfederationclient and should be deduplicated).
     # The two should be factored out.
 
     async def get_file(

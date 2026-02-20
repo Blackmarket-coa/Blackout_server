@@ -415,7 +415,7 @@ def serialize_event(
         The serialized event dictionary.
     """
 
-    # FIXME(erikj): To handle the case of presence events and the like
+    # Follow-up (owner: events, rationale: handle non-EventBase cases such as presence events)
     if not isinstance(e, EventBase):
         return e
 
