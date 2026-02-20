@@ -198,3 +198,133 @@ Closed in this pass:
 
 Remaining:
 - Cross-cutting follow-ups tracked in linked issues for broader behavioral changes (federation query reconciliation/rate-limiting, timestamp gap reconciliation, deactivate-account threepid race, and non-P0 URL preview improvements).
+
+---
+
+## Remaining work: AI prompts by severity
+
+Use these prompts for the remaining marker debt. They are ordered by risk and operational impact.
+
+### Severity P0 — correctness, security, and production safety
+
+#### P0-A: Resolve remaining `FIXME` and safety TODOs in high-risk Synapse paths
+```text
+You are working in this repository. Complete all remaining P0 marker fixes in Synapse.
+
+Scope:
+- Any remaining FIXME markers in synapse/
+- Safety-sensitive TODO markers in:
+  - synapse/federation/
+  - synapse/handlers/
+  - synapse/media/
+  - synapse/storage/
+
+Requirements:
+1) For each marker, choose one action: implement now, delete stale marker, or convert to issue-linked comment with explicit owner and rationale.
+2) Do not leave ambiguous TODO/FIXME comments in production paths.
+3) Add/adjust tests for behavior changes.
+4) Prefer small commits grouped by subsystem.
+5) Update INCOMPLETE_WORK.md with closures and remaining escalations.
+
+Validation:
+- rg -n "FIXME|TODO" synapse/federation synapse/handlers synapse/media synapse/storage
+- pytest -q tests/federation tests/handlers tests/media tests/storage
+```
+
+#### P0-B: Eliminate concrete runtime `NotImplementedError` paths
+```text
+Audit all `raise NotImplementedError()` usages in synapse/ and eliminate runtime gaps.
+
+Process:
+1) Classify each site as abstract-interface-only vs runtime-reachable.
+2) For runtime-reachable sites, implement behavior or raise a typed, user-safe Synapse exception earlier.
+3) For true abstract points, make abstract intent explicit via docs/comments/type structure.
+4) Add regression tests that prove runtime entry points no longer surface raw NotImplementedError.
+5) Produce a markdown table: file, line, classification, action taken.
+
+Validation:
+- rg -n "raise NotImplementedError\(" synapse
+- pytest -q tests -k "notimplemented or id_generator or sso or room"
+```
+
+### Severity P1 — high-impact maintainability and correctness debt
+
+#### P1-A: Burn down highest-volume handler/REST marker files
+```text
+Reduce marker debt in the highest-volume application files.
+
+Batch 1 scope:
+- synapse/handlers/federation.py
+- synapse/handlers/sync.py
+- synapse/rest/client/room.py
+- synapse/handlers/federation_event.py
+
+Batch 2 scope:
+- Next highest marker files from `rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers synapse/rest | cut -d: -f1 | sort | uniq -c | sort -nr`
+
+Requirements:
+1) For each marker: implement, remove stale text, or replace with issue-linked debt note.
+2) Preserve behavior unless tests/documentation are updated in the same change.
+3) Add focused tests for each observable behavior change.
+4) Commit each batch separately and include marker-count delta in commit message body.
+
+Validation:
+- rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers synapse/rest
+- pytest -q tests/handlers tests/rest/client
+```
+
+#### P1-B: Fix disabled/unfinished tests called out in inventory
+```text
+Re-enable and complete test debt identified in INCOMPLETE_WORK.md.
+
+Priority tests:
+- tests/rest/client/test_profile.py (lines around 172, 182)
+- tests/federation/test_federation_server.py (line around 262)
+
+Requirements:
+1) Replace FIXME/TODO test markers with completed assertions or stable skips referencing an issue.
+2) Ensure tests are deterministic and CI-safe.
+3) If behavior is intentionally undefined, add explicit rationale in test comments.
+
+Validation:
+- rg -n "FIXME|TODO" tests/rest/client/test_profile.py tests/federation/test_federation_server.py
+- pytest -q tests/rest/client/test_profile.py tests/federation/test_federation_server.py
+```
+
+### Severity P2 — medium-priority debt outside core runtime paths
+
+#### P2-A: Triage and reduce marker debt in `docs/`, `scripts-dev/`, and `contrib/`
+```text
+Perform a non-runtime marker clean-up pass for docs/tooling.
+
+Scope:
+- docs/
+- scripts-dev/
+- contrib/
+
+Requirements:
+1) Remove stale TODO/XXX/HACK notes.
+2) Convert valid follow-up notes into issue-linked comments.
+3) Keep docs and scripts behavior unchanged unless explicitly needed for correctness.
+4) Commit by directory to keep reviewable.
+
+Validation:
+- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" docs scripts-dev contrib
+```
+
+### Severity P3 — final normalization and completion gate
+
+#### P3-A: Global recount, threshold check, and inventory regeneration
+```text
+After all remediation waves, regenerate inventory and enforce completion gates.
+
+Requirements:
+1) Re-run marker scan across repository.
+2) Update INCOMPLETE_WORK.md totals and top-directory snapshots.
+3) Confirm whether synapse marker count is below the target threshold (<300).
+4) If threshold is not met, append next-wave prioritized file list with counts.
+
+Validation:
+- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l
+- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
+```
