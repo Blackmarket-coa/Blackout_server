@@ -352,6 +352,35 @@ docs/
 - [ ] Add Docker + Termux setup and low-memory deployment profile.
 - [ ] Add security and chaos test suites for recovery and tamper detection.
 
+### 3a) Phased implementation backlog (triaged)
+
+The checklist above is triaged into phased delivery buckets so implementation can
+be tracked with explicit sequencing and ownership assignment.
+
+**Phase 1 (foundation / day 0-30):**
+
+- Introduce append-only signed event log with hash chaining.
+- Add DID-style key identity and Ed25519 signatures for all events.
+- Add compatibility layer to preserve existing homeserver behavior during migration.
+- Add migration scripts for legacy state into event log format.
+
+**Phase 2 (convergence + transport / day 31-60):**
+
+- Add CRDT state layer (Yjs or Automerge) for room/task/vote convergence.
+- Add deterministic replay engine from snapshot + log ranges.
+- Add binary transport payloads (CBOR or Protobuf) for sync paths.
+- Add gossip peer discovery with static seed fallback.
+- Add replication factor config and anti-entropy pull/push.
+
+**Phase 3 (hardening + decentralization / day 61-90):**
+
+- Add peer health scoring and automatic rebalancing.
+- Add E2EE envelope model (X25519 + AES-GCM + room key rotation).
+- Add WebRTC transport for bulk media and file transfer, with WS fallback.
+- Add lightweight embedded storage profile (SQLite/LiteFS/BadgerDB).
+- Add Docker + Termux setup and low-memory deployment profile.
+- Add security and chaos test suites for recovery and tamper detection.
+
 ### 4) Example event schema
 
 ```json

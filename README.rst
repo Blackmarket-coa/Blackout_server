@@ -65,10 +65,12 @@ text architecture diagram, folder layout, event schema, CRDT example, encrypted
 flow, boot/recovery sequences, and security checklist), see:
 
 * `docs/distributed_self_healing_blueprint.md <docs/distributed_self_healing_blueprint.md>`_
+* `docs/project_completion_tracker.md <docs/project_completion_tracker.md>`_
 
 The blueprint is written to preserve compatibility with the current Synapse-based
 runtime while adding a phased migration path for event-sourced replication and
-phone-hosted low-memory nodes.
+phone-hosted low-memory nodes. Use the project tracker to monitor completion
+status and milestone gate progress for that refactor package.
 
 Quick start
 ===========
