@@ -90,6 +90,22 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 - [ ] G2. Day 31-60 milestones complete.
 - [ ] G3. Day 61-90 milestones complete.
 
+
+### H. Decentralized encrypted federation refactor package
+
+- [ ] H1. Architectural diagram (text form) published and versioned.
+- [ ] H2. Target modular folder structure agreed (`core/`, `network/`, `crypto/`, `governance/`, `tasks/`, `ledger/`, `streaming/`, `compat/`).
+- [ ] H3. Refactor checklist items triaged into phased implementation backlog.
+- [ ] H4. Event schema implemented with signed hash-linked envelope fields.
+- [ ] H5. CRDT integration path selected (Yjs or Automerge) and prototype validated.
+- [ ] H6. Encrypted message flow specification reviewed by security owner.
+- [ ] H7. Node boot sequence implemented for snapshot + replay startup.
+- [ ] H8. Recovery sequence implemented and tested for offline rejoin.
+- [ ] H9. Performance optimization plan tracked against low-memory profile targets.
+- [ ] H10. Security audit checklist incorporated into release readiness review.
+- [ ] H11. Migration approach (`dual-write`, `shadow-read`, `canary`, `cutover`, `rollback`) tracked with owners and dates.
+- [ ] H12. README and operator docs point to the canonical refactor blueprint and tracker.
+
 ## 4) Milestone gates
 
 ### Gate 1 — Code health gate
@@ -125,6 +141,9 @@ Exit criteria:
 - Mean time to detect (MTTD) and recover (MTTR) from drills/incidents.
 - Backup verification pass rate.
 
+- Refactor package completion ratio (H-items done / total H-items).
+- Recovery drill success rate for snapshot+replay rejoin scenarios.
+
 ## 6) Ownership template
 
 Populate and keep current:
@@ -134,6 +153,9 @@ Populate and keep current:
 - SRE/HA owner: _TBD_
 - Data durability owner: _TBD_
 - Incident/process owner: _TBD_
+- Federation refactor owner: _TBD_
+- Crypto/security owner: _TBD_
+- Migration/cutover owner: _TBD_
 
 ## 7) Review cadence
 
