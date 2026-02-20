@@ -46,3 +46,8 @@ To use `synapse.rules` add
 Metrics are disabled by default when running synapse; they must be enabled
 with the 'enable-metrics' option, either in the synapse config file or as a
 command-line option.
+
+
+For Blackout durability/disaster-recovery alerting, you can additionally include
+`contrib/prometheus/blackout-dr.rules` to alert on backup freshness, replication
+lag, and storage pressure.

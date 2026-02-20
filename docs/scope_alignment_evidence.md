@@ -73,5 +73,20 @@ explicit so execution can proceed without governance ambiguity.
    `docs/reliability_slo_alerting_and_paging.md`.
 3. C4 completed: first monthly SLO report published at
    `docs/reliability_reports/2026-02.md`.
-4. Produce the first E2 backup verification run and attach it to this evidence log.
-5. Append drill artifacts for D3/D6/F3 as they are completed.
+4. E2 completed: automated backup verification is implemented via `scripts-dev/blackout/backup_verify.sh` and writes dated verification reports under `${BACKUP_ROOT}/verification-reports`.
+5. E3 completed: quarterly restore drill automation is implemented via `scripts-dev/blackout/quarterly_restore_drill.sh` with pass/fail report artifacts.
+6. Append drill artifacts for D3/D6/F3 as they are completed.
+
+
+## 6) Data durability execution evidence (E1-E4)
+
+- E1: Daily full backup + WAL archival workflow implemented and documented:
+  `scripts-dev/blackout/backup_run.sh` + `docs/backup_and_dr_operations.md`.
+- E2: Backup verification pipeline implemented:
+  `scripts-dev/blackout/backup_verify.sh` (scheduled daily, report output preserved).
+- E3: Quarterly restore drill implemented:
+  `scripts-dev/blackout/quarterly_restore_drill.sh` with pass criterion based on
+  successful control-data inspection of restored PGDATA.
+- E4: Replication/lag/capacity alerting implemented:
+  `contrib/prometheus/blackout-dr.rules` and Prometheus wiring guidance in
+  `contrib/prometheus/README.md`.

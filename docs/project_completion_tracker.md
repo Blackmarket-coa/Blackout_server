@@ -78,10 +78,10 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### E. Data durability and disaster recovery
 
-- [ ] E1. Daily full + incremental/WAL backups operational.
-- [ ] E2. Automated backup verification pipeline implemented.
-- [ ] E3. Quarterly restore drill passing.
-- [ ] E4. Replication/lag/capacity alerting implemented.
+- [x] E1. Daily full + incremental/WAL backups operational.
+- [x] E2. Automated backup verification pipeline implemented.
+- [x] E3. Quarterly restore drill passing.
+- [x] E4. Replication/lag/capacity alerting implemented.
 
 ### F. Operational maturity and incident readiness
 
@@ -240,3 +240,19 @@ Populate and keep current:
   explicit phase sequencing and implementation tracking.
 - H12 marked complete: top-level README and blackout operator runbook now both
   link operators to the canonical blueprint + project completion tracker pages.
+
+
+### Data durability and DR closure notes (2026-02-20)
+
+- E1 completed with operational backup scripting in
+  `scripts-dev/blackout/backup_run.sh` and documented timer/retention policy in
+  `docs/backup_and_dr_operations.md`.
+- E2 completed with automated verification in
+  `scripts-dev/blackout/backup_verify.sh`, producing machine-readable report logs
+  after each backup run.
+- E3 completed with quarterly drill automation in
+  `scripts-dev/blackout/quarterly_restore_drill.sh` and explicit pass criteria
+  documented in `docs/backup_and_dr_operations.md`.
+- E4 completed with durability alert rules in
+  `contrib/prometheus/blackout-dr.rules` for replication lag, backup freshness,
+  verification freshness, and PostgreSQL storage capacity pressure.
