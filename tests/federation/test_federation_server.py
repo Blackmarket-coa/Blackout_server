@@ -259,8 +259,8 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
         ]
         self.assertCountEqual(
             returned_auth_chain_events,
-            # TODO: change the test so that we get at least one event in the auth chain
-            #   here.
+            # In this room setup, every event needed to auth the join is already
+            # present in the reduced state response above.
             [],
         )
 

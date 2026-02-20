@@ -115,8 +115,9 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.code, 400, channel.result)
 
     def test_get_avatar_url(self) -> None:
-        res = self._get_avatar_url()
-        self.assertIsNone(res)
+        channel = self.make_request("GET", "/profile/%s/avatar_url" % (self.owner,))
+        self.assertEqual(channel.code, 404, channel.result)
+        self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
 
     def test_set_avatar_url(self) -> None:
         channel = self.make_request(
@@ -148,12 +149,14 @@ class ProfileTestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(channel.code, 400, channel.result)
 
-        res = self._get_avatar_url()
-        self.assertIsNone(res)
+        channel = self.make_request("GET", "/profile/%s/avatar_url" % (self.owner,))
+        self.assertEqual(channel.code, 404, channel.result)
+        self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
 
     def test_get_avatar_url_other(self) -> None:
-        res = self._get_avatar_url(self.other)
-        self.assertIsNone(res)
+        channel = self.make_request("GET", "/profile/%s/avatar_url" % (self.other,))
+        self.assertEqual(channel.code, 404, channel.result)
+        self.assertEqual(channel.json_body["errcode"], Codes.NOT_FOUND)
 
     def test_set_avatar_url_other(self) -> None:
         channel = self.make_request(
@@ -169,9 +172,6 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             "GET", "/profile/%s/displayname" % (name or self.owner,)
         )
         self.assertEqual(channel.code, 200, channel.result)
-        # FIXME: If a user has no displayname set, Synapse returns 200 and omits a
-        # displayname from the response. This contradicts the spec, see
-        # https://github.com/matrix-org/synapse/issues/13137.
         return channel.json_body.get("displayname")
 
     def _get_avatar_url(self, name: Optional[str] = None) -> Optional[str]:
@@ -179,9 +179,6 @@ class ProfileTestCase(unittest.HomeserverTestCase):
             "GET", "/profile/%s/avatar_url" % (name or self.owner,)
         )
         self.assertEqual(channel.code, 200, channel.result)
-        # FIXME: If a user has no avatar set, Synapse returns 200 and omits an
-        # avatar_url from the response. This contradicts the spec, see
-        # https://github.com/matrix-org/synapse/issues/13137.
         return channel.json_body.get("avatar_url")
 
     @unittest.override_config({"max_avatar_size": 50})

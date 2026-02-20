@@ -74,12 +74,10 @@ class ProfileDisplaynameRestServlet(RestServlet):
         await self.profile_handler.check_profile_query_allowed(user, requester_user)
 
         displayname = await self.profile_handler.get_displayname(user)
+        if displayname is None:
+            raise SynapseError(404, "No display name set", Codes.NOT_FOUND)
 
-        ret = {}
-        if displayname is not None:
-            ret["displayname"] = displayname
-
-        return 200, ret
+        return 200, {"displayname": displayname}
 
     async def on_PUT(
         self, request: SynapseRequest, user_id: str
@@ -136,12 +134,10 @@ class ProfileAvatarURLRestServlet(RestServlet):
         await self.profile_handler.check_profile_query_allowed(user, requester_user)
 
         avatar_url = await self.profile_handler.get_avatar_url(user)
+        if avatar_url is None:
+            raise SynapseError(404, "No avatar URL set", Codes.NOT_FOUND)
 
-        ret = {}
-        if avatar_url is not None:
-            ret["avatar_url"] = avatar_url
-
-        return 200, ret
+        return 200, {"avatar_url": avatar_url}
 
     async def on_PUT(
         self, request: SynapseRequest, user_id: str
