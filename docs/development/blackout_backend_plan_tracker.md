@@ -288,6 +288,22 @@ Classification legend:
 | BLK-116 | 9 alignment seed: `faster_joins`, sync TODO/FIXME, storage/search/media TODO/FIXME, tracker-tagged TODO(owner) | Tech Lead | Sprint 1 | Open mapped issues for each TODO cluster and attach `blackout:*` labels. |
 | BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | Hold decision workshop and record resolutions in ADR set before feature merge. |
 
+
+### 13.1a Marker debt compliance gate (required-now policy)
+
+Marker governance for tracker updates is enforced as follows:
+- **Retain marker budget enforcement using canonical inventory exclusions only** (no ad-hoc exclusions by team or sprint).
+- **Require weekly marker delta reporting** (`opened`, `closed`, `net`) for the tracked marker inventory.
+- **Require top-hotspot owner assignment** each week for the highest-growth marker cluster.
+
+Required-now ticket mapping for compliance gate:
+
+| Ticket | Unchecked tracker bullets covered | Owner | Target sprint | Next action |
+|---|---|---|---|---|
+| BLK-118 | Marker budget enforcement policy (canonical inventory exclusions only) | Release Manager | Sprint 1 | Publish `marker_budget_policy.md` and link canonical exclusion list used by tracker reports. |
+| BLK-119 | Weekly marker delta reporting in tracker updates | Program Manager | Sprint 1 | Add weekly `marker delta` row to tracker update template with trend status (up/flat/down). |
+| BLK-120 | Top-hotspot owner assignment for marker debt | Tech Lead | Sprint 1 | Assign DRI for top hotspot every week and track mitigation actions to closure. |
+
 ### 13.2 Required-later (explicit next action)
 
 | Unchecked tracker bullets covered | Classification | Next action |
@@ -313,3 +329,6 @@ Classification legend:
 - [x] All unchecked bullets in Sections 0-12 are classified into **required-now**, **required-later**, or **not-in-scope**.
 - [x] Every classified group has an explicit next action.
 - [x] Every **required-now** group has ticket mapping, owner, and target sprint.
+- [x] Marker budget enforcement uses canonical inventory exclusions only.
+- [x] Weekly marker delta and top-hotspot owner assignment are required in tracker updates.
+- [x] Marker trend gate: trend is stable/downward and no scope-critical must-fix marker is unowned.
