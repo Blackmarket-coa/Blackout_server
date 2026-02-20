@@ -5,13 +5,13 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **495**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **508**
 - Top directories by marker count:
-  - `synapse/`: **409**
+  - `synapse/`: **390**
+  - `docs/`: **52**
   - `tests/`: **32**
-  - `docs/`: **29**
+  - `scripts-dev/`: **18**
   - `contrib/`: **12**
-  - `scripts-dev/`: **9**
 
 ## Representative examples to prioritize
 
@@ -46,19 +46,19 @@ agent can execute directly for repository changes.
 
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **409**
+- Total markers in `synapse/`: **390**
 - Marker types:
-  - `TODO`: **235**
-  - `NotImplementedError`: **67**
+  - `TODO`: **226**
   - `XXX`: **63**
-  - `FIXME`: **43**
+  - `NotImplementedError`: **62**
+  - `FIXME`: **38**
   - `HACK`: **2**
 - Highest-volume subsystems:
-  - `synapse/handlers/`: **140**
-  - `synapse/storage/`: **71**
+  - `synapse/handlers/`: **139**
+  - `synapse/storage/`: **68**
   - `synapse/rest/`: **39**
-  - `synapse/federation/`: **31**
-  - `synapse/media/`: **20**
+  - `synapse/federation/`: **26**
+  - `synapse/api/`: **16**
 
 ---
 
