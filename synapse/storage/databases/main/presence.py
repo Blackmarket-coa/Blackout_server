@@ -253,7 +253,10 @@ class PresenceStore(PresenceBackgroundUpdateStore, CacheInvalidationWorkerStore)
     def _get_presence_for_user(self, user_id: str) -> None:
         # Cache descriptor placeholder for `get_presence_for_users`;
         # never called directly.
-        raise NotImplementedError()
+        raise RuntimeError(
+            "_get_presence_for_user is a cache descriptor placeholder and must "
+            "not be called directly"
+        )
 
     @cachedList(
         cached_method_name="_get_presence_for_user",

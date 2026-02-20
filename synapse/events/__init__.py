@@ -335,8 +335,9 @@ class EventBase(metaclass=abc.ABCMeta):
     user_id: DictProperty[str] = DictProperty("sender")
 
     @property
+    @abc.abstractmethod
     def event_id(self) -> str:
-        raise NotImplementedError()
+        ...
 
     @property
     def membership(self) -> str:

@@ -316,7 +316,7 @@ class Responder(ABC):
         Returns:
             Resolves once the response has finished being written
         """
-        raise NotImplementedError()
+        ...
 
     def __enter__(self) -> None:  # noqa: B027
         pass

@@ -932,7 +932,10 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
 
         This body is never expected to execute directly.
         """
-        raise NotImplementedError()
+        raise RuntimeError(
+            "_get_bare_e2e_cross_signing_keys is a cache descriptor placeholder "
+            "and must not be called directly"
+        )
 
     @cachedList(
         cached_method_name="_get_bare_e2e_cross_signing_keys",

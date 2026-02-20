@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import logging
 from typing import TYPE_CHECKING, Optional, Tuple
 
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class BaseAuth:
+class BaseAuth(metaclass=abc.ABCMeta):
     """Common base class for all auth implementations."""
 
     def __init__(self, hs: "HomeServer"):
@@ -177,6 +178,7 @@ class BaseAuth:
                 403, "Application service has not registered this user (%s)" % user_id
             )
 
+    @abc.abstractmethod
     async def is_server_admin(self, requester: Requester) -> bool:
         """Check if the given user is a local server admin.
 
@@ -186,7 +188,7 @@ class BaseAuth:
         Returns:
             True if the user is an admin
         """
-        raise NotImplementedError()
+        ...
 
     async def check_can_change_room_list(
         self, room_id: str, requester: Requester

@@ -127,7 +127,7 @@ class SsoIdentityProvider(Protocol):
         Returns:
             URL to redirect to
         """
-        raise NotImplementedError()
+        ...
 
 
 @attr.s(auto_attribs=True)

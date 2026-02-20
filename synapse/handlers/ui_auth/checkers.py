@@ -47,7 +47,7 @@ class UserInteractiveAuthChecker(ABC):
         Returns:
             True if this login type is enabled.
         """
-        raise NotImplementedError()
+        ...
 
     @abstractmethod
     async def check_auth(self, authdict: dict, clientip: str) -> Any:
@@ -63,7 +63,7 @@ class UserInteractiveAuthChecker(ABC):
         Returns:
             The result of authentication (to pass back to the client?)
         """
-        raise NotImplementedError()
+        ...
 
 
 class DummyAuthChecker(UserInteractiveAuthChecker):

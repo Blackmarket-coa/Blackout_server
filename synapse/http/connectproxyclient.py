@@ -43,7 +43,7 @@ class ProxyConnectError(ConnectError):
 class ProxyCredentials:
     @abc.abstractmethod
     def as_proxy_authorization_value(self) -> bytes:
-        raise NotImplementedError()
+        ...
 
 
 @attr.s(auto_attribs=True)

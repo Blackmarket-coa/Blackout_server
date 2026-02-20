@@ -314,7 +314,10 @@ class PusherWorkerStore(SQLBaseStore):
     async def get_if_user_has_pusher(self, user_id: str) -> None:
         # Cache descriptor placeholder for `get_if_users_have_pushers`;
         # never called directly.
-        raise NotImplementedError()
+        raise RuntimeError(
+            "get_if_user_has_pusher is a cache descriptor placeholder and must "
+            "not be called directly"
+        )
 
     async def update_pusher_last_stream_ordering(
         self, app_id: str, pushkey: str, user_id: str, last_stream_ordering: int

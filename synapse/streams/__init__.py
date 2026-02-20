@@ -33,4 +33,4 @@ class EventSource(ABC, Generic[K, R]):
         is_guest: bool,
         explicit_room_id: Optional[str] = None,
     ) -> Tuple[List[R], K]:
-        raise NotImplementedError()
+        ...

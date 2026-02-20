@@ -205,7 +205,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
         """This gets called when we have some new events we might want to
         send out to other servers.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def send_read_receipt(self, receipt: ReadReceipt) -> None:
@@ -214,7 +214,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
         Args:
             receipt: receipt to be sent
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def send_presence_to_destinations(
@@ -225,7 +225,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
         Args:
             destinations:
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def build_and_send_edu(
@@ -243,7 +243,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
             content: content of EDU
             key: clobbering key for this edu
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def send_device_messages(
@@ -254,7 +254,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
         be tried to be sent immediately, or whether it can be delayed for a
         short while (to aid performance).
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def wake_destination(self, destination: str) -> None:
@@ -263,21 +263,21 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
         This is mainly useful if the remote server has been down and we think it
         might have come back.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def get_current_token(self) -> int:
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def federation_ack(self, instance_name: str, token: int) -> None:
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     async def get_replication_rows(
         self, instance_name: str, from_token: int, to_token: int, target_row_count: int
     ) -> Tuple[List[Tuple[int, Tuple]], int, bool]:
-        raise NotImplementedError()
+        ...
 
 
 @attr.s

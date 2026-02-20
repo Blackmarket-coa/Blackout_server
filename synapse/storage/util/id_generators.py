@@ -113,7 +113,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
         """Advance the position of the named writer to the given ID, if greater
         than existing entry.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def get_current_token(self) -> int:
@@ -123,7 +123,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
         Returns:
             The maximum stream id.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def get_current_token_for_writer(self, instance_name: str) -> int:
@@ -131,7 +131,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
 
         For streams with single writers this is equivalent to `get_current_token`.
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def get_minimal_local_current_token(self) -> int:
@@ -149,7 +149,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
             async with stream_id_gen.get_next() as stream_id:
                 # ... persist event ...
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def get_next_mult(self, n: int) -> AsyncContextManager[Sequence[int]]:
@@ -158,7 +158,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
             async with stream_id_gen.get_next(n) as stream_ids:
                 # ... persist events ...
         """
-        raise NotImplementedError()
+        ...
 
     @abc.abstractmethod
     def get_next_txn(self, txn: LoggingTransaction) -> int:
@@ -167,7 +167,7 @@ class AbstractStreamIdGenerator(metaclass=abc.ABCMeta):
             stream_id_gen.get_next_txn(txn)
             # ... persist events ...
         """
-        raise NotImplementedError()
+        ...
 
 
 class StreamIdGenerator(AbstractStreamIdGenerator):
