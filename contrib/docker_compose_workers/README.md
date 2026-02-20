@@ -114,3 +114,47 @@ federation_sender_instances:
 ## Other Worker types
 
 Using the concepts shown here it is possible to create other worker types in Docker Compose. See the [Workers](https://matrix-org.github.io/synapse/latest/workers.html#available-worker-applications) documentation for a list of available workers.
+
+
+## High-availability deployment profile (D1-D6)
+
+For a complete HA-oriented topology, use `docker-compose-ha.yaml` in this directory.
+
+- D1 Worker topology deployed: includes `synapse-generic-worker-1`, `synapse-federation-sender-1`, `synapse-background-worker-1`, and `synapse-persister-1`.
+- D2 Redis replication/cache coherence operational: `redis-primary` and `redis-replica` are configured in master/replica mode.
+- D3 PostgreSQL HA with automated failover validated: `postgres-primary` + `postgres-replica` use repmgr with `postgres-proxy` (pgpool) for automatic failover routing.
+- D4 Reverse proxy/LB health routing validated: `reverse-proxy` (HAProxy) routes Matrix traffic only to healthy backends.
+- D5 Liveness/readiness checks on all critical services: Docker healthchecks are configured for database, cache, homeserver, workers, and proxy services.
+- D6 Automated rollback on bad deploy behavior verified: use the validation script and your CI/CD rollback policy to restore the previous Synapse image when health checks fail.
+
+### Required `homeserver.yaml` additions for this profile
+
+In addition to the worker and Redis sections above, ensure your main `homeserver.yaml` includes stream writer and background-task placement.
+
+```yaml
+instance_map:
+  synapse-generic-worker-1:
+    host: synapse-generic-worker-1
+    port: 8081
+  synapse-background-worker-1:
+    host: synapse-background-worker-1
+    port: 8083
+  synapse-persister-1:
+    host: synapse-persister-1
+    port: 8084
+
+stream_writers:
+  events: [synapse-persister-1]
+
+run_background_tasks_on: synapse-background-worker-1
+```
+
+### Validation script
+
+Run the end-to-end validation checks:
+
+```bash
+contrib/docker_compose_workers/scripts/validate_ha_stack.sh
+```
+
+This script covers D1-D5 directly and outlines a D6 rollback verification flow for CI/CD pipelines.
