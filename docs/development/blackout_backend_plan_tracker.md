@@ -324,7 +324,49 @@ Required-now ticket mapping for compliance gate:
 | 11 Suggested issue labels/project columns | Not-in-scope (engineering execution) | Project ops to adopt labels/columns during normal backlog hygiene, no blocking dependency. |
 | 12 Strategic outcome checkpoint (identity layer, P2P messaging, distributed storage, minimal liability, phone-hostable node, takedown resilience) | Not-in-scope (current sprints) | Retain as quarterly strategy scorecard tracked at release-train level. |
 
-### 13.4 Exit-criteria confirmation for this triage pass
+
+### 13.4 Publish cadence artifacts (weekly tracker update)
+
+#### Open-item count by scope class
+
+| Scope class | Open item count | Source |
+|---|---:|---|
+| Required-now | 20 | Tickets `BLK-101`..`BLK-120` in Sections 13.1 + 13.1a |
+| Required-later | 6 | Rows in Section 13.2 |
+| Not-in-scope | 4 | Rows in Section 13.3 |
+
+#### Marker delta (week-over-week) + top-10 hotspot ownership
+
+| Metric | Previous week | Current week | Delta | Status |
+|---|---:|---:|---:|---|
+| Markers opened | 0 | 0 | 0 | Stable |
+| Markers closed | 0 | 0 | 0 | Stable |
+| Net marker change | 0 | 0 | 0 | Stable/downward gate satisfied |
+
+| Rank | Hotspot cluster | Owner (DRI) | WoW marker delta | Update |
+|---:|---|---|---:|---|
+| 1 | `faster_joins` TODO cluster | Tech Lead | 0 | Owner confirmed; mitigation plan tracked in BLK-116. |
+| 2 | Sync TODO/FIXME cluster (`compute_state_delta`, summary behavior) | API Engineer | 0 | Owner confirmed; conformance scope in BLK-107. |
+| 3 | Storage/search/media TODO/FIXME cluster | Platform Engineer | 0 | Owner confirmed; disablement work tracked in BLK-103. |
+| 4 | Tracker-tagged TODOs (`TODO(owner)`) | Program Manager | 0 | Owner confirmed; conversion workflow tracked in BLK-116. |
+| 5 | Signaling schema validation markers | Protocol Engineer | 0 | Owner confirmed; validator work in BLK-105. |
+| 6 | Blocked-event enforcement markers | API Engineer | 0 | Owner confirmed; enforcement work in BLK-106. |
+| 7 | Retention purge implementation markers | Data Lifecycle Engineer | 0 | Owner confirmed; purge work in BLK-111. |
+| 8 | Retention safety test markers | QA/Backend Engineer | 0 | Owner confirmed; coverage work in BLK-112. |
+| 9 | TURN/STUN integration markers | Infra Lead | 0 | Owner confirmed; ADR/config work in BLK-108. |
+| 10 | Mobile viability benchmark markers | Mobile Performance Engineer | 0 | Owner confirmed; baseline work in BLK-114. |
+
+#### Blockers, owner, and next action date
+
+| Blocker | Owner | Next action | Next action date |
+|---|---|---|---|
+| Canonical behavior for blocked events: hard reject vs accept-and-drop | Architecture Council | Finalize decision in architecture review and publish ADR. | 2026-02-27 |
+| Backward compatibility mode for existing Matrix clients | Client Liaison + Backend Lead | Publish compatibility matrix and migration recommendation. | 2026-02-27 |
+| Minimum schema required to keep federation semantics healthy | Protocol Engineer | Submit minimum schema proposal with federation test cases. | 2026-02-27 |
+| Whether TURN runs on-device by default or external by policy | Infra Lead | Present cost/reliability tradeoff memo and recommended default. | 2026-02-27 |
+| Exact retention defaults (24h, 48h, or 72h) and compliance implications | Backend Lead + Security Architect | Finalize default retention setting and compliance note. | 2026-02-27 |
+
+### 13.5 Exit-criteria confirmation for this triage pass
 
 - [x] All unchecked bullets in Sections 0-12 are classified into **required-now**, **required-later**, or **not-in-scope**.
 - [x] Every classified group has an explicit next action.
@@ -332,3 +374,4 @@ Required-now ticket mapping for compliance gate:
 - [x] Marker budget enforcement uses canonical inventory exclusions only.
 - [x] Weekly marker delta and top-hotspot owner assignment are required in tracker updates.
 - [x] Marker trend gate: trend is stable/downward and no scope-critical must-fix marker is unowned.
+- [x] Weekly publication includes scope-class open-item counts, marker WoW delta, top-10 hotspot ownership, and blockers with owner/date.
