@@ -18,7 +18,7 @@ from unittest import mock
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.server import HomeServer
-from synapse.api.errors import SynapseError
+from synapse.api.errors import Codes, SynapseError
 from synapse.types import UserID
 from synapse.util import Clock
 
@@ -138,6 +138,19 @@ class URLPreviewTests(unittest.HomeserverTestCase):
 
         self.assertGreaterEqual(expiration_ms, 89000)
         self.assertLessEqual(expiration_ms, 90000)
+
+    @override_config({"max_spider_size": 8})
+    def test_data_url_respects_max_spider_size(self) -> None:
+        user = UserID.from_string("@user:test")
+        with self.assertRaises(SynapseError) as cm:
+            self.get_success(
+                self.url_previewer._handle_url(
+                    "data:text/plain,0123456789", user, allow_data_urls=True
+                )
+            )
+
+        self.assertEqual(cm.exception.code, 502)
+        self.assertEqual(cm.exception.errcode, Codes.TOO_LARGE)
 
     def test_handle_url_cleans_up_file_on_store_failure(self) -> None:
         def fail_store_local_media(**kwargs: object) -> object:

@@ -251,6 +251,8 @@ class PresenceStore(PresenceBackgroundUpdateStore, CacheInvalidationWorkerStore)
 
     @cached()
     def _get_presence_for_user(self, user_id: str) -> None:
+        # Cache descriptor placeholder for `get_presence_for_users`;
+        # never called directly.
         raise NotImplementedError()
 
     @cachedList(

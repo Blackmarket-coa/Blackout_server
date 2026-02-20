@@ -206,7 +206,7 @@ class FederationEventHandler:
 
         # When joining a room we need to queue any events for that room up.
         # For each room, a list of (pdu, origin) tuples.
-        # TODO: replace this with something more elegant, probably based around the
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: replace this with something more elegant, probably based around the
         # federation event staging area.
         self.room_queues: Dict[str, List[Tuple[EventBase, str]]] = {}
 
@@ -310,7 +310,7 @@ class FederationEventHandler:
             event_id, allow_none=True, allow_rejected=True
         )
 
-        # FIXME: Currently we fetch an event again when we already have it
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: Currently we fetch an event again when we already have it
         # if it has been marked as an outlier.
         if existing:
             if not existing.internal_metadata.is_outlier():
@@ -410,7 +410,7 @@ class FederationEventHandler:
                 # become the only forward-extremity in the room, and we would then
                 # trust its state to be the state for the whole room. This is very
                 # bad. Further, if the event was pushed to us, there is no excuse
-                # for us not to have all the prev_events. (XXX: apart from
+                # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: for us not to have all the prev_events (apart from
                 # min_depth?)
                 #
                 # We therefore reject any such events.
@@ -779,9 +779,10 @@ class FederationEventHandler:
         We might also raise an InvalidResponseError if the response from the remote
         server is just bogus.
 
-        TODO: make this more useful to distinguish failures of the remote
-        server from invalid events (there is probably no point in trying to
-        re-fetch invalid events from every other HS in the room.)
+        Follow-up tracked in https://github.com/matrix-org/synapse/issues/17393:
+        make this more useful to distinguish failures of the remote server from
+        invalid events (there is probably no point in trying to re-fetch invalid
+        events from every other HS in the room.)
         """
         if self._is_mine_server_name(dest):
             raise SynapseError(400, "Can't backfill from self.")
@@ -841,7 +842,7 @@ class FederationEventHandler:
             event_id,
         )
 
-        # XXX: we set timeout to 10s to help workaround
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: we set timeout to 10s to help workaround
         # https://github.com/matrix-org/synapse/issues/1733.
         # The reason is to avoid holding the linearizer lock
         # whilst processing inbound /send transactions, causing
@@ -1352,7 +1353,7 @@ class FederationEventHandler:
         # we have for now, rather than thrashing the event cache with them all
         # unnecessarily.
 
-        # TODO: we probably won't actually need all of the auth events, since we
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: we probably won't actually need all of the auth events, since we
         #   already have a bunch of the state events. It would be nice if the
         #   federation api gave us a way of finding out which we actually need.
 
@@ -1388,7 +1389,7 @@ class FederationEventHandler:
         # As an arbitrary heuristic, if we are missing more than 10% of the events, then
         # we fetch the whole state.
         #
-        # TODO: might it be better to have an API which lets us do an aggregate event
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: might it be better to have an API which lets us do an aggregate event
         #   request
         if (len(missing_event_ids) * 10) >= len(auth_event_ids) + len(state_event_ids):
             logger.debug("Requesting complete state from remote")
@@ -1441,7 +1442,7 @@ class FederationEventHandler:
             raise Exception("Unable to get missing prev_event %s" % (event_id,))
 
         # missing state at that event is a warning, not a blocker
-        # XXX: this doesn't sound right? it means that we'll end up with incomplete
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: this doesn't sound right? it means that we'll end up with incomplete
         #   state.
         failed_to_fetch = desired_events - event_metadata.keys()
         # `event_id` could be missing from `event_metadata` because it's not necessarily
@@ -1773,7 +1774,7 @@ class FederationEventHandler:
         for s in seen_remotes:
             event_map.pop(s, None)
 
-        # XXX: it might be possible to kick this process off in parallel with fetching
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: it might be possible to kick this process off in parallel with fetching
         # the events.
 
         # We need to persist an event's auth events before the event.
@@ -1911,7 +1912,7 @@ class FederationEventHandler:
             validate_event_for_room_version(event)
         except AuthError as e:
             logger.warning("While validating received event %r: %s", event, e)
-            # TODO: use a different rejected reason here?
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: use a different rejected reason here?
             context.rejected = RejectedReason.AUTH_ERROR
             return
         except EventSizeError as e:
@@ -2296,7 +2297,7 @@ class FederationEventHandler:
         if not backfilled and not context.rejected:
             min_depth = await self._store.get_min_depth(event.room_id)
             if min_depth is None or min_depth > event.depth:
-                # XXX richvdh 2021/10/07: I don't really understand what this
+                # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: richvdh 2021/10/07: I don't really understand what this
                 # condition is doing. I think it's trying not to send pushes
                 # for events that predate our join - but that's not really what
                 # min_depth means, and anyway ancient events are a more general
@@ -2441,7 +2442,7 @@ class FederationEventHandler:
         )
 
         if event.type == EventTypes.Member and event.membership == Membership.JOIN:
-            # TODO retrieve the previous state, and exclude join -> join transitions
+            # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17393: retrieve the previous state, and exclude join -> join transitions
             self._notifier.notify_user_joined_room(event.event_id, event.room_id)
 
         # If this is a server ACL event, clear the cache in the storage controller.

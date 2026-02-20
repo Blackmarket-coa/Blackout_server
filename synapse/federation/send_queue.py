@@ -187,9 +187,16 @@ class FederationRemoteSendQueue(AbstractFederationSender):
                 del self.edus[key]
 
     def notify_new_events(self, max_token: RoomStreamToken) -> None:
-        """As per FederationSender"""
-        # This should never get called.
-        raise NotImplementedError()
+        """As per FederationSender.
+
+        Event PDUs are replicated over the events stream, so this queue has
+        nothing to do here. Keep this as a no-op to avoid crashing background
+        notifier paths if called.
+        """
+        logger.debug(
+            "Ignoring notify_new_events(%s) on FederationRemoteSendQueue",
+            max_token,
+        )
 
     def build_and_send_edu(
         self,

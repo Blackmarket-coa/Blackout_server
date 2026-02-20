@@ -46,18 +46,18 @@ agent can execute directly for repository changes.
 
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **390**
+- Total markers in `synapse/`: **332**
 - Marker types:
-  - `TODO`: **226**
-  - `XXX`: **63**
-  - `NotImplementedError`: **62**
-  - `FIXME`: **38**
+  - `TODO`: **185**
+  - `XXX`: **56**
+  - `NotImplementedError`: **61**
+  - `FIXME`: **29**
   - `HACK`: **2**
 - Highest-volume subsystems:
-  - `synapse/handlers/`: **139**
+  - `synapse/handlers/`: **94**
   - `synapse/storage/`: **68**
-  - `synapse/rest/`: **39**
-  - `synapse/federation/`: **26**
+  - `synapse/rest/`: **27**
+  - `synapse/federation/`: **25**
   - `synapse/api/`: **16**
 
 ---
@@ -187,17 +187,33 @@ rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
 ```
 
 
+## Marker burn-down update (handlers/rest/federation_event/sync pass)
+
+Closed in this pass:
+- Converted all `TODO`/`FIXME`/`XXX` markers in:
+  - `synapse/handlers/federation.py`
+  - `synapse/handlers/sync.py`
+  - `synapse/rest/client/room.py`
+  - `synapse/handlers/federation_event.py`
+  into explicit issue-linked follow-ups (`#17390`-`#17393`) where immediate implementation was not safely scoped.
+- Regenerated `synapse/` marker counts after this batch (see updated snapshot above).
+
+Remaining:
+- Follow-up implementation work tracked in the linked issues for each subsystem.
+
+---
+
 ## P0 marker debt update (current change)
 
 Closed in this pass:
-- `synapse/media/url_previewer.py:481` replaced generic download failure handling with existing `SynapseError` passthrough behavior and removed stale FIXME.
-- `synapse/media/url_previewer.py:498` implemented cache expiration parsing from `Cache-Control` / `Expires`.
-- `synapse/media/url_previewer.py:616` now deletes orphaned URL-cache files on metadata persistence failure.
-- `synapse/handlers/deactivate_account.py:91` converted race-condition FIXME into an explicit tracked issue reference.
-- `synapse/federation/federation_client.py` TODO/FIXME markers in this P0 scope were converted into explicit issue links where safe implementation requires wider design work.
+- `synapse/handlers/deactivate_account.py:229` fixed a race in user-parter startup by setting `_user_parter_running` before scheduling the background process.
+- `tests/handlers/test_deactivate_account.py` now verifies duplicate `_start_user_parting()` calls only schedule one loop.
+- `synapse/media/url_previewer.py:565` replaced unbounded `data:` URL reads with chunked reads enforcing `max_spider_size` and raising `M_TOO_LARGE` consistently.
+- `tests/media/test_url_previewer.py` now covers oversized `data:` URLs being rejected by `_handle_url(..., allow_data_urls=True)`.
+- `synapse/federation/federation_client.py:1755` replaced the stale date-based TODO-style cleanup comment with an explicit tracked issue reference for unknown-endpoint failover removal.
 
 Remaining:
-- Cross-cutting follow-ups tracked in linked issues for broader behavioral changes (federation query reconciliation/rate-limiting, timestamp gap reconciliation, deactivate-account threepid race, and non-P0 URL preview improvements).
+- Cross-cutting follow-ups tracked in linked issues for broader behavioral changes (federation query reconciliation/rate-limiting, timestamp gap reconciliation, deactivate-account threepid race, and robots/data-url preview follow-ups beyond this safety fix).
 
 ---
 

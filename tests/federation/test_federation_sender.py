@@ -21,6 +21,7 @@ from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import EduTypes, RoomEncryptionAlgorithms
+from synapse.federation.send_queue import FederationRemoteSendQueue
 from synapse.federation.units import Transaction
 from synapse.handlers.device import DeviceHandler
 from synapse.rest import admin
@@ -770,3 +771,17 @@ def build_device_dict(user_id: str, device_id: str, sk: SigningKey) -> JsonDict:
             key_id(sk): encode_pubkey(sk),
         },
     }
+
+
+class FederationSenderNotImplementedRegressionTests(HomeserverTestCase):
+    def default_config(self) -> JsonDict:
+        config = super().default_config()
+        config["federation_sender_instances"] = None
+        return config
+
+    def test_main_process_federation_ack_is_safe_noop(self) -> None:
+        sender = self.hs.get_federation_sender()
+        sender.federation_ack("worker1", 123)
+
+    def test_remote_send_queue_notify_new_events_is_safe_noop(self) -> None:
+        FederationRemoteSendQueue.notify_new_events(Mock(), Mock())

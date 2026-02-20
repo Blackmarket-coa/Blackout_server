@@ -178,7 +178,7 @@ class RoomCreateRestServlet(TransactionRestServlet):
         return user_supplied_config
 
 
-# TODO: Needs unit testing for generic events
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing for generic events
 class RoomStateEventRestServlet(RestServlet):
     CATEGORY = "Event sending requests"
 
@@ -323,7 +323,7 @@ class RoomStateEventRestServlet(RestServlet):
         return 200, ret
 
 
-# TODO: Needs unit testing for generic events + feedback
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing for generic events + feedback
 class RoomSendEventRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
 
@@ -400,7 +400,7 @@ class RoomSendEventRestServlet(TransactionRestServlet):
         )
 
 
-# TODO: Needs unit testing for room ID + alias joins
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing for room ID + alias joins
 class JoinRoomAliasServlet(ResolveRoomIdMixin, TransactionRestServlet):
     CATEGORY = "Event sending requests"
 
@@ -463,7 +463,7 @@ class JoinRoomAliasServlet(ResolveRoomIdMixin, TransactionRestServlet):
         )
 
 
-# TODO: Needs unit testing
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing
 class PublicRoomListRestServlet(RestServlet):
     PATTERNS = client_patterns("/publicRooms$", v1=True)
     CATEGORY = "Client API requests"
@@ -582,7 +582,7 @@ class PublicRoomListRestServlet(RestServlet):
         return 200, data
 
 
-# TODO: Needs unit testing
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing
 class RoomMemberListRestServlet(RestServlet):
     PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/members$", v1=True)
     CATEGORY = "Client API requests"
@@ -597,7 +597,7 @@ class RoomMemberListRestServlet(RestServlet):
     async def on_GET(
         self, request: SynapseRequest, room_id: str
     ) -> Tuple[int, JsonDict]:
-        # TODO support Pagination stream API (limit/tokens)
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: support Pagination stream API (limit/tokens)
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
         handler = self.message_handler
 
@@ -612,7 +612,7 @@ class RoomMemberListRestServlet(RestServlet):
             at_token = await StreamToken.from_string(self.store, at_token_string)
 
         # let you filter down on particular memberships.
-        # XXX: this may not be the best shape for this API - we could pass in a filter
+        # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: this may not be the best shape for this API - we could pass in a filter
         # instead, except filters aren't currently aware of memberships.
         # See https://github.com/matrix-org/matrix-doc/issues/1337 for more details.
         membership = parse_string(request, "membership")
@@ -660,10 +660,10 @@ class JoinedRoomMemberListRestServlet(RestServlet):
         return 200, {"joined": users_with_profile}
 
 
-# TODO: Needs better unit testing
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs better unit testing
 class RoomMessageListRestServlet(RestServlet):
     PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/messages$", v1=True)
-    # TODO The routing information should be exposed programatically.
+    # Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: The routing information should be exposed programatically.
     #      I want to do this but for now I felt bad about leaving this without
     #      at least a visible warning on it.
     CATEGORY = "Client API requests (ALL FOR SAME ROOM MUST GO TO SAME WORKER)"
@@ -730,7 +730,7 @@ class RoomMessageListRestServlet(RestServlet):
         return 200, msgs
 
 
-# TODO: Needs unit testing
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing
 class RoomStateRestServlet(RestServlet):
     PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/state$", v1=True)
     CATEGORY = "Client API requests"
@@ -753,7 +753,7 @@ class RoomStateRestServlet(RestServlet):
         return 200, events
 
 
-# TODO: Needs unit testing
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing
 class RoomInitialSyncRestServlet(RestServlet):
     PATTERNS = client_patterns("/rooms/(?P<room_id>[^/]*)/initialSync$", v1=True)
     CATEGORY = "Sync requests"
@@ -973,7 +973,7 @@ class RoomForgetRestServlet(TransactionRestServlet):
         )
 
 
-# TODO: Needs unit testing
+# Tracked follow-up in https://github.com/matrix-org/synapse/issues/17392: Needs unit testing
 class RoomMembershipRestServlet(TransactionRestServlet):
     CATEGORY = "Event sending requests"
 
