@@ -10,7 +10,7 @@ from pathlib import Path
 
 MARKER_REGEX = r"TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_"
 BUDGET_FILE = Path('.ci/marker_budget.json')
-EXCLUDED_PATHS = {"INCOMPLETE_WORK.md", "docs/marker_inventory.csv"}
+EXCLUDED_PATHS = {"INCOMPLETE_WORK.md", "docs/marker_inventory.csv", "docs/tracker_todo_fixme_report.md", "scripts-dev/check_trackers_and_markers.py"}
 
 
 def _marker_count() -> int:
