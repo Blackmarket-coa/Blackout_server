@@ -973,8 +973,14 @@ class FederationSender(AbstractFederationSender):
         return 0
 
     def federation_ack(self, instance_name: str, token: int) -> None:
-        # It is not expected that this gets called on FederationSender.
-        raise NotImplementedError()
+        # FederationSender only produces outbound traffic in-process and does
+        # not consume federation replication rows. Ignore stray acks defensively
+        # rather than raising NotImplementedError on a replication path.
+        logger.debug(
+            "Ignoring federation_ack(instance=%s, token=%s) on FederationSender",
+            instance_name,
+            token,
+        )
 
     @staticmethod
     async def get_replication_rows(

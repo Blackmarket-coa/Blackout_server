@@ -928,8 +928,9 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
     def _get_bare_e2e_cross_signing_keys(
         self, user_id: str
     ) -> Mapping[str, JsonMapping]:
-        """Dummy function.  Only used to make a cache for
-        _get_bare_e2e_cross_signing_keys_bulk.
+        """Cache descriptor placeholder for `_get_bare_e2e_cross_signing_keys_bulk`.
+
+        This body is never expected to execute directly.
         """
         raise NotImplementedError()
 

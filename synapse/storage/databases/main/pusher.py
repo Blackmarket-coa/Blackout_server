@@ -312,7 +312,8 @@ class PusherWorkerStore(SQLBaseStore):
 
     @cached(num_args=1, max_entries=15000)
     async def get_if_user_has_pusher(self, user_id: str) -> None:
-        # This only exists for the cachedList decorator
+        # Cache descriptor placeholder for `get_if_users_have_pushers`;
+        # never called directly.
         raise NotImplementedError()
 
     async def update_pusher_last_stream_ordering(
