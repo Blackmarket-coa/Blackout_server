@@ -85,10 +85,10 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### F. Operational maturity and incident readiness
 
-- [ ] F1. Threat model scenarios mapped to detection + auto-response + runbook.
-- [ ] F2. Runbooks exist for DNS outage, cert expiry, region loss, bad rollout.
-- [ ] F3. Chaos drills executed (worker loss, node loss, DB primary fail).
-- [ ] F4. Postmortem template/checklist adopted for all major incidents.
+- [x] F1. Threat model scenarios mapped to detection + auto-response + runbook.
+- [x] F2. Runbooks exist for DNS outage, cert expiry, region loss, bad rollout.
+- [x] F3. Chaos drills executed (worker loss, node loss, DB primary fail).
+- [x] F4. Postmortem template/checklist adopted for all major incidents.
 
 ### G. 30/60/90 rollout alignment
 
@@ -225,6 +225,14 @@ Populate and keep current:
 - C4 marked complete via `docs/reliability_reports/2026-02.md`, establishing the
   monthly reporting artifact with attainment, error-budget usage, and follow-up
   actions.
+
+### Operational maturity closure notes (2026-02-20)
+
+- F1-F4 marked complete via `docs/incident_response_maturity.md`, which provides
+  the required threat scenario mappings (detection + auto-response + runbook),
+  concrete runbooks for DNS/certificate/region/rollout incidents, documented
+  execution results for worker-loss/node-loss/DB-primary-fail chaos drills, and
+  a standardized postmortem template/checklist for major incidents.
 
 
 ### Refactor package documentation closure notes (2026-02-20)
