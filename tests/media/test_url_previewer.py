@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
+from asyncio import CancelledError
 import os
 from unittest import mock
 
@@ -187,6 +188,24 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         self.assertFalse(
             os.path.exists(self.url_previewer.filepaths.url_cache_filepath(media_id))
         )
+
+    def test_precache_image_url_propagates_cancellation(self) -> None:
+        user = UserID.from_string("@user:test")
+        media_info = mock.Mock(uri="http://example.com", media_type="text/html")
+
+        with mock.patch.object(
+            self.url_previewer,
+            "_handle_url",
+            side_effect=CancelledError(),
+        ):
+            with self.assertRaises(CancelledError):
+                self.get_success(
+                    self.url_previewer._precache_image_url(
+                        user,
+                        media_info,
+                        {"og:image": "http://cdn.example/image.png"},
+                    )
+                )
 
     @override_config({"max_spider_size": 16})
     def test_read_file_for_parsing_rejects_oversized_body(self) -> None:

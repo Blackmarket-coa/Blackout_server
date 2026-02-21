@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from asyncio import CancelledError
 from unittest import mock
 
 import twisted.web.client
@@ -209,6 +210,21 @@ class FederationClientTest(FederatingHomeserverTestCase):
 
         self.assertIsNone(pulled_pdu_info)
         self._mock_agent.request.assert_called_once()
+
+    def test_get_pdu_propagates_cancellation(self) -> None:
+        with mock.patch.object(
+            self.hs.get_federation_client(),
+            "get_pdu_from_destination_raw",
+            side_effect=CancelledError(),
+        ):
+            with self.assertRaises(CancelledError):
+                self.get_success(
+                    self.hs.get_federation_client().get_pdu(
+                        ["yet.another.server"],
+                        "event_id",
+                        RoomVersions.V9,
+                    )
+                )
 
     def _get_pdu_once(self) -> EventBase:
         """Retrieve an event via `get_pdu()` and assert that an event was returned.

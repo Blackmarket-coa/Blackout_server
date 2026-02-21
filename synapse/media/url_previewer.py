@@ -21,6 +21,7 @@ import re
 import shutil
 import sys
 import traceback
+from asyncio import CancelledError
 from email.utils import parsedate_to_datetime
 from typing import TYPE_CHECKING, BinaryIO, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse, urlsplit
@@ -741,6 +742,9 @@ class UrlPreviewer:
         try:
             image_info = await self._handle_url(image_url, user, allow_data_urls=True)
         except Exception as e:
+            if isinstance(e, CancelledError):
+                raise
+
             # Pre-caching the image failed, don't block the entire URL preview.
             logger.warning(
                 "Pre-caching image failed during URL preview: %s errored with %s",

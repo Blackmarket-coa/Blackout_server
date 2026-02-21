@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from asyncio import CancelledError
 from typing import TYPE_CHECKING, Optional
 
 from synapse.api.errors import SynapseError
@@ -213,7 +214,9 @@ class DeactivateAccountHandler:
                     user_id,
                     room.room_id,
                 )
-            except Exception:
+            except Exception as e:
+                if isinstance(e, CancelledError):
+                    raise
                 logger.exception(
                     "Failed to reject invite for user %r in room %r:"
                     " ignoring and continuing",
@@ -272,7 +275,9 @@ class DeactivateAccountHandler:
                     ratelimit=False,
                     require_consent=False,
                 )
-            except Exception:
+            except Exception as e:
+                if isinstance(e, CancelledError):
+                    raise
                 logger.exception(
                     "Failed to part user %r from room %r: ignoring and continuing",
                     user_id,

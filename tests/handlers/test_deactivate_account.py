@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from asyncio import CancelledError
 from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -88,6 +89,21 @@ class DeactivateAccountTestCase(HomeserverTestCase):
 
         self.assertTrue(handler._user_parter_running)
         self.assertEqual(run_bg.call_count, 2)
+
+    def test_part_user_propagates_cancellation(self) -> None:
+        handler = self.hs.get_deactivate_account_handler()
+
+        with mock.patch.object(
+            handler.store,
+            "get_rooms_for_user",
+            return_value=["!room:test"],
+        ), mock.patch.object(
+            handler._room_member_handler,
+            "update_membership",
+            side_effect=CancelledError(),
+        ):
+            with self.assertRaises(CancelledError):
+                self.get_success(handler._part_user(self.user))
 
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """

@@ -16,6 +16,7 @@
 
 import copy
 import itertools
+from asyncio import CancelledError
 import logging
 from typing import (
     TYPE_CHECKING,
@@ -522,6 +523,9 @@ class FederationClient(FederationBase):
                     )
                     continue
                 except Exception as e:
+                    if isinstance(e, CancelledError):
+                        raise
+
                     pdu_attempts[destination] = now
 
                     logger.info(
