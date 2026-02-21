@@ -77,12 +77,17 @@ class DeactivateAccountTestCase(HomeserverTestCase):
 
         with mock.patch(
             "synapse.handlers.deactivate_account.run_as_background_process",
-            side_effect=RuntimeError("cannot schedule"),
-        ):
+            side_effect=[RuntimeError("cannot schedule"), None],
+        ) as run_bg:
             with self.assertRaises(RuntimeError):
                 handler._start_user_parting()
 
-        self.assertFalse(handler._user_parter_running)
+            self.assertFalse(handler._user_parter_running)
+
+            handler._start_user_parting()
+
+        self.assertTrue(handler._user_parter_running)
+        self.assertEqual(run_bg.call_count, 2)
 
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """
