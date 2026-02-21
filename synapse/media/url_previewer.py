@@ -580,6 +580,11 @@ class UrlPreviewer:
                         )
 
                     output_stream.write(chunk)
+        except SynapseError:
+            # Re-raise intentional Synapse errors (e.g. 502 TOO_LARGE) directly
+            # so that callers see the original status code and error code rather
+            # than a generic 500 wrapper.
+            raise
         except Exception as e:
             logger.warning("Error parsing data: URL %s: %r", url, e)
 

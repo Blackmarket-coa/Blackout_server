@@ -39,7 +39,8 @@ class URLPreviewTests(unittest.HomeserverTestCase):
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
         config = self.default_config()
         config["url_preview_enabled"] = True
-        config["max_spider_size"] = 9999999
+        # Only set max_spider_size if not already overridden by @override_config.
+        config.setdefault("max_spider_size", 9999999)
         config["url_preview_ip_range_blacklist"] = (
             "192.168.1.1",
             "1.0.0.0/8",
@@ -142,15 +143,17 @@ class URLPreviewTests(unittest.HomeserverTestCase):
     @override_config({"max_spider_size": 8})
     def test_data_url_respects_max_spider_size(self) -> None:
         user = UserID.from_string("@user:test")
-        with self.assertRaises(SynapseError) as cm:
-            self.get_success(
-                self.url_previewer._handle_url(
-                    "data:text/plain,0123456789", user, allow_data_urls=True
-                )
-            )
-
-        self.assertEqual(cm.exception.code, 502)
-        self.assertEqual(cm.exception.errcode, Codes.TOO_LARGE)
+        # The data URL content is 10 bytes, larger than max_spider_size=8.
+        # Expect a 502 TOO_LARGE SynapseError to propagate directly.
+        failure = self.get_failure(
+            self.url_previewer._handle_url(
+                "data:text/plain,0123456789", user, allow_data_urls=True
+            ),
+            SynapseError,
+        )
+        exc = failure.value
+        self.assertEqual(exc.code, 502)
+        self.assertEqual(exc.errcode, Codes.TOO_LARGE)
 
     def test_handle_url_cleans_up_file_on_store_failure(self) -> None:
         def fail_store_local_media(**kwargs: object) -> object:
@@ -177,12 +180,12 @@ class URLPreviewTests(unittest.HomeserverTestCase):
             "store_local_media",
             side_effect=fail_store_local_media,
         ):
-            with self.assertRaises(SynapseError):
-                self.get_success(
-                    self.url_previewer._handle_url(
-                        "http://example.com", UserID.from_string("@user:test")
-                    )
-                )
+            self.get_failure(
+                self.url_previewer._handle_url(
+                    "http://example.com", UserID.from_string("@user:test")
+                ),
+                SynapseError,
+            )
 
         media_id = f"{datetime.date.today().isoformat()}_abcdefghijklmnop"
         self.assertFalse(
@@ -198,14 +201,16 @@ class URLPreviewTests(unittest.HomeserverTestCase):
             "_handle_url",
             side_effect=CancelledError(),
         ):
-            with self.assertRaises(CancelledError):
-                self.get_success(
-                    self.url_previewer._precache_image_url(
-                        user,
-                        media_info,
-                        {"og:image": "http://cdn.example/image.png"},
-                    )
-                )
+            # CancelledError must propagate out rather than being silently
+            # swallowed as a non-fatal image-fetch failure.
+            self.get_failure(
+                self.url_previewer._precache_image_url(
+                    user,
+                    media_info,
+                    {"og:image": "http://cdn.example/image.png"},
+                ),
+                CancelledError,
+            )
 
     @override_config({"max_spider_size": 16})
     def test_read_file_for_parsing_rejects_oversized_body(self) -> None:
