@@ -72,6 +72,23 @@ class DeactivateAccountTestCase(HomeserverTestCase):
 
         run_bg.assert_called_once_with("user_parter_loop", handler._user_parter_loop)
 
+    def test_start_user_parting_resets_guard_on_schedule_error(self) -> None:
+        handler = self.hs.get_deactivate_account_handler()
+
+        with mock.patch(
+            "synapse.handlers.deactivate_account.run_as_background_process",
+            side_effect=[RuntimeError("cannot schedule"), None],
+        ) as run_bg:
+            with self.assertRaises(RuntimeError):
+                handler._start_user_parting()
+
+            self.assertFalse(handler._user_parter_running)
+
+            handler._start_user_parting()
+
+        self.assertTrue(handler._user_parter_running)
+        self.assertEqual(run_bg.call_count, 2)
+
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """
         Tests that global account data is removed upon deactivation.
