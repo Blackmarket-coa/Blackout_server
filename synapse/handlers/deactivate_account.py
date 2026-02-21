@@ -214,9 +214,9 @@ class DeactivateAccountHandler:
                     user_id,
                     room.room_id,
                 )
-            except Exception as e:
-                if isinstance(e, CancelledError):
-                    raise
+            except CancelledError:
+                raise
+            except Exception:
                 logger.exception(
                     "Failed to reject invite for user %r in room %r:"
                     " ignoring and continuing",
@@ -275,9 +275,9 @@ class DeactivateAccountHandler:
                     ratelimit=False,
                     require_consent=False,
                 )
-            except Exception as e:
-                if isinstance(e, CancelledError):
-                    raise
+            except CancelledError:
+                raise
+            except Exception:
                 logger.exception(
                     "Failed to part user %r from room %r: ignoring and continuing",
                     user_id,

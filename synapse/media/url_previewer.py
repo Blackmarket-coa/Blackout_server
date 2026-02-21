@@ -741,10 +741,9 @@ class UrlPreviewer:
         # https://github.com/matrix-org/synapse/issues/17383.
         try:
             image_info = await self._handle_url(image_url, user, allow_data_urls=True)
+        except CancelledError:
+            raise
         except Exception as e:
-            if isinstance(e, CancelledError):
-                raise
-
             # Pre-caching the image failed, don't block the entire URL preview.
             logger.warning(
                 "Pre-caching image failed during URL preview: %s errored with %s",

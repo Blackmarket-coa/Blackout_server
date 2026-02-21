@@ -522,10 +522,9 @@ class FederationClient(FederationBase):
                         e,
                     )
                     continue
+                except CancelledError:
+                    raise
                 except Exception as e:
-                    if isinstance(e, CancelledError):
-                        raise
-
                     pdu_attempts[destination] = now
 
                     logger.info(
