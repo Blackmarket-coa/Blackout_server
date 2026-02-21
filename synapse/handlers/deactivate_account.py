@@ -43,7 +43,6 @@ class DeactivateAccountHandler:
 
         # Flag that indicates whether the process to part users from rooms is running
         self._user_parter_running = False
-        self._third_party_rules = hs.get_module_api_callbacks().third_party_event_rules
 
         # Start the user parter loop so it can resume parting users from rooms where
         # it left off (if it has work left to do).
@@ -88,9 +87,10 @@ class DeactivateAccountHandler:
                 403, "Deactivation of this user is forbidden", Codes.FORBIDDEN
             )
 
-        # See https://github.com/matrix-org/synapse/issues/17374 for the
-        # remaining race where a threepid password reset could be started while
-        # deactivation is in-flight.
+        # Fully closing the race with threepid password-reset initiation while
+        # deactivation is in-flight requires coordinated changes across auth and
+        # identity-server flows; that follow-up is tracked in
+        # https://github.com/matrix-org/synapse/issues/17374.
 
         # delete threepids first. We remove these from the IS so if this fails,
         # leave the user still active so they can try again.

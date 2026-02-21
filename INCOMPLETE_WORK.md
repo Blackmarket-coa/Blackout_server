@@ -212,14 +212,14 @@ Remaining:
 ## P0 marker debt update (current change)
 
 Closed in this pass:
-- `synapse/handlers/deactivate_account.py:229` fixed a race in user-parter startup by setting `_user_parter_running` before scheduling the background process.
-- `tests/handlers/test_deactivate_account.py` now verifies duplicate `_start_user_parting()` calls only schedule one loop.
-- `synapse/media/url_previewer.py:565` replaced unbounded `data:` URL reads with chunked reads enforcing `max_spider_size` and raising `M_TOO_LARGE` consistently.
-- `tests/media/test_url_previewer.py` now covers oversized `data:` URLs being rejected by `_handle_url(..., allow_data_urls=True)`.
-- `synapse/federation/federation_client.py:1755` replaced the stale date-based TODO-style cleanup comment with an explicit tracked issue reference for unknown-endpoint failover removal.
+- `synapse/handlers/deactivate_account.py` removed a duplicate `_third_party_rules` assignment and converted the remaining threepid reset/deactivation race note into an explicit tracked issue reference (`#17374`).
+- `synapse/federation/federation_client.py` now deduplicates destination attempts in `get_pdu(...)` and records retry timestamps for `NotRetryingDestination`, `FederationDeniedError`, and `SynapseError` failures to avoid tight-loop retries.
+- `tests/federation/test_federation_client.py` adds coverage that duplicate federation destinations are attempted only once.
+- `synapse/media/url_previewer.py` now uses bounded file reads for HTML/oEmbed parsing, skipping parsing when body size exceeds `min(max_spider_size, 2 MiB)` to avoid large in-memory reads.
+- `tests/media/test_url_previewer.py` adds focused coverage for `_read_file_for_parsing(...)` on oversized and small inputs.
 
 Remaining:
-- Cross-cutting follow-ups tracked in linked issues for broader behavioral changes (federation query reconciliation/rate-limiting, timestamp gap reconciliation, deactivate-account threepid race, and robots/data-url preview follow-ups beyond this safety fix).
+- Cross-cutting follow-ups still tracked in linked issues for larger behavior changes: deactivate-account threepid reset coordination (`#17374`), robots.txt support (`#17382`), pre-cache unification (`#17383`), and white-on-transparent thumbnail handling (`#17384`).
 
 ---
 

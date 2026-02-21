@@ -188,6 +188,28 @@ class FederationClientTest(FederatingHomeserverTestCase):
         self.assertIsNotNone(remote_pdu2)
         self.assertEqual(remote_pdu2.internal_metadata.outlier, False)
 
+    def test_get_pdu_skips_duplicate_destinations(self) -> None:
+        self._mock_agent.request.side_effect = lambda *args, **kwargs: defer.succeed(
+            FakeResponse.json(
+                payload={
+                    "origin": "yet.another.server",
+                    "origin_server_ts": 900,
+                    "pdus": [],
+                }
+            )
+        )
+
+        pulled_pdu_info = self.get_success(
+            self.hs.get_federation_client().get_pdu(
+                ["yet.another.server", "yet.another.server"],
+                "event_id",
+                RoomVersions.V9,
+            )
+        )
+
+        self.assertIsNone(pulled_pdu_info)
+        self._mock_agent.request.assert_called_once()
+
     def _get_pdu_once(self) -> EventBase:
         """Retrieve an event via `get_pdu()` and assert that an event was returned.
         Also used to prime the cache for subsequent test logic.

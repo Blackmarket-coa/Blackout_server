@@ -57,6 +57,7 @@ OG_TAG_VALUE_MAXLEN = 1000
 ONE_HOUR = 60 * 60 * 1000
 ONE_DAY = 24 * ONE_HOUR
 IMAGE_CACHE_EXPIRY_MS = 2 * ONE_DAY
+MAX_BODY_SIZE_TO_PARSE_BYTES = 2 * 1024 * 1024
 
 
 @attr.s(slots=True, frozen=True, auto_attribs=True)
@@ -285,13 +286,13 @@ class UrlPreviewer:
 
             # define our OG response for this media
         elif _is_html(media_info.media_type):
-            # Bounded-memory HTML parsing for URL previews is tracked in
-            # https://github.com/matrix-org/synapse/issues/17380
+            body = self._read_file_for_parsing(media_info.filename)
+            if body is None:
+                og = {}
+                tree = None
+            else:
+                tree = decode_body(body, media_info.uri, media_info.media_type)
 
-            with open(media_info.filename, "rb") as file:
-                body = file.read()
-
-            tree = decode_body(body, media_info.uri, media_info.media_type)
             if tree is not None:
                 # Check if this HTML document points to oEmbed information and
                 # defer to that.
@@ -691,6 +692,24 @@ class UrlPreviewer:
             etag=download_result.etag,
         )
 
+    def _read_file_for_parsing(self, filename: str) -> Optional[bytes]:
+        """Read downloaded content to parse with a bounded memory footprint."""
+
+        body_limit = min(self.max_spider_size, MAX_BODY_SIZE_TO_PARSE_BYTES)
+
+        with open(filename, "rb") as file:
+            body = file.read(body_limit + 1)
+
+        if len(body) > body_limit:
+            logger.warning(
+                "Skipping parsing for oversized preview body %s bytes (limit=%s)",
+                len(body),
+                body_limit,
+            )
+            return None
+
+        return body
+
     async def _precache_image_url(
         self, user: UserID, media_info: MediaInfo, og: JsonDict
     ) -> None:
@@ -769,8 +788,9 @@ class UrlPreviewer:
         if not _is_json(media_info.media_type):
             return {}, None, expiration_ms
 
-        with open(media_info.filename, "rb") as file:
-            body = file.read()
+        body = self._read_file_for_parsing(media_info.filename)
+        if body is None:
+            return {}, None, expiration_ms
 
         oembed_response = self._oembed.parse_oembed_response(url, body)
         open_graph_result = oembed_response.open_graph_result
