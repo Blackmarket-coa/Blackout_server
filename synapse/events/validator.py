@@ -44,6 +44,8 @@ from synapse.rest.models import RequestBodyModel
 from synapse.storage.controllers.state import server_acl_evaluator_from_event
 from synapse.types import EventID, JsonDict, RoomID, StrCollection, UserID
 from synapse.util.blackout import validate_blackout_signal_content as validate_blackout_signal_content_util
+# Re-export for callers that import from the validator module as the public facade.
+from synapse.util.blackout import validate_blackout_signal_content
 
 
 

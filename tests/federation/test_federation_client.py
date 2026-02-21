@@ -217,14 +217,16 @@ class FederationClientTest(FederatingHomeserverTestCase):
             "get_pdu_from_destination_raw",
             side_effect=CancelledError(),
         ):
-            with self.assertRaises(CancelledError):
-                self.get_success(
-                    self.hs.get_federation_client().get_pdu(
-                        ["yet.another.server"],
-                        "event_id",
-                        RoomVersions.V9,
-                    )
-                )
+            # CancelledError raised inside get_pdu must propagate rather than
+            # being silently swallowed as a recoverable remote failure.
+            self.get_failure(
+                self.hs.get_federation_client().get_pdu(
+                    ["yet.another.server"],
+                    "event_id",
+                    RoomVersions.V9,
+                ),
+                CancelledError,
+            )
 
     def _get_pdu_once(self) -> EventBase:
         """Retrieve an event via `get_pdu()` and assert that an event was returned.

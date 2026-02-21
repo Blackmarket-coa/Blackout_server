@@ -96,14 +96,15 @@ class DeactivateAccountTestCase(HomeserverTestCase):
         with mock.patch.object(
             handler.store,
             "get_rooms_for_user",
-            return_value=["!room:test"],
+            new=mock.AsyncMock(return_value=["!room:test"]),
         ), mock.patch.object(
             handler._room_member_handler,
             "update_membership",
-            side_effect=CancelledError(),
+            new=mock.AsyncMock(side_effect=CancelledError()),
         ):
-            with self.assertRaises(CancelledError):
-                self.get_success(handler._part_user(self.user))
+            # CancelledError should propagate out of _part_user rather than
+            # being swallowed by the per-room exception handler.
+            self.get_failure(handler._part_user(self.user), CancelledError)
 
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """

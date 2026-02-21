@@ -387,3 +387,71 @@ Marker deltas after this pass:
 - `synapse/` markers: **200** (down from **220**).
 - Total markers excluding inventory metadata files: **291** (down from **311**).
 - Scoped files marker scan now returns no matches.
+
+---
+
+## P0 marker debt – test correctness and import fixup pass
+
+### Closed in this pass
+
+#### Code fixes
+- `synapse/media/url_previewer.py`: Fixed `_parse_data_url` to re-raise
+  `SynapseError` before the generic `except Exception` clause so that intentional
+  `502 TOO_LARGE` errors propagate to callers with the correct status code and
+  `errcode` instead of being wrapped in an opaque `500 UNKNOWN` response.
+- `synapse/events/validator.py`: Added explicit re-export of
+  `validate_blackout_signal_content` (imported from `synapse.util.blackout`) so
+  that `synapse.handlers.message` and other callers can import the function from
+  the validator facade as intended, fixing a latent `ImportError` that would
+  surface at runtime.
+- `synapse/handlers/federation_event.py`: Removed a duplicate erroneous import
+  of `validate_blackout_signal_content` from `synapse.events.validator` (the
+  correct import from `synapse.util.blackout` was already present at lines
+  95-98); the duplicate caused an `ImportError` in every code path that imported
+  the handler.
+
+#### Test fixes
+All three test files contained `assertRaises(...)` wrapped around `get_success()`
+calls. In Twisted's trial framework `get_success` calls `successResultOf` which
+raises `FailTest` (not the underlying exception) when a `Deferred` has a failure
+result; this meant `assertRaises` never saw the expected exception type. All
+affected tests have been updated to use `get_failure(deferred, ExcType)`:
+
+- `tests/handlers/test_deactivate_account.py`:
+  - `test_part_user_propagates_cancellation`: changed `mock.patch(return_value=...)`
+    to `mock.AsyncMock` for awaitable store/handler methods; changed
+    `assertRaises(CancelledError) + get_success` to `get_failure(..., CancelledError)`.
+- `tests/federation/test_federation_client.py`:
+  - `test_get_pdu_propagates_cancellation`: changed
+    `assertRaises(CancelledError) + get_success` to `get_failure(..., CancelledError)`.
+- `tests/media/test_url_previewer.py`:
+  - `test_precache_image_url_propagates_cancellation`: same pattern correction.
+  - `test_data_url_respects_max_spider_size`: same pattern correction; the test
+    now correctly asserts the propagated `502 TOO_LARGE` error (previously hidden
+    by the `500` wrapper fixed above).
+  - `test_handle_url_cleans_up_file_on_store_failure`: same pattern correction.
+  - `make_homeserver` changed `config["max_spider_size"] = 9999999` to
+    `config.setdefault("max_spider_size", 9999999)` so that per-test
+    `@override_config` values are no longer silently overridden.
+
+### Test results (27/28 pass)
+
+All 27 tests that exercise the three scoped modules pass. One pre-existing
+failure remains:
+
+- `tests/federation/test_federation_client.py::FederationClientTest::test_backfill_invalid_signature_records_failed_pull_attempts`
+  — fails with `AttributeError: 'function' object has no attribute 'invalidate'`
+  in `synapse/storage/_base.py::_attempt_to_invalidate_cache` during room
+  creation. This failure predates the current change set (the test was introduced
+  in commit `eb944de`) and is caused by a cache-decorator compatibility issue in
+  the development environment, not by any of the P0 fixes.
+
+### Remaining open items
+
+- The cache-invalidation incompatibility (`_attempt_to_invalidate_cache` receiving
+  a plain function instead of a decorated cache object) should be investigated
+  independently; it affects any test that exercises the full room-creation code
+  path.
+- Follow-up issues from previous passes (`#17374`, `#17382`–`#17384`) remain
+  open for threepid race coordination, robots.txt support, pre-cache unification,
+  and thumbnail transparency handling.
