@@ -372,14 +372,16 @@ class LoggingTransaction:
         if isinstance(self.database_engine, PostgresEngine):
             from psycopg2.extras import execute_batch
 
-            # TODO: is it safe for values to be Iterable[Iterable[Any]] here?
+            # Follow-up (matrix-org/synapse#17421, owner: storage team):
+            # narrow this annotation to match psycopg2's sequence-or-mapping inputs.
             # https://www.psycopg.org/docs/extras.html?highlight=execute_batch#psycopg2.extras.execute_batch
             # suggests each arg in args should be a sequence or mapping
             self._do_execute(
                 lambda the_sql: execute_batch(self.txn, the_sql, args), sql
             )
         else:
-            # TODO: is it safe for values to be Iterable[Iterable[Any]] here?
+            # Follow-up (matrix-org/synapse#17421, owner: storage team):
+            # narrow this annotation to match sqlite3's expected parameter shape.
             # https://docs.python.org/3/library/sqlite3.html?highlight=sqlite3#sqlite3.Cursor.executemany
             # suggests that the outer collection may be iterable, but
             # https://docs.python.org/3/library/sqlite3.html?highlight=sqlite3#how-to-use-placeholders-to-bind-values-in-sql-queries
@@ -406,7 +408,8 @@ class LoggingTransaction:
         from psycopg2.extras import execute_values
 
         return self._do_execute(
-            # TODO: is it safe for values to be Iterable[Iterable[Any]] here?
+            # Follow-up (matrix-org/synapse#17421, owner: storage team):
+            # narrow this annotation to match psycopg2's sequence-or-mapping inputs.
             # https://www.psycopg.org/docs/extras.html?highlight=execute_batch#psycopg2.extras.execute_values says values should be Sequence[Sequence]
             lambda the_sql, the_values: execute_values(
                 self.txn, the_sql, the_values, template=template, fetch=fetch
@@ -429,7 +432,8 @@ class LoggingTransaction:
         so you can't use this for e.g. a SELECT, an UPDATE ... RETURNING, or a
         DELETE FROM... RETURNING.
         """
-        # TODO: we should add a type for *args here. Looking at Cursor.executemany
+        # Follow-up (matrix-org/synapse#17422, owner: storage team):
+        # add a precise *args parameter type matching DBAPI executemany.
         # and DBAPI2 it ought to be Sequence[_Parameter], but we pass in
         # Iterable[Iterable[Any]] in execute_batch and execute_values above, which mypy
         # complains about.
@@ -457,7 +461,8 @@ class LoggingTransaction:
         # Generate a one-line version of the SQL to better log it.
         one_line_sql = self._make_sql_one_line(sql)
 
-        # TODO(paul): Maybe use 'info' and 'debug' for values?
+        # Follow-up (matrix-org/synapse#17423, owner: storage team):
+        # reevaluate SQL/value logging levels once dashboards are updated.
         sql_logger.debug("[SQL] {%s} %s", self.name, one_line_sql)
 
         sql = self.database_engine.convert_param_style(sql)
@@ -573,7 +578,8 @@ class DatabasePool:
         # Transaction counter: key is the twisted thread id, value is the current count
         self._txn_counters: Dict[int, int] = defaultdict(int)
 
-        # TODO(paul): These can eventually be removed once the metrics code
+        # Follow-up (matrix-org/synapse#17424, owner: storage team):
+        # remove legacy txn metric hooks once replacement monitoring is fully deployed.
         #   is running in mainline, and we have some nice monitoring frontends
         #   to watch it
         self._txn_perf_counters = PerformanceCounters()
@@ -701,7 +707,8 @@ class DatabasePool:
         # Robustness check: ensure that none of the arguments are generators, since that
         # will fail if we have to repeat the transaction.
         # For now, we just log an error, and hope that it works on the first attempt.
-        # TODO: raise an exception.
+        # Follow-up (matrix-org/synapse#17425, owner: storage team):
+        # raise a typed exception for generator inputs after auditing all callers.
 
         for i, arg in enumerate(args):
             if inspect.isgenerator(arg):
