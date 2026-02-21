@@ -213,8 +213,10 @@ Remaining:
 
 Closed in this pass:
 - `synapse/handlers/deactivate_account.py` removed a duplicate `_third_party_rules` assignment and converted the remaining threepid reset/deactivation race note into an explicit tracked issue reference (`#17374`).
+- `synapse/handlers/deactivate_account.py` now resets `_user_parter_running` if scheduling the background parter loop fails synchronously, preventing the handler from getting stuck in a permanently "running" state.
 - `synapse/federation/federation_client.py` now deduplicates destination attempts in `get_pdu(...)` and records retry timestamps for `NotRetryingDestination`, `FederationDeniedError`, and `SynapseError` failures to avoid tight-loop retries.
 - `tests/federation/test_federation_client.py` adds coverage that duplicate federation destinations are attempted only once.
+- `tests/handlers/test_deactivate_account.py` adds coverage that `_start_user_parting()` clears its guard flag when background process scheduling fails.
 - `synapse/media/url_previewer.py` now uses bounded file reads for HTML/oEmbed parsing, skipping parsing when body size exceeds `min(max_spider_size, 2 MiB)` to avoid large in-memory reads.
 - `tests/media/test_url_previewer.py` adds focused coverage for `_read_file_for_parsing(...)` on oversized and small inputs.
 

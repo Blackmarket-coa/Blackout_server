@@ -232,7 +232,13 @@ class DeactivateAccountHandler:
         # Set the flag before scheduling the background process to avoid
         # racing concurrent callers into starting multiple parter loops.
         self._user_parter_running = True
-        run_as_background_process("user_parter_loop", self._user_parter_loop)
+        try:
+            run_as_background_process("user_parter_loop", self._user_parter_loop)
+        except Exception:
+            # If scheduling fails synchronously, reset the guard flag so
+            # subsequent calls can retry starting the parter.
+            self._user_parter_running = False
+            raise
 
     async def _user_parter_loop(self) -> None:
         """Loop that parts deactivated users from rooms"""
