@@ -471,6 +471,18 @@ class MediaEncodingTestCase(unittest.TestCase):
         )
         self.assertEqual(list(encodings), ["ascii", "utf-8", "cp1252"])
 
+    def test_meta_http_equiv_content_type(self) -> None:
+        """A character encoding can be found via http-equiv Content-Type meta tags."""
+        encodings = _get_html_media_encodings(
+            b"""
+        <html>
+        <head><meta http-equiv="Content-Type" content="text/html; charset=windows-1251"></head>
+        </html>
+        """,
+            "text/html",
+        )
+        self.assertEqual(list(encodings), ["cp1251", "utf-8", "cp1252"])
+
     def test_meta_charset_underscores(self) -> None:
         """A character encoding contains underscore."""
         encodings = _get_html_media_encodings(

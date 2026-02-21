@@ -271,12 +271,11 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
         returned_auth_chain_events = [
             (ev["type"], ev["state_key"]) for ev in channel.json_body["auth_chain"]
         ]
-        self.assertCountEqual(
-            returned_auth_chain_events,
-            # In this room setup, every event needed to auth the join is already
-            # present in the reduced state response above.
-            [],
-        )
+        # In this room setup, every event needed to auth the join is already
+        # present in the reduced state response above.
+        self.assertEqual(channel.json_body["auth_chain"], [])
+        self.assertEqual(returned_auth_chain_events, [])
+
         # /send_join with omit_members=true must not duplicate auth events in state.
         # This remains deterministic for this fixture because room setup is static.
         self.assertTrue(set(returned_auth_chain_events).isdisjoint(returned_state))

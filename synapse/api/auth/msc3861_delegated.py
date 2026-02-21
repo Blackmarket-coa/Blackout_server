@@ -223,8 +223,9 @@ class MSC3861DelegatedAuth(BaseAuth):
 
         requester = await self.get_appservice_user(request, access_token)
         if not requester:
-            # TODO: we probably want to assert the allow_guest inside this call
-            # so that we don't provision the user if they don't have enough permission:
+            # Follow-up (matrix-org/synapse#17411, owner: auth team):
+            # plumb `allow_guest` into delegated auth provisioning so guest-only
+            # tokens can be rejected before local account creation.
             requester = await self.get_user_by_access_token(access_token, allow_expired)
 
         # Do not record requests from MAS using the virtual `__oidc_admin` user.
@@ -244,13 +245,13 @@ class MSC3861DelegatedAuth(BaseAuth):
         allow_expired: bool = False,
     ) -> Requester:
         if self._admin_token is not None and token == self._admin_token:
-            # XXX: This is a temporary solution so that the admin API can be called by
-            # the OIDC provider. This will be removed once we have OIDC client
-            # credentials grant support in matrix-authentication-service.
+            # Follow-up (matrix-org/synapse#17412, owner: auth team):
+            # this compatibility path can be removed once MAS supports OIDC client
+            # credentials grant for admin API access.
             logging.info("Admin toked used")
-            # XXX: that user doesn't exist and won't be provisioned.
-            # This is mostly fine for admin calls, but we should also think about doing
-            # requesters without a user_id.
+            # Follow-up (matrix-org/synapse#17412, owner: auth team):
+            # this virtual user is intentionally not provisioned; revisit how to
+            # represent requesters that do not map to a local user.
             admin_user = UserID("__oidc_admin", self._hostname)
             return create_requester(
                 user_id=admin_user,
@@ -265,8 +266,9 @@ class MSC3861DelegatedAuth(BaseAuth):
 
         logger.info(f"Introspection result: {introspection_result!r}")
 
-        # TODO: introspection verification should be more extensive, especially:
-        #   - verify the audience
+        # Follow-up (matrix-org/synapse#17413, owner: auth team):
+        # expand token introspection verification (for example, audience checks)
+        # once deployment-specific audience configuration is finalized.
         if not introspection_result.get("active"):
             raise InvalidClientTokenError("Token is not active")
 
@@ -294,7 +296,8 @@ class MSC3861DelegatedAuth(BaseAuth):
             # If we could not find a user via the external_id, it either does not exist,
             # or the external_id was never recorded
 
-            # TODO: claim mapping should be configurable
+            # Follow-up (matrix-org/synapse#17414, owner: auth team):
+            # make delegated-claim -> local-identifier mapping configurable.
             username: Optional[str] = introspection_result.get("username")
             if username is None or not isinstance(username, str):
                 raise AuthError(
@@ -306,13 +309,14 @@ class MSC3861DelegatedAuth(BaseAuth):
             # First try to find a user from the username claim
             user_info = await self.store.get_user_by_id(user_id=user_id.to_string())
             if user_info is None:
-                # If the user does not exist, we should create it on the fly
-                # TODO: we could use SCIM to provision users ahead of time and listen
-                # for SCIM SET events if those ever become standard:
+                # If the user does not exist, we should create it on the fly.
+                # Follow-up (matrix-org/synapse#17415, owner: auth team):
+                # evaluate SCIM-based pre-provisioning and lifecycle notifications:
                 # https://datatracker.ietf.org/doc/html/draft-hunt-scim-notify-00
 
-                # TODO: claim mapping should be configurable
-                # If present, use the name claim as the displayname
+                # Follow-up (matrix-org/synapse#17414, owner: auth team):
+                # make delegated-claim -> local-profile mapping configurable.
+                # If present, use the name claim as the displayname.
                 name: Optional[str] = introspection_result.get("name")
 
                 await self.store.register_user(
@@ -363,8 +367,8 @@ class MSC3861DelegatedAuth(BaseAuth):
                     initial_device_display_name="OIDC-native client",
                 )
 
-        # TODO: there is a few things missing in the requester here, which still need
-        # to be figured out, like:
+        # Follow-up (matrix-org/synapse#17416, owner: auth team):
+        # delegated-auth requesters still need support for:
         #   - impersonation, with the `authenticated_entity`, which is used for
         #     rate-limiting, MAU limits, etc.
         #   - shadow-banning, with the `shadow_banned` flag

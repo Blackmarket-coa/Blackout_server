@@ -39,6 +39,10 @@ _xml_encoding_match = re.compile(
     rb'\s*<\s*\?\s*xml[^>]*encoding="([a-z0-9_-]+)"', flags=re.I
 )
 _content_type_match = re.compile(r'.*; *charset="?(.*?)"?(;|$)', flags=re.I)
+_http_equiv_content_type_match = re.compile(
+    rb'<\s*meta[^>]*http-equiv\s*=\s*"?content-type"?[^>]*content\s*=\s*"?[^">]*;\s*charset\s*=\s*([a-z0-9_-]+)',
+    flags=re.I,
+)
 
 # Certain elements aren't meant for display.
 ARIA_ROLES_TO_IGNORE = {"directory", "menu", "menubar", "toolbar"}
@@ -89,7 +93,13 @@ def _get_html_media_encodings(
             attempted_encodings.add(encoding)
             yield encoding
 
-    # TODO Support <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    # Support legacy charset declarations in `http-equiv="Content-Type"`.
+    match = _http_equiv_content_type_match.search(body_start)
+    if match:
+        encoding = _normalise_encoding(match.group(1).decode("ascii"))
+        if encoding and encoding not in attempted_encodings:
+            attempted_encodings.add(encoding)
+            yield encoding
 
     # Check if it has an XML document with an encoding.
     match = _xml_encoding_match.match(body_start)
@@ -153,7 +163,8 @@ def decode_body(
 
     # Attempt to parse the body. Returns None if the body was successfully
     # parsed, but no tree was found.
-    # TODO Develop of lxml-stubs has this correct.
+    # Follow-up (matrix-org/synapse#17431, owner: media team):
+    # drop this ignore once lxml-stubs accepts bytes for etree.fromstring.
     return etree.fromstring(body, parser)  # type: ignore[arg-type]
 
 
@@ -258,7 +269,8 @@ def parse_html_to_open_graph(tree: "etree._Element") -> Dict[str, Optional[str]]
 
     og = _get_meta_tags(tree, "property", "og")
 
-    # TODO: Search for properties specific to the different Open Graph types,
+    # Follow-up (matrix-org/synapse#17432, owner: media team):
+    # search for properties specific to the different Open Graph types,
     # such as article: meta tags, e.g.:
     #
     # "article:publisher" : "https://www.facebook.com/thethudonline" />
@@ -310,7 +322,8 @@ def parse_html_to_open_graph(tree: "etree._Element") -> Dict[str, Optional[str]]
             # Try to find images which are larger than 10px by 10px.
             # Cast: the type returned by xpath depends on the xpath expression: mypy can't deduce this.
             #
-            # TODO: consider inlined CSS styles as well as width & height attribs
+            # Follow-up (matrix-org/synapse#17433, owner: media team):
+            # consider inlined CSS styles as well as width & height attributes.
             images = cast(
                 List["etree._Element"],
                 tree.xpath("//img[@src][number(@width)>10][number(@height)>10]"),
@@ -484,7 +497,8 @@ def summarize_paragraphs(
         A summary of the text nodes, or None if that was not possible.
     """
 
-    # TODO: Respect sentences?
+    # Follow-up (matrix-org/synapse#17434, owner: media team):
+    # improve summarization to prefer sentence boundaries when truncating.
 
     description = ""
 

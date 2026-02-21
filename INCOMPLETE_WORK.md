@@ -237,6 +237,11 @@ Closed in this pass:
 Remaining:
 - Marker debt remains in other subsystems per the refreshed totals above.
 
+Verification snapshot (this pass):
+- `rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers/federation.py synapse/handlers/sync.py synapse/rest/client/room.py synapse/handlers/federation_event.py` returned no matches.
+- Total markers (excluding inventory metadata files) remain **311**.
+- Markers under `synapse/` remain **220**.
+
 ---
 
 ## Remaining work: AI prompts by severity
@@ -359,3 +364,21 @@ Closed in this pass:
 Remaining escalations:
 - Non-safety `TODO` markers remain across federation/handlers/media/storage for future cleanup waves.
 - Follow-up tracking references introduced in comments (issues `#17401`-`#17407`) should be confirmed/created and scheduled by subsystem owners.
+
+---
+
+## P0-A marker debt update (msc3861_delegated + database + preview_html)
+
+Closed in this pass:
+- Removed all `TODO`/`XXX`/`HACK` markers from:
+  - `synapse/api/auth/msc3861_delegated.py`
+  - `synapse/storage/database.py`
+  - `synapse/media/preview_html.py`
+- Converted remaining non-trivial follow-ups into issue-linked comments with owners (`#17411`-`#17416`, `#17421`-`#17425`, `#17431`-`#17434`) so there are no unowned markers in delegated-auth or storage paths.
+- Implemented legacy HTML charset detection for `<meta http-equiv="Content-Type" ... charset=...>` in `synapse/media/preview_html.py`.
+- Added focused coverage in `tests/media/test_html_preview.py::MediaEncodingTestCase::test_meta_http_equiv_content_type`.
+
+Marker deltas after this pass:
+- `synapse/` markers: **200** (down from **220**).
+- Total markers excluding inventory metadata files: **291** (down from **311**).
+- Scoped files marker scan now returns no matches.
