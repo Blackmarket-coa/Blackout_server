@@ -21,6 +21,7 @@ import re
 import shutil
 import sys
 import traceback
+from asyncio import CancelledError
 from email.utils import parsedate_to_datetime
 from typing import TYPE_CHECKING, BinaryIO, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse, urlsplit
@@ -740,6 +741,8 @@ class UrlPreviewer:
         # https://github.com/matrix-org/synapse/issues/17383.
         try:
             image_info = await self._handle_url(image_url, user, allow_data_urls=True)
+        except CancelledError:
+            raise
         except Exception as e:
             # Pre-caching the image failed, don't block the entire URL preview.
             logger.warning(
