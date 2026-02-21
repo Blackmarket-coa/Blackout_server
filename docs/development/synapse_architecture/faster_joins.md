@@ -177,9 +177,10 @@ Synapse to properly authorise or reject `E`. At this point ,the event
 is considered to have "full state" rather than "partial state". We record this
 by removing `E` from the `partial_state_events` table.
 
-\[**TODO:** Does Synapse persist a new state group for the full state
-before `E`, or do we alter the (partial-)state group in-place? Are state groups
-ever marked as partially-stated? \]
+[Open question (tracked in https://github.com/element-hq/synapse/issues/12994):
+Does Synapse persist a new state group for the full state before `E`, or do we
+alter the (partial-)state group in-place? Are state groups ever marked as
+partially-stated?]
 
 This scheme means it is possible for us to have accepted and sent an event to 
 clients, only to reject it during the resync. From a client's perspective, the 
@@ -252,12 +253,12 @@ However we expect such problems to be unlikely in practise, because
 
 #### Sending out the event over federation
 
-**TODO:** needs prose fleshing out.
+**Follow-up (tracked in https://github.com/element-hq/synapse/issues/12994):** needs prose fleshing out.
 
 Normally: send out in a fed txn to all HSes in the room.
 We only know that some HSes were in the room at some point. Wat do.
 Send it out to the list of servers from the first join.
-**TODO** what do we do here if we have full state?
+**Open question (tracked in https://github.com/element-hq/synapse/issues/12994):** what do we do here if we have full state?
 If the prev event was created by us, we can risk sending it to the wrong HS. (Motivation: privacy concern of the content. Not such a big deal for a public room or an encrypted room. But non-encrypted invite-only...)
 But don't want to send out sensitive data in other HS's events in this way.
 
@@ -276,7 +277,7 @@ Instead, just send them the latest event (if they're still in the room after res
 
 <details>
 
-**TODO:** needs prose fleshing out. Liase with Matthieu. Explain why /send_join
+**Follow-up (tracked in https://github.com/element-hq/synapse/issues/12994):** needs prose fleshing out. Liase with Matthieu. Explain why /send_join
 (Rich was surprised we didn't just create it locally. Answer: to try and avoid
 a join which then gets rejected after resync.)
 
@@ -370,6 +371,5 @@ so this is probably good enough as-is.
 
 #### Cleanup after the last leave
 
-**TODO**: what cleanup is necessary? Is it all just nice-to-have to save unused
-work?
+**Open question (tracked in https://github.com/element-hq/synapse/issues/12994):** what cleanup is necessary? Is it all just nice-to-have to save unused work?
 </details>

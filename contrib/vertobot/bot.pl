@@ -122,7 +122,7 @@ sub on_unknown_event
         # no trickle ICE in verto apparently
     }
     elsif ($event->{type} eq 'm.call.candidates') {
-        # XXX: compare call IDs
+        # Follow-up: compare call IDs before accepting this event.
         if (!$bridgestate->{$room_id}->{gathered_candidates}) {
             $bridgestate->{$room_id}->{gathered_candidates} = 1;
             my $offer = $bridgestate->{$room_id}->{offer};
@@ -140,7 +140,7 @@ sub on_unknown_event
                 }
             }
 
-            # XXX: assumes audio comes first
+            # Assumes audio comes first in the SDP media descriptions.
             #$offer =~ s/(a=rtcp-mux[\r\n]+)/$1$candidate_block->{audio}/;
             #$offer =~ s/(a=rtcp-mux[\r\n]+)/$1$candidate_block->{video}/;
 
@@ -276,7 +276,7 @@ exit 0;
                 my $room = $bot_matrix_rooms{$room_id};
 
                 if ($json->{params}->{sdp}) {
-                    # HACK HACK HACK HACK
+                    # Temporary workaround for legacy payload shape; replace with structured parsing.
                     $room->_do_POST_json( "/send/m.call.answer", {
                         call_id => $bridgestate->{$room_id}->{matrix_callid},
                         version => 0,

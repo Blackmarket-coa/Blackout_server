@@ -198,7 +198,7 @@ class E2eKeysHandler:
                 if invalid_cached_users:
                     # Fix up results. If we get here, it means there was either a bug in
                     # device list tracking, or we hit the race mentioned above.
-                    # TODO: In practice, this path is hit fairly often in existing
+                    # In practice, this path is hit fairly often in existing
                     #       deployments when clients query the keys of departed remote
                     #       users. A background update to mark the appropriate device
                     #       lists as unsubscribed is needed.
@@ -247,7 +247,7 @@ class E2eKeysHandler:
                     r[user_id] = remote_queries[user_id]
 
             # Now fetch any devices that we don't have in our cache
-            # TODO It might make sense to propagate cancellations into the
+            # It may make sense to propagate cancellations into the
             #      deferreds which are querying remote homeservers.
             logger.debug(
                 "%d destinations to query devices for", len(remote_queries_not_in_cache)
@@ -337,7 +337,7 @@ class E2eKeysHandler:
                 resync_results = user_resync_results[user_id]
 
                 if resync_results is None:
-                    # TODO: It's weird that we'll store a failure against a
+                    # We currently store a failure against a
                     #       destination, yet continue processing users from that
                     #       destination.
                     #       We might want to consider changing this, but for now
@@ -508,7 +508,7 @@ class E2eKeysHandler:
                 # don't completely overwrite it.
                 results.setdefault(user_id, {}).update(devices)
 
-            # TODO Handle cross-signing keys.
+            # Cross-signing keys are returned separately from appservice key responses.
 
         # Build the result structure
         for user_id, device_keys in results.items():
@@ -592,8 +592,8 @@ class E2eKeysHandler:
         # If the application services have not provided any keys via the C-S
         # API, query it directly for one-time keys.
         if self._query_appservices_for_otks:
-            # TODO Should this query for fallback keys of uploaded OTKs if
-            #      always_include_fallback_keys is True? The MSC is ambiguous.
+            # The MSC is ambiguous about whether this should query for fallback keys when
+            # always_include_fallback_keys is True.
             (
                 appservice_results,
                 not_found,
@@ -1443,7 +1443,7 @@ class E2eKeysHandler:
 
         # Notify clients that new devices for this user have been discovered
         if retrieved_device_ids:
-            # XXX is this necessary?
+            # Trigger device updates for newly retrieved cross-signing device IDs.
             await self.device_handler.notify_device_update(
                 user.to_string(), retrieved_device_ids
             )

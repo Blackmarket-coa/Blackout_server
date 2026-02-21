@@ -109,5 +109,5 @@ mappings of `event_id -> state_group` and `state_group -> state`.
 
 ### Stage group edges
 
-TODO: `state_group_edges` is a further optimization...
-      notes from @Azrenbeth, https://pastebin.com/seUGVGeT
+`state_group_edges` is a further optimisation. Historical design notes from
+@Azrenbeth: https://pastebin.com/seUGVGeT
