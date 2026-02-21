@@ -225,126 +225,104 @@ Remaining:
 
 ## Remaining work: AI prompts by severity
 
-Use these prompts for the remaining marker debt. They are ordered by risk and operational impact.
+Use these prompts for the *current* remaining debt profile (301 total markers; 220 in `synapse/`).
 
-### Severity P0 — correctness, security, and production safety
+### Severity P0 — remove ambiguous production TODO/XXX hotspots (current top files)
 
-#### P0-A: Resolve remaining `FIXME` and safety TODOs in high-risk Synapse paths
+#### P0-A: Resolve markers in `synapse/api/auth/msc3861_delegated.py` and storage core paths
 ```text
-You are working in this repository. Complete all remaining P0 marker fixes in Synapse.
+You are working in this repository. Address the highest-density production marker files first.
 
 Scope:
-- Any remaining FIXME markers in synapse/
-- Safety-sensitive TODO markers in:
-  - synapse/federation/
-  - synapse/handlers/
-  - synapse/media/
-  - synapse/storage/
+- synapse/api/auth/msc3861_delegated.py
+- synapse/storage/database.py
+- synapse/media/preview_html.py
 
 Requirements:
-1) For each marker, choose one action: implement now, delete stale marker, or convert to issue-linked comment with explicit owner and rationale.
-2) Do not leave ambiguous TODO/FIXME comments in production paths.
-3) Add/adjust tests for behavior changes.
-4) Prefer small commits grouped by subsystem.
-5) Update INCOMPLETE_WORK.md with closures and remaining escalations.
+1) For each TODO/XXX/HACK marker: implement now, delete stale note, or convert to issue-linked follow-up with owner+rationale.
+2) Do not leave unowned TODO/XXX comments in request/authentication or storage write paths.
+3) Add/update focused tests for behavior changes.
+4) Keep commits small by subsystem.
+5) Update INCOMPLETE_WORK.md with marker deltas after the pass.
 
 Validation:
-- rg -n "FIXME|TODO" synapse/federation synapse/handlers synapse/media synapse/storage
-- pytest -q tests/federation tests/handlers tests/media tests/storage
+- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/auth/msc3861_delegated.py synapse/storage/database.py synapse/media/preview_html.py
+- pytest -q tests -k "delegated or storage or preview_html"
 ```
 
-#### P0-B: Eliminate concrete runtime `NotImplementedError` paths
+#### P0-B: Close remaining federation safety test debt
 ```text
-Audit all `raise NotImplementedError()` usages in synapse/ and eliminate runtime gaps.
+Complete the remaining explicit safety test debt called out in inventory.
 
-Process:
-1) Classify each site as abstract-interface-only vs runtime-reachable.
-2) For runtime-reachable sites, implement behavior or raise a typed, user-safe Synapse exception earlier.
-3) For true abstract points, make abstract intent explicit via docs/comments/type structure.
-4) Add regression tests that prove runtime entry points no longer surface raw NotImplementedError.
-5) Produce a markdown table: file, line, classification, action taken.
+Scope:
+- tests/federation/test_federation_server.py (auth-chain TODO around line 262)
+
+Requirements:
+1) Replace TODO with completed assertions, or stable skip/xfail tied to a tracked issue.
+2) Ensure determinism in CI (no timing/network flakes).
+3) Document rationale inline if behavior remains intentionally deferred.
 
 Validation:
-- rg -n "raise NotImplementedError\(" synapse
-- pytest -q tests -k "notimplemented or id_generator or sso or room"
+- rg -n "TODO|FIXME" tests/federation/test_federation_server.py
+- pytest -q tests/federation/test_federation_server.py
 ```
 
-### Severity P1 — high-impact maintainability and correctness debt
+### Severity P1 — handler/domain marker burn-down based on current counts
 
-#### P1-A: Burn down highest-volume handler/REST marker files
+#### P1-A: Burn down next highest Synapse runtime files
 ```text
-Reduce marker debt in the highest-volume application files.
+Perform a marker burn-down pass on current high-volume runtime files.
 
 Batch 1 scope:
-- synapse/handlers/federation.py
-- synapse/handlers/sync.py
-- synapse/rest/client/room.py
-- synapse/handlers/federation_event.py
-
-Batch 2 scope:
-- Next highest marker files from `rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers synapse/rest | cut -d: -f1 | sort | uniq -c | sort -nr`
+- synapse/handlers/directory.py
+- synapse/handlers/room.py
+- synapse/handlers/presence.py
+- synapse/handlers/room_member.py
+- synapse/rest/client/versions.py
 
 Requirements:
 1) For each marker: implement, remove stale text, or replace with issue-linked debt note.
-2) Preserve behavior unless tests/documentation are updated in the same change.
-3) Add focused tests for each observable behavior change.
-4) Commit each batch separately and include marker-count delta in commit message body.
+2) Preserve API behavior unless tests/documentation are updated in the same change.
+3) Add focused tests for observable behavior changes.
+4) Commit each batch separately and include marker-count delta in commit body.
 
 Validation:
-- rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers synapse/rest
-- pytest -q tests/handlers tests/rest/client
+- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/handlers/directory.py synapse/handlers/room.py synapse/handlers/presence.py synapse/handlers/room_member.py synapse/rest/client/versions.py
+- pytest -q tests/handlers tests/rest/client -k "directory or room or presence or versions"
 ```
 
-#### P1-B: Fix disabled/unfinished tests called out in inventory
+### Severity P2 — non-runtime and tooling cleanup
+
+#### P2-A: Clean marker debt in docs/tests/tooling where behavior is stable
 ```text
-Re-enable and complete test debt identified in INCOMPLETE_WORK.md.
-
-Priority tests:
-- tests/rest/client/test_profile.py (lines around 172, 182)
-- tests/federation/test_federation_server.py (line around 262)
-
-Requirements:
-1) Replace FIXME/TODO test markers with completed assertions or stable skips referencing an issue.
-2) Ensure tests are deterministic and CI-safe.
-3) If behavior is intentionally undefined, add explicit rationale in test comments.
-
-Validation:
-- rg -n "FIXME|TODO" tests/rest/client/test_profile.py tests/federation/test_federation_server.py
-- pytest -q tests/rest/client/test_profile.py tests/federation/test_federation_server.py
-```
-
-### Severity P2 — medium-priority debt outside core runtime paths
-
-#### P2-A: Triage and reduce marker debt in `docs/`, `scripts-dev/`, and `contrib/`
-```text
-Perform a non-runtime marker clean-up pass for docs/tooling.
+Reduce non-runtime marker debt while avoiding product behavior changes.
 
 Scope:
 - docs/
 - scripts-dev/
-- contrib/
+- tests/server.py and other highest-count tests/* files from fresh scan
 
 Requirements:
-1) Remove stale TODO/XXX/HACK notes.
-2) Convert valid follow-up notes into issue-linked comments.
-3) Keep docs and scripts behavior unchanged unless explicitly needed for correctness.
-4) Commit by directory to keep reviewable.
+1) Remove stale TODO/XXX/HACK notes and convert valid follow-ups to issue-linked comments.
+2) Keep docs/scripts semantics unchanged unless correctness requires edits.
+3) For tests, prefer clarifying comments + deterministic assertions over suppressive TODOs.
+4) Commit by area (docs, scripts, tests) for reviewability.
 
 Validation:
-- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" docs scripts-dev contrib
+- rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" docs scripts-dev tests
 ```
 
-### Severity P3 — final normalization and completion gate
+### Severity P3 — recount + re-prioritize from live data
 
-#### P3-A: Global recount, threshold check, and inventory regeneration
+#### P3-A: Refresh inventory from latest scan and regenerate prioritized targets
 ```text
-After all remediation waves, regenerate inventory and enforce completion gates.
+After each remediation wave, refresh the inventory using current scan output.
 
 Requirements:
 1) Re-run marker scan across repository.
-2) Update INCOMPLETE_WORK.md totals and top-directory snapshots.
-3) Confirm whether synapse marker count is below the target threshold (<300).
-4) If threshold is not met, append next-wave prioritized file list with counts.
+2) Update INCOMPLETE_WORK.md totals, top directories, and representative examples.
+3) Recompute top 10 files by remaining marker count and replace prompt scopes accordingly.
+4) Confirm whether synapse marker count remains below the target threshold (<300).
 
 Validation:
 - rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l
