@@ -5,11 +5,11 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **796**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **301**
 - Top directories by marker count:
-  - `docs/`: **526**
   - `synapse/`: **220**
   - `tests/`: **33**
+  - `docs/`: **31**
   - `scripts-dev/`: **10**
   - `NOTIMPLEMENTED_AUDIT.md`: **3**
 
@@ -17,8 +17,6 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ### Disabled or unfinished tests
 
-- `tests/rest/client/test_profile.py:172` (FIXME around profile display name behavior)
-- `tests/rest/client/test_profile.py:182` (FIXME around profile avatar URL behavior)
 - `tests/federation/test_federation_server.py:262` (TODO to improve auth-chain test coverage)
 
 ### NotImplemented placeholders (primarily abstract/interface stubs)
@@ -27,17 +25,20 @@ This file was generated from a quick source scan for common incomplete-work mark
 - `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()` abstract stream ID interface)
 - `synapse/handlers/sso.py:130` (`raise NotImplementedError()` abstract IdP redirect handler)
 
-### Known tech debt called out with FIXMEs
+### Known tech debt called out with TODO/XXX markers
 
-- `synapse/handlers/deactivate_account.py:91` (race condition note)
-- `synapse/federation/federation_client.py:1277` (signature failure handling)
-- `synapse/media/url_previewer.py:481` (error passthrough behavior)
+- `synapse/handlers/sso.py:1094` (TODO to simplify user mapping flow)
+- `synapse/storage/databases/main/room.py:1114` (TODO around remote media reference enumeration)
+- `synapse/storage/util/id_generators.py:766` (TODO for more efficient position updates)
 
 ## Command used
 
 ```bash
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
 ```
+
+Post-processing note:
+- The totals above exclude markers in `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv` to avoid counting inventory metadata as debt.
 
 ## Completion gate check (post-remediation)
 
