@@ -467,7 +467,7 @@ class FederationClient(FederationBase):
             # Keep this explicit loop for now because per-destination retry
             # accounting is coupled to this code path. Refactor tracked in
             # https://github.com/matrix-org/synapse/issues/17377.
-            for destination in destinations:
+            for destination in dict.fromkeys(destinations):
                 now = self._clock.time_msec()
                 last_attempt = pdu_attempts.get(destination, 0)
                 if last_attempt + PDU_RETRY_TIME_MS > now:
@@ -501,9 +501,11 @@ class FederationClient(FederationBase):
                         break
 
                 except NotRetryingDestination as e:
+                    pdu_attempts[destination] = now
                     logger.info("get_pdu(event_id=%s): %s", event_id, e)
                     continue
                 except FederationDeniedError:
+                    pdu_attempts[destination] = now
                     logger.info(
                         "get_pdu(event_id=%s): Not attempting to fetch PDU from %s because the homeserver is not on our federation whitelist",
                         event_id,
@@ -511,6 +513,7 @@ class FederationClient(FederationBase):
                     )
                     continue
                 except SynapseError as e:
+                    pdu_attempts[destination] = now
                     logger.info(
                         "get_pdu(event_id=%s): Failed to get PDU from %s because %s",
                         event_id,

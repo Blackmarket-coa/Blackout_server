@@ -116,7 +116,6 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         # The TLD is not blocked.
         self.assertFalse(self.url_previewer._is_url_blocked("https://example.com"))
 
-
     def test_get_expiration_ms_prefers_cache_control(self) -> None:
         headers = {
             b"Cache-Control": [b"public, max-age=120"],
@@ -188,3 +187,19 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         self.assertFalse(
             os.path.exists(self.url_previewer.filepaths.url_cache_filepath(media_id))
         )
+
+    @override_config({"max_spider_size": 16})
+    def test_read_file_for_parsing_rejects_oversized_body(self) -> None:
+        body_file = self.mktemp()
+        with open(body_file, "wb") as f:
+            f.write(b"x" * 32)
+
+        self.assertIsNone(self.url_previewer._read_file_for_parsing(body_file))
+
+    @override_config({"max_spider_size": 32})
+    def test_read_file_for_parsing_reads_small_body(self) -> None:
+        body_file = self.mktemp()
+        with open(body_file, "wb") as f:
+            f.write(b"hello")
+
+        self.assertEqual(self.url_previewer._read_file_for_parsing(body_file), b"hello")
