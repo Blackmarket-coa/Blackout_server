@@ -5,13 +5,13 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **508**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **796**
 - Top directories by marker count:
-  - `synapse/`: **390**
-  - `docs/`: **52**
-  - `tests/`: **32**
-  - `scripts-dev/`: **18**
-  - `contrib/`: **12**
+  - `docs/`: **526**
+  - `synapse/`: **220**
+  - `tests/`: **33**
+  - `scripts-dev/`: **10**
+  - `NOTIMPLEMENTED_AUDIT.md`: **3**
 
 ## Representative examples to prioritize
 
@@ -39,6 +39,12 @@ This file was generated from a quick source scan for common incomplete-work mark
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
 ```
 
+## Completion gate check (post-remediation)
+
+- Current marker count in `synapse/` is **220**.
+- Threshold gate: **PASS** (`220 < 300`).
+- Since the threshold is met, no mandatory next-wave prioritized file list is required by the gate.
+
 ## Synapse triage status (completed)
 
 This section is intentionally formatted as copy/paste-ready steps that an AI coding
@@ -46,19 +52,18 @@ agent can execute directly for repository changes.
 
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **332**
+- Total markers in `synapse/`: **220**
 - Marker types:
-  - `TODO`: **185**
-  - `XXX`: **56**
-  - `NotImplementedError`: **61**
-  - `FIXME`: **29**
+  - `TODO`: **161**
+  - `XXX`: **54**
+  - `NotImplementedError`: **3**
   - `HACK`: **2**
 - Highest-volume subsystems:
-  - `synapse/handlers/`: **94**
-  - `synapse/storage/`: **68**
-  - `synapse/rest/`: **27**
-  - `synapse/federation/`: **25**
-  - `synapse/api/`: **16**
+  - `synapse/handlers/`: **48**
+  - `synapse/storage/`: **45**
+  - `synapse/rest/`: **26**
+  - `synapse/api/`: **15**
+  - `synapse/http/`: **10**
 
 ---
 
