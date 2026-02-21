@@ -5,13 +5,13 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **301**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **311**
 - Top directories by marker count:
   - `synapse/`: **220**
-  - `tests/`: **33**
+  - `tests/`: **39**
   - `docs/`: **31**
   - `scripts-dev/`: **10**
-  - `NOTIMPLEMENTED_AUDIT.md`: **3**
+  - `NOTIMPLEMENTED_AUDIT.md`: **7**
 
 ## Representative examples to prioritize
 
@@ -56,8 +56,8 @@ agent can execute directly for repository changes.
 - Total markers in `synapse/`: **220**
 - Marker types:
   - `TODO`: **161**
-  - `XXX`: **54**
-  - `NotImplementedError`: **3**
+  - `XXX`: **52**
+  - `NotImplementedError`: **1**
   - `HACK`: **2**
 - Highest-volume subsystems:
   - `synapse/handlers/`: **48**
@@ -223,9 +223,25 @@ Remaining:
 
 ---
 
+
+## Marker burn-down pass: federation/sync/room/federation_event (current change)
+
+Closed in this pass:
+- Confirmed there are no remaining `TODO`/`FIXME`/`XXX` markers in:
+  - `synapse/handlers/federation.py`
+  - `synapse/handlers/sync.py`
+  - `synapse/rest/client/room.py`
+  - `synapse/handlers/federation_event.py`
+- No behavior changes were required for this batch because there were no eligible markers in scope.
+
+Remaining:
+- Marker debt remains in other subsystems per the refreshed totals above.
+
+---
+
 ## Remaining work: AI prompts by severity
 
-Use these prompts for the *current* remaining debt profile (301 total markers; 220 in `synapse/`).
+Use these prompts for the *current* remaining debt profile (311 total markers; 220 in `synapse/`).
 
 ### Severity P0 — remove ambiguous production TODO/XXX hotspots (current top files)
 
