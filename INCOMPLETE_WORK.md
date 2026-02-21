@@ -237,6 +237,11 @@ Closed in this pass:
 Remaining:
 - Marker debt remains in other subsystems per the refreshed totals above.
 
+Verification snapshot (this pass):
+- `rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers/federation.py synapse/handlers/sync.py synapse/rest/client/room.py synapse/handlers/federation_event.py` returned no matches.
+- Total markers (excluding inventory metadata files) remain **311**.
+- Markers under `synapse/` remain **220**.
+
 ---
 
 ## Remaining work: AI prompts by severity
