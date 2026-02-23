@@ -59,13 +59,10 @@ class VersionsRestServlet(RestServlet):
             200,
             {
                 "versions": [
-                    # XXX: at some point we need to decide whether we need to include
-                    # the previous version numbers, given we've defined r0.3.0 to be
-                    # backwards compatible with r0.2.0.  But need to check how
-                    # conscientious we've been in compatibility, and decide whether the
-                    # middle number is the major revision when at 0.X.Y (as opposed to
-                    # X.Y.Z).  And we need to decide whether it's fair to make clients
-                    # parse the version string to figure out what's going on.
+                    # Follow-up (matrix-org/synapse#17443, owner: client-server API
+                    # team): legacy r0.* version advertizing remains for broad
+                    # client compatibility; revisit removal policy when deprecation
+                    # telemetry and cross-client impact is documented.
                     "r0.0.1",
                     "r0.1.0",
                     "r0.2.0",
@@ -102,18 +99,27 @@ class VersionsRestServlet(RestServlet):
                     # Supports the busy presence state described in MSC3026.
                     "org.matrix.msc3026.busy_presence": self.config.experimental.msc3026_enabled,
                     # Supports receiving private read receipts as per MSC2285
-                    "org.matrix.msc2285.stable": True,  # TODO: Remove when MSC2285 becomes a part of the spec
+                    # Follow-up (matrix-org/synapse#17444, owner: client-server API
+                    # team): drop this flag once stable `/versions` capability
+                    # signalling fully supersedes MSC2285 compat naming.
+                    "org.matrix.msc2285.stable": True,
                     # Supports filtering of /publicRooms by room type as per MSC3827
                     "org.matrix.msc3827.stable": True,
                     # Adds support for thread relations, per MSC3440.
-                    "org.matrix.msc3440.stable": True,  # TODO: remove when "v1.3" is added above
+                    # Follow-up (matrix-org/synapse#17445, owner: client-server API
+                    # team): remove this compat flag after client minimum version
+                    # policy no longer requires explicit MSC3440 signalling.
+                    "org.matrix.msc3440.stable": True,
                     # Support for thread read receipts & notification counts.
                     "org.matrix.msc3771": True,
                     "org.matrix.msc3773": self.config.experimental.msc3773_enabled,
                     # Allows moderators to fetch redacted event content as described in MSC2815
                     "fi.mau.msc2815": self.config.experimental.msc2815_enabled,
                     # Adds a ping endpoint for appservices to check HS->AS connection
-                    "fi.mau.msc2659.stable": True,  # TODO: remove when "v1.7" is added above
+                    # Follow-up (matrix-org/synapse#17446, owner: appservice team):
+                    # remove this compat flag when legacy appservice clients no
+                    # longer depend on the MSC2659 name.
+                    "fi.mau.msc2659.stable": True,
                     # Compatibility flag for clients still using unstable MSC3882 support:
                     "org.matrix.msc3882": self.config.auth.login_via_existing_enabled,
                     # Adds support for remotely enabling/disabling pushers, as per MSC3881

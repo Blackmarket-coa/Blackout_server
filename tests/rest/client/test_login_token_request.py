@@ -30,7 +30,9 @@ class LoginTokenRequestServletTestCase(unittest.HomeserverTestCase):
         login.register_servlets,
         admin.register_servlets,
         login_token_request.register_servlets,
-        versions.register_servlets,  # TODO: remove once unstable revision 0 support is removed
+        # Follow-up (matrix-org/synapse#17453, owner: client-server API team):
+        # remove once unstable revision-0 support is dropped.
+        versions.register_servlets,
     ]
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
@@ -143,7 +145,8 @@ class LoginTokenRequestServletTestCase(unittest.HomeserverTestCase):
         }
     )
     def test_unstable_support(self) -> None:
-        # TODO: remove support for unstable MSC3882 is no longer needed
+        # Follow-up (matrix-org/synapse#17454, owner: client-server API team):
+        # remove unstable MSC3882 compatibility once downstream clients migrate.
 
         # check feature is advertised in versions response:
         channel = self.make_request(

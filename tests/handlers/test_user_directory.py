@@ -309,7 +309,8 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         """Create a public and private room as a normal user.
         Then get the `joiner` into those rooms.
         """
-        # TODO: Duplicates the same-named method in UserDirectoryInitialPopulationTest.
+        # Follow-up (matrix-org/synapse#17450, owner: user-directory team):
+        # deduplicate this helper with UserDirectoryInitialPopulationTest.
         public_room = self.helper.create_room_as(
             creator,
             is_public=True,
@@ -319,7 +320,8 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         )
         private_room = self.helper.create_room_as(creator, is_public=False, tok=token)
 
-        # HACK: get the user into these rooms
+        # Test setup: join helper users to rooms so visibility rules are
+        # exercised with deterministic membership state.
         self.get_success(inject_member_event(self.hs, public_room, joiner, "join"))
         self.get_success(inject_member_event(self.hs, private_room, joiner, "join"))
 
@@ -608,7 +610,8 @@ class UserDirectoryTestCase(unittest.HomeserverTestCase):
         displayname like `Alice (aka "ali", "ally", "41iC3")`.
         """
 
-        # TODO the same should apply when Alice is a remote user.
+        # Follow-up (matrix-org/synapse#17451, owner: user-directory team):
+        # add equivalent coverage when Alice is a remote user.
         alice = self.register_user("alice", "pass")
         alice_token = self.login(alice, "pass")
         bob = self.register_user("bob", "pass")

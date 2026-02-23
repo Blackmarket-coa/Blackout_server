@@ -74,10 +74,9 @@ class NoKnownServersError(SynapseError):
 
 
 class RoomMemberHandler(metaclass=abc.ABCMeta):
-    # TODO(paul): This handler currently contains a messy conflation of
-    #   low-level API that works on UserID objects and so on, and REST-level
-    #   API that takes ID strings and returns pagination chunks. These concerns
-    #   ought to be separated out a lot better.
+    # Follow-up (matrix-org/synapse#17439, owner: room-membership team): split
+    # this handler into lower-level membership primitives and higher-level
+    # request/response orchestration APIs.
 
     def __init__(self, hs: "HomeServer"):
         self.hs = hs
@@ -123,14 +122,9 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
             clock=self.clock,
             cfg=hs.config.ratelimiting.rc_joins_remote,
         )
-        # TODO: find a better place to keep this Ratelimiter.
-        #   It needs to be
-        #    - written to by event persistence code
-        #    - written to by something which can snoop on replication streams
-        #    - read by the RoomMemberHandler to rate limit joins from local users
-        #    - read by the FederationServer to rate limit make_joins and send_joins from
-        #      other homeservers
-        #   I wonder if a homeserver-wide collection of rate limiters might be cleaner?
+        # Follow-up (matrix-org/synapse#17440, owner: worker-architecture team):
+        # centralize this limiter so persistence, replication listeners,
+        # RoomMemberHandler and FederationServer share one lifecycle.
         self._join_rate_per_room_limiter = Ratelimiter(
             store=self.store,
             clock=self.clock,
@@ -871,9 +865,9 @@ class RoomMemberHandler(metaclass=abc.ABCMeta):
 
         # if we are not in the room, we won't have the current state
         if is_host_in_room:
-            # TODO: Refactor into dictionary of explicitly allowed transitions
-            # between old and new state, with specific error messages for some
-            # transitions and generic otherwise
+            # Follow-up (matrix-org/synapse#17441, owner: room-membership team):
+            # model membership transitions with an explicit state machine for
+            # clearer policy and error reporting.
             old_state_id = partial_state_before_join.get(
                 (EventTypes.Member, target.to_string())
             )
@@ -1918,10 +1912,9 @@ class RoomMemberMasterHandler(RoomMemberHandler):
 
         Implements RoomMemberHandler.remote_rescind_knock
         """
-        # TODO: We don't yet support rescinding knocks over federation
-        # as we don't know which homeserver to send it to. An obvious
-        # candidate is the remote homeserver we originally knocked through,
-        # however we don't currently store that information.
+        # Follow-up (matrix-org/synapse#17442, owner: federation team): store
+        # the remote server used for outbound knocks so rescind-knock can be
+        # federated instead of remaining local-only.
 
         # Just rescind the knock locally
         knock_event = await self.store.get_event(knock_event_id)

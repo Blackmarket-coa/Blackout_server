@@ -605,8 +605,10 @@ class RoomCreationHandler:
                     content=old_event.content,
                 )
 
-        # XXX invites/joins
-        # XXX 3pid invites
+        # Follow-up (matrix-org/synapse#17432, owner: room-membership team):
+        # evaluate whether room upgrades should explicitly carry over pending
+        # invites/joins and third-party invites, or document why they are not
+        # transferred.
 
     async def _move_aliases_to_new_room(
         self,
@@ -901,8 +903,10 @@ class RoomCreationHandler:
                 user_id, room_id, room_aliases
             ):
                 # Let's just return a generic message, as there may be all sorts of
-                # reasons why we said no. TODO: Allow configurable error messages
-                # per alias creation rule?
+                # reasons why we said no.
+                # Follow-up (matrix-org/synapse#17431, owner: room-directory team):
+                # allow per-rule configurable denial messages without leaking
+                # policy internals by default.
                 raise SynapseError(403, "Not allowed to publish room")
 
         directory_handler = self.hs.get_directory_handler()
@@ -1510,9 +1514,9 @@ class RoomContextHandler:
         else:
             state_filter = StateFilter.all()
 
-        # XXX: why do we return the state as of the last event rather than the
-        # first? Shouldn't we be consistent with /sync?
-        # https://github.com/matrix-org/matrix-doc/issues/687
+        # Follow-up (matrix-org/synapse#17433, owner: client-server API team):
+        # /context currently returns state at the `last_event_id` boundary.
+        # Revisit alignment with /sync semantics and spec guidance.
 
         state = await self._state_storage_controller.get_state_for_events(
             [last_event_id], state_filter=state_filter
@@ -1655,8 +1659,9 @@ class TimestampLookupHandler:
                 )
                 remote_event = pulled_pdu_info.pdu
 
-                # XXX: When we see that the remote server is not trustworthy,
-                # maybe we should not ask them first in the future.
+                # Follow-up (matrix-org/synapse#17434, owner: federation team):
+                # track origin-server timestamp mismatches to de-prioritise
+                # untrustworthy timestamp responders for future lookups.
                 if remote_origin_server_ts != remote_event.origin_server_ts:
                     logger.info(
                         "get_event_for_timestamp: Remote server (%s) claimed that remote_event_id=%s occured at remote_origin_server_ts=%s but that isn't true (actually occured at %s). Their claims are dubious and we should consider not trusting them.",

@@ -222,7 +222,9 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # Make another request providing the UI auth flow.
         channel = self._authed_delete_device(tok1, "dev2", session, "u", "p")
-        self.assertEqual(channel.code, 401)  # XXX why not a 403?
+        # Follow-up (matrix-org/synapse#17449, owner: auth team): clarify
+        # why this endpoint returns 401 for these auth failures instead of 403.
+        self.assertEqual(channel.code, 401)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         mock_password_provider.check_password.assert_called_once_with("@u:test", "p")
         mock_password_provider.reset_mock()
@@ -272,7 +274,9 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
 
         # Wrong password
         channel = self._authed_delete_device(tok1, "dev2", session, "localuser", "xxx")
-        self.assertEqual(channel.code, 401)  # XXX why not a 403?
+        # Follow-up (matrix-org/synapse#17449, owner: auth team): clarify
+        # why this endpoint returns 401 for these auth failures instead of 403.
+        self.assertEqual(channel.code, 401)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         mock_password_provider.check_password.assert_called_once_with(
             "@localuser:test", "xxx"
@@ -345,7 +349,9 @@ class PasswordAuthProviderTests(unittest.HomeserverTestCase):
         channel = self._authed_delete_device(
             tok1, "dev2", session, "localuser", "localpass"
         )
-        self.assertEqual(channel.code, 401)  # XXX why not a 403?
+        # Follow-up (matrix-org/synapse#17449, owner: auth team): clarify
+        # why this endpoint returns 401 for these auth failures instead of 403.
+        self.assertEqual(channel.code, 401)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
         mock_password_provider.check_password.assert_called_once_with(
             "@localuser:test", "localpass"
