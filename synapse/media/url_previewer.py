@@ -492,14 +492,18 @@ class UrlPreviewer:
             )
 
         if b"Content-Type" in headers:
-            media_type = headers[b"Content-Type"][0].decode("ascii")
+            media_type = headers[b"Content-Type"][0].decode("ascii", errors="replace")
         else:
             media_type = "application/octet-stream"
 
         download_name = get_filename_from_headers(headers)
 
         expires = self._get_expiration_ms(headers)
-        etag = headers[b"ETag"][0].decode("ascii") if b"ETag" in headers else None
+        etag = (
+            headers[b"ETag"][0].decode("ascii", errors="replace")
+            if b"ETag" in headers
+            else None
+        )
 
         return DownloadResult(
             length, uri, code, media_type, download_name, expires, etag

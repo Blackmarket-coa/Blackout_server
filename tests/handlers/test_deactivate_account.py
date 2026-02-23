@@ -143,6 +143,54 @@ class DeactivateAccountTestCase(HomeserverTestCase):
         )
         self.assertFalse(deactivated)
 
+    def test_reject_pending_invites_logs_summary(self) -> None:
+        """
+        When rejecting pending invites during deactivation, a summary line
+        must be logged with the counts of rejected and failed invites.
+        """
+        handler = self.hs.get_deactivate_account_handler()
+
+        # Fabricate two pending invites.
+        fake_invite_1 = mock.Mock(room_id="!room1:test")
+        fake_invite_2 = mock.Mock(room_id="!room2:test")
+
+        # First invite succeeds, second fails.
+        call_count = 0
+
+        async def update_membership_side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 2:
+                raise RuntimeError("simulated failure")
+
+        with mock.patch.object(
+            handler.store,
+            "get_invited_rooms_for_local_user",
+            new=mock.AsyncMock(return_value=[fake_invite_1, fake_invite_2]),
+        ), mock.patch.object(
+            handler._room_member_handler,
+            "update_membership",
+            new=mock.AsyncMock(side_effect=update_membership_side_effect),
+        ), mock.patch(
+            "synapse.handlers.deactivate_account.logger"
+        ) as mock_logger:
+            self.get_success(
+                handler._reject_pending_invites_for_user(self.user)
+            )
+
+        # Find the summary log call.
+        summary_calls = [
+            c
+            for c in mock_logger.info.call_args_list
+            if "Invite rejection summary" in str(c)
+        ]
+        self.assertEqual(len(summary_calls), 1)
+        # Verify the counts: 1 rejected, 1 failed, 2 total.
+        args = summary_calls[0][0]
+        self.assertEqual(args[2], 1)  # rejected
+        self.assertEqual(args[3], 1)  # failed
+        self.assertEqual(args[4], 2)  # total
+
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """
         Tests that global account data is removed upon deactivation.

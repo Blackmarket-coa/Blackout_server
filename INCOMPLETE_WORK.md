@@ -729,3 +729,57 @@ issue references (#17401–#17408).
 - Follow-up issues from prior passes remain open for implementation by
   subsystem owners (auth: #17411–#17416, storage: #17421–#17424,
   media: #17431–#17434).
+
+## P0 correctness fixes — response validation and header decode safety
+
+### Closed in this pass
+
+- `synapse/federation/federation_client.py` `get_room_state_ids`: moved the
+  `isinstance` type validation check **before** the `len()` / `set_tag()` calls
+  that consumed the response values. Previously, if a remote server returned
+  `null` or a non-list value for `pdu_ids`, `len(None)` would crash with
+  `TypeError` before the explicit `InvalidResponseError` validation had a chance
+  to run. Also changed `result["pdu_ids"]` to `result.get("pdu_ids")` so a
+  missing key produces `InvalidResponseError` instead of an unhandled `KeyError`.
+- `synapse/media/url_previewer.py` `_download_url`: added `errors="replace"` to
+  the `Content-Type` and `ETag` header `.decode("ascii")` calls.  Misbehaving
+  remote servers that return non-ASCII bytes in these headers previously caused
+  `UnicodeDecodeError`, crashing the entire URL preview.  The replacement
+  character `\ufffd` is now substituted instead.
+- `synapse/handlers/deactivate_account.py` `_reject_pending_invites_for_user`:
+  added summary logging (rejected / failed / total counts) at the end of the
+  invite-rejection loop so operators have visibility into partial failures during
+  account deactivation without needing to correlate per-room log lines.
+
+### Tests added
+
+- `tests/federation/test_federation_client.py`:
+  - `test_get_room_state_ids_rejects_non_list_pdu_ids`: verifies
+    `InvalidResponseError` (not `TypeError`) when `pdu_ids` is `None`.
+  - `test_get_room_state_ids_rejects_missing_pdu_ids`: verifies
+    `InvalidResponseError` (not `KeyError`) when `pdu_ids` key is absent.
+- `tests/media/test_url_previewer.py`:
+  - `test_download_result_handles_non_ascii_content_type`: verifies non-ASCII
+    `Content-Type` bytes produce a replacement character instead of crashing.
+  - `test_download_result_handles_non_ascii_etag`: same for the `ETag` header.
+- `tests/handlers/test_deactivate_account.py`:
+  - `test_reject_pending_invites_logs_summary`: verifies the summary log line
+    is emitted with correct rejected/failed/total counts.
+
+### Test results
+
+- `tests/handlers/test_deactivate_account.py`: **12 passed**
+- `tests/federation/test_federation_client.py`: **8 passed**, 2 pre-existing
+  failures (`test_backfill_invalid_signature_records_failed_pull_attempts` —
+  cache-decorator compat, `test_timestamp_to_event_logs_warning_on_failure` —
+  unrelated mock issue), both predate this change set.
+- `tests/media/test_url_previewer.py`: **13 passed**
+
+### Remaining
+
+- Cross-cutting follow-ups remain tracked in linked issues: deactivate-account
+  threepid reset coordination (#17374), robots.txt support (#17382), pre-cache
+  unification (#17383), white-on-transparent thumbnail handling (#17384),
+  federation batched key claiming (#17375), cross-destination retry cap (#17376),
+  per-destination retry refactor (#17377), invite signature compat (#17378),
+  timestamp_to_event gap reconciliation (#17379), failover removal (#17385).
