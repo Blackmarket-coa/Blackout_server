@@ -102,6 +102,22 @@ rg -n "FIXME|TODO" synapse/handlers/deactivate_account.py synapse/federation/fed
 pytest -q tests/federation tests/media tests/handlers -k "deactivate or federation or preview"
 ```
 
+### Status update (2026-02-23)
+
+Closed in this pass:
+- Verified `synapse/handlers/deactivate_account.py`,
+  `synapse/federation/federation_client.py`, and
+  `synapse/media/url_previewer.py` contain no remaining `TODO`/`FIXME` markers
+  in scope for this P0 task.
+- Confirmed previously-landed P0 safety fixes in these files remain present
+  (cancellation propagation, bounded parsing reads, and federation retry
+  throttling/deduplication paths).
+
+Remaining:
+- No open `TODO`/`FIXME` markers remain in the three scoped files.
+- Broader marker reduction work continues in other subsystems listed in this
+  document.
+
 ---
 
 ## Copy/paste task 2: Runtime NotImplementedError elimination
