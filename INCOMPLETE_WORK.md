@@ -808,3 +808,15 @@ issue references (#17401–#17408).
   task.
 - Existing issue-linked follow-ups in these files remain tracked as-is (for
   larger cross-component work not safe to complete in this focused pass).
+
+## Runtime NotImplementedError audit (synapse/)
+
+### Closed in this pass
+
+- Audited `synapse/` for `raise NotImplementedError` runtime paths.
+- Result: no raw runtime `raise NotImplementedError` paths were found.
+- Added `docs/notimplemented_audit_report.md` with per-file classification and disposition.
+
+### Remaining
+
+- No Category-B runtime NotImplementedError gaps identified in `synapse/` during this pass.
