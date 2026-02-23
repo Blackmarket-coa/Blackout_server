@@ -820,3 +820,34 @@ issue references (#17401–#17408).
 ### Remaining
 
 - No Category-B runtime NotImplementedError gaps identified in `synapse/` during this pass.
+
+## Marker burn-down pass (10-file handlers/http/core batch)
+
+### Scope
+
+- `synapse/_scripts/generate_workers_map.py`
+- `synapse/event_auth.py`
+- `synapse/events/__init__.py`
+- `synapse/visibility.py`
+- `synapse/http/federation/srv_resolver.py`
+- `synapse/http/client.py`
+- `synapse/handlers/auth.py`
+- `synapse/handlers/pagination.py`
+- `synapse/handlers/relations.py`
+- `synapse/handlers/message.py`
+
+### Results
+
+- `TODO`/`FIXME`/`TBD`/`XXX`/`HACK`/`TODO_test_` markers in scope: **0**.
+- `NotImplementedError` textual matches in scope: **2**, both from Twisted's
+  typed `DNSNotImplementedError` import/exception handling in
+  `synapse/http/federation/srv_resolver.py` (not marker debt).
+- No code-path changes were required in this pass because there were no
+  actionable marker comments in the scoped files.
+
+### Verification commands
+
+```bash
+rg -n "TODO|FIXME|TBD|XXX|HACK|TODO_test_" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
+rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
+```
