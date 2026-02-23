@@ -248,7 +248,8 @@ class KeyChangesServlet(RestServlet):
         # We want to enforce they do pass us one, but we ignore it and return
         # changes after the "to" as well as before.
         #
-        # XXX This does not enforce that "to" is passed.
+        # Follow-up (matrix-org/synapse#17510, owner: client-server team):
+        # enforce that "to" is passed once compatibility impact is assessed.
         set_tag("to", str(parse_string(request, "to")))
 
         from_token = await StreamToken.from_string(self.store, from_token_string)
@@ -388,7 +389,8 @@ class SigningKeyUploadServlet(RestServlet):
         # user tries to reset the device signing key when MSC3861 is enabled, but allow
         # first-time setup.
         #
-        # XXX: We now have a get-out clause by which MAS can temporarily mark the master
+        # Follow-up (matrix-org/synapse#17511, owner: auth team): this MAS
+        # escape hatch should be removed after stable key-ownership signaling.
         # key as replaceable. It should do its own equivalent of user interactive auth
         # before doing so.
         if self.hs.config.experimental.msc3861.enabled:

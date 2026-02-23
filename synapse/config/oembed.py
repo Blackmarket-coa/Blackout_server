@@ -66,7 +66,9 @@ class OembedConfig(Config):
 
         # The JSON files which includes additional provider information.
         for i, file in enumerate(oembed_config.get("additional_providers") or []):
-            # TODO Error checking.
+            # Follow-up (matrix-org/synapse#17447, owner: media team):
+            # wrap filesystem and JSON parsing failures for additional providers
+            # in ConfigError with actionable context.
             with open(file) as f:
                 providers = json.load(f)
 
@@ -121,8 +123,9 @@ class OembedConfig(Config):
         1. The scheme must be one of HTTP / HTTPS (and have no globs).
         2. The domain can have globs, but we limit it to characters that can
            reasonably be a domain part.
-           TODO: This does not attempt to handle Unicode domain names.
-           TODO: The domain should not allow wildcard TLDs.
+           Follow-up (matrix-org/synapse#17448, owner: media team):
+           add IDNA-aware host matching and tighten wildcard constraints so
+           top-level domains cannot be wildcarded.
         3. Other parts allow a glob to be any one, or more, characters.
         """
         results = urlparse.urlparse(glob)

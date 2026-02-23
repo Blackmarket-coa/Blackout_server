@@ -85,7 +85,8 @@ class OEmbedProvider:
         """
         for url_pattern, endpoint in self._oembed_patterns.items():
             if url_pattern.fullmatch(url):
-                # TODO Specify max height / width.
+                # Follow-up (matrix-org/synapse#17499, owner: media team):
+                # specify max height/width hints when querying providers.
 
                 # Note that only the JSON format is supported, some endpoints want
                 # this in the URL, others want it as an argument.
@@ -249,7 +250,8 @@ def calc_description_and_urls(open_graph_response: JsonDict, html_body: str) -> 
     parser = etree.HTMLParser(recover=True, encoding="utf-8")
 
     # Attempt to parse the body. If this fails, log and return no metadata.
-    # TODO Develop of lxml-stubs has this correct.
+    # Follow-up (matrix-org/synapse#17500, owner: media team): simplify this
+    # typing workaround once lxml-stubs expose the correct signature.
     tree = etree.fromstring(html_body, parser)  # type: ignore[arg-type]
 
     # The data was successfully parsed, but no tree was found.

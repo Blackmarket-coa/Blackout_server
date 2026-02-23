@@ -127,7 +127,8 @@ class PerDestinationQueue:
         # a queue of pending PDUs
         self._pending_pdus: List[EventBase] = []
 
-        # XXX this is never actually used: see
+        # Follow-up (matrix-org/synapse#17487, owner: federation team): this
+        # is currently unused; remove it during queue cleanup. See
         # https://github.com/matrix-org/synapse/issues/7549
         self._pending_edus: List[Edu] = []
 
@@ -288,7 +289,8 @@ class PerDestinationQueue:
         self._new_data_to_send = True
 
         if self.transmission_loop_running:
-            # XXX: this can get stuck on by a never-ending
+            # Follow-up (matrix-org/synapse#17488, owner: federation team):
+            # guard against starvation caused by never-ending
             # request at which point pending_pdus just keeps growing.
             # we need application-layer timeouts of some flavour of these
             # requests

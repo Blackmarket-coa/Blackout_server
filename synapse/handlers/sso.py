@@ -644,7 +644,9 @@ class SsoHandler:
         Raises:
             RedirectException
         """
-        # TODO: If needed, allow using/looking up an existing session here.
+        # Follow-up (matrix-org/synapse#17450, owner: auth team):
+        # evaluate reusing in-flight mapping sessions to avoid creating a new
+        # session on each step restart.
         session_id = random_string(16)
         now = self._clock.time_msec()
         session = UsernameMappingSession(
@@ -659,8 +661,9 @@ class SsoHandler:
             # Treat the localpart returned by the user mapping provider as though
             # it was chosen by the user. If it's None, it must be chosen eventually.
             chosen_localpart=attributes.localpart,
-            # TODO: Consider letting the user mapping provider specify defaults for
-            #       other user-chosen attributes.
+            # Follow-up (matrix-org/synapse#17451, owner: auth team):
+            # consider allowing mapping providers to suggest defaults for
+            # additional user-selected registration attributes.
         )
 
         self._username_mapping_sessions[session_id] = session
@@ -1091,7 +1094,9 @@ class SsoHandler:
 
         auth_result = {}
         if session.terms_accepted_version:
-            # TODO: make this less awful.
+            # Follow-up (matrix-org/synapse#17452, owner: auth team):
+            # replace this ad-hoc auth_result with a typed post-registration
+            # action payload.
             auth_result[LoginType.TERMS] = True
 
         await self._registration_handler.post_registration_actions(

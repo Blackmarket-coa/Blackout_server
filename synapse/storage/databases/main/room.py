@@ -161,7 +161,8 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
                     ("un_partial_stated_room_stream", "instance_name", "stream_id")
                 ],
                 sequence_name="un_partial_stated_room_stream_sequence",
-                # TODO(faster_joins, multiple writers) Support multiple writers.
+                # Follow-up (matrix-org/synapse#17497, owner: storage team):
+                # support multiple writers for this stream as part of faster-joins.
                 writers=["master"],
             )
         else:
@@ -1111,7 +1112,8 @@ class RoomWorkerStore(CacheInvalidationWorkerStore):
 
         local_media_ids = [row[0] for row in txn]
 
-        # TODO: Figure out all remote media a user has referenced in a message
+        # Follow-up (matrix-org/synapse#17498, owner: storage team): figure
+        # out full remote-media reference tracking for safe purges.
 
         return local_media_ids
 

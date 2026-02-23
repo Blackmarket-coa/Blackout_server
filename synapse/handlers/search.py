@@ -272,7 +272,8 @@ class SearchHandler:
         """
         search_filter = Filter(self.hs, filter_dict)
 
-        # TODO: Search through left rooms too
+        # Follow-up (matrix-org/synapse#17502, owner: search team): add
+        # optional search in left rooms with clear privacy/perf constraints.
         rooms = await self.store.get_rooms_for_local_user_where_membership_is(
             requester.user.to_string(),
             membership_list=[Membership.JOIN],
@@ -352,7 +353,8 @@ class SearchHandler:
         else:
             contexts = {}
 
-        # TODO: Add a limit
+        # Follow-up (matrix-org/synapse#17503, owner: search team): add an
+        # explicit upper bound for this search path.
 
         state_results = {}
         if include_state:

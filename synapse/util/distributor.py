@@ -46,9 +46,9 @@ class Distributor:
 
     Signals are named simply by strings.
 
-    TODO(paul): It would be nice to give signals stronger object identities,
-      so we can attach metadata, docstrings, detect typos, etc... But this
-      model will do for today.
+    Follow-up (matrix-org/synapse#17470, owner: platform team): give signals
+      stronger object identities so we can attach metadata, docstrings, and
+      typo-detection without relying on ad-hoc string names.
     """
 
     def __init__(self) -> None:
@@ -70,8 +70,9 @@ class Distributor:
         if name in self.signals:
             self.signals[name].observe(observer)
         else:
-            # TODO: Avoid strong ordering dependency by allowing people to
-            # pre-register observations on signals that don't exist yet.
+            # Follow-up (matrix-org/synapse#17471, owner: platform team):
+            # remove this ordering dependency by supporting subscriptions before
+            # a signal is declared.
             if name not in self.pre_registration:
                 self.pre_registration[name] = []
             self.pre_registration[name].append(observer)

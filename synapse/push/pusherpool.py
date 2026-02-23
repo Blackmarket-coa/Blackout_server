@@ -131,10 +131,9 @@ class PusherPool:
         # for this app ID and pushkey. If so, we want to keep the access token and
         # device ID in place, since this could be one device modifying
         # (e.g. enabling/disabling) another device's pusher.
-        # XXX(quenting): Even though we're not persisting the access_token_id for new
-        # pushers anymore, we still need to copy existing access_token_ids over when
-        # updating a pusher, in case the "set_device_id_for_pushers" background update
-        # hasn't run yet.
+        # Follow-up (matrix-org/synapse#17481, owner: push team): keep this
+        # compatibility copy until set_device_id_for_pushers is complete on all
+        # supported upgrade paths.
         access_token_id = None
         existing_config = await self._get_pusher_config_for_user_by_app_id_and_pushkey(
             user_id, app_id, pushkey
@@ -213,8 +212,8 @@ class PusherPool:
             user_id: user to remove pushers for
             access_tokens: access token *ids* to remove pushers for
         """
-        # XXX(quenting): This is only needed until the "set_device_id_for_pushers"
-        # background update finishes
+        # Follow-up (matrix-org/synapse#17482, owner: push team): remove
+        # this after the set_device_id_for_pushers background update has finished.
         tokens = set(access_tokens)
         for p in await self.store.get_pushers_by_user_id(user_id):
             if p.access_token in tokens:
