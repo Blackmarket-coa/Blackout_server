@@ -26,7 +26,7 @@ from typing import Iterable, NamedTuple, Optional
 
 from packaging.requirements import Requirement
 
-DISTRIBUTION_NAME = "matrix-synapse"
+DISTRIBUTION_NAME = "blackout-server"
 
 
 __all__ = ["check_requirements"]
