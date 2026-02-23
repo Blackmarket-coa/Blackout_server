@@ -33,7 +33,8 @@ from synapse.types import UserID
 if TYPE_CHECKING:
     from synapse.server import HomeServer
 
-# language to use for the templates. TODO: figure this out from Accept-Language
+# language to use for the templates. Follow-up (matrix-org/synapse#17508,
+# owner: client-server team): determine this from Accept-Language.
 TEMPLATE_LANGUAGE = "en"
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,8 @@ class ConsentResource(DirectServeHtmlResource):
             )
         self._default_consent_version = default_consent_version
 
-        # TODO: switch to synapse.util.templates.build_jinja_env
+        # Follow-up (matrix-org/synapse#17509, owner: platform team):
+        # switch to synapse.util.templates.build_jinja_env.
         loader = jinja2.FileSystemLoader(consent_template_directory)
         self._jinja_env = jinja2.Environment(
             loader=loader, autoescape=jinja2.select_autoescape(["html", "htm", "xml"])

@@ -1052,3 +1052,23 @@ Remaining:
 - One broader storage test command attempted in this environment (`pytest -q tests/storage/test_events.py tests/storage/test_relations.py`) failed due a pre-existing runtime/cache invalidation issue outside this marker-only change scope.
 - Follow-up implementation work remains tracked in the linked issues referenced inline in each touched file.
 
+---
+
+## Second marker pass update (count=2 Synapse runtime scope)
+
+Closed in this pass:
+- Audited and converted all scoped TODO/XXX/HACK markers in the requested files to issue-linked follow-ups with explicit owner+rationale, spanning:
+  - auth/config/crypto/module-api/util
+  - handlers/rest client/consent
+  - federation sender + push
+  - storage background + main stores
+- Kept API compatibility unchanged (comment-only updates).
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" ...` over the 27 scoped files now reports only `DNSNotImplementedError` symbol usage in `synapse/http/federation/srv_resolver.py` (Twisted exception class import/handling), with no remaining scoped debt markers.
+- Targeted test runs executed after subsystem commits; several suites pass, while broader suites continue to fail in this branch due a pre-existing cache invalidation failure (`AttributeError: 'function' object has no attribute 'invalidate'`) when creating room events.
+
+Remaining:
+- Follow-up implementation work is tracked in issue-linked comments added during this pass.
+- Residual `NotImplementedError` regex matches in `synapse/http/federation/srv_resolver.py` are runtime exception class names (`DNSNotImplementedError`), not incomplete-work markers.
+

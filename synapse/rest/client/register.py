@@ -476,7 +476,8 @@ class RegisterRestServlet(RestServlet):
                     "Appservice token must be provided when using a type of m.login.application_service",
                 )
 
-            # XXX we should check that desired_username is valid. Currently
+            # Follow-up (matrix-org/synapse#17479, owner: client-server team):
+            # validate desired_username at request time. Currently
             # we give appservices carte blanche for any insanity in mxids,
             # because the IRC bridges rely on being able to register stupid
             # IDs.
@@ -919,7 +920,8 @@ class RegisterAppServiceOnlyRestServlet(RestServlet):
                 "Appservice token must be provided when using a type of m.login.application_service",
             )
 
-        # XXX we should check that desired_username is valid. Currently
+        # Follow-up (matrix-org/synapse#17479, owner: client-server team):
+        # validate desired_username at request time. Currently
         # we give appservices carte blanche for any insanity in mxids,
         # because the IRC bridges rely on being able to register stupid
         # IDs.

@@ -76,7 +76,8 @@ class EmailConfig(Config):
     section = "email"
 
     def read_config(self, config: JsonDict, **kwargs: Any) -> None:
-        # TODO: We should separate better the email configuration from the notification
+        # Follow-up (matrix-org/synapse#17512, owner: config team): separate
+        # email transport config from notification-specific settings.
         # and account validity config.
 
         self.email_enable_notifs = False
@@ -108,7 +109,8 @@ class EmailConfig(Config):
         else:
             self.email_app_name = "Matrix"
 
-        # TODO: Rename notif_from to something more generic, or have a separate
+        # Follow-up (matrix-org/synapse#17513, owner: config team): rename
+        # notif_from or split sender-address settings by purpose.
         # from for password resets, message notifications, etc?
         # Currently the email section is a bit bogged down with settings for
         # multiple functions. Would be good to split it out into separate

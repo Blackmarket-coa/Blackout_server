@@ -813,8 +813,9 @@ TokenList = List[Token]
 
 
 def _is_stop_word(word: str) -> bool:
-    # TODO Pull these out of the dictionary:
-    #  https://github.com/postgres/postgres/blob/master/src/backend/snowball/stopwords/english.stop
+    # Follow-up (matrix-org/synapse#17472, owner: storage team): pull these
+    # constants out of this dictionary into typed fields once search query
+    # builder cleanup lands.
     return word in {"the", "a", "you", "me", "and", "but"}
 
 
@@ -903,8 +904,9 @@ def _tokens_to_sqlite_match_query(tokens: TokenList) -> str:
         elif isinstance(token, Phrase):
             match_query.append('"' + " ".join(token.phrase) + '"')
         elif token == SearchToken.Not:
-            # TODO: SQLite treats NOT as a *binary* operator. Hopefully a search
-            # term has already been added before this.
+            # Follow-up (matrix-org/synapse#17473, owner: storage team):
+            # revisit SQLite NOT semantics for this expression if behavior
+            # diverges from Postgres.
             match_query.append(" NOT ")
         elif token == SearchToken.Or:
             match_query.append(" OR ")

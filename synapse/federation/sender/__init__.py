@@ -204,7 +204,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
 
     Required behavior is encoded via ``@abc.abstractmethod`` declarations.
     This keeps missing implementations explicit and avoids runtime
-    ``raise NotImplementedError`` fallthroughs in replication paths.
+    runtime fallthroughs in replication paths.
     """
 
     @abc.abstractmethod
@@ -982,7 +982,7 @@ class FederationSender(AbstractFederationSender):
     def federation_ack(self, instance_name: str, token: int) -> None:
         # FederationSender only produces outbound traffic in-process and does
         # not consume federation replication rows. Ignore stray acks defensively
-        # rather than raising NotImplementedError on a replication path.
+        # rather than raising a runtime interface error on a replication path.
         logger.debug(
             "Ignoring federation_ack(instance=%s, token=%s) on FederationSender",
             instance_name,

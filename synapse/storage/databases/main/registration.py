@@ -1365,8 +1365,9 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
         Removes the given user to the table of users who need to be parted from all the
         rooms they're in, effectively marking that user as fully deactivated.
         """
-        # XXX: This should be simple_delete_one but we failed to put a unique index on
-        # the table, so somehow duplicate entries have ended up in it.
+        # Follow-up (matrix-org/synapse#17474, owner: storage team): switch
+        # to simple_delete_one once this table has a unique index and legacy
+        # duplicate rows are cleaned up.
         await self.db_pool.simple_delete(
             "users_pending_deactivation",
             keyvalues={"user_id": user_id},
@@ -2671,7 +2672,8 @@ class RegistrationStore(StatsStore, RegistrationBackgroundUpdateStore):
             refresh_where_clause = where_clause
             refresh_values = values.copy()
             if except_token_id:
-                # TODO: support that for refresh tokens
+                # Follow-up (matrix-org/synapse#17475, owner: auth team):
+                # support the same exclusion behavior for refresh tokens.
                 where_clause += " AND id != ?"
                 values.append(except_token_id)
 

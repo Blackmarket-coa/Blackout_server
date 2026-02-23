@@ -243,8 +243,8 @@ class ModuleApi:
     def __init__(self, hs: "HomeServer", auth_handler: AuthHandler) -> None:
         self._hs = hs
 
-        # TODO: Fix this type hint once the types for the data stores have been ironed
-        #       out.
+        # Follow-up (matrix-org/synapse#17483, owner: module-api team):
+        # tighten this type hint once datastore typing is fully stabilized.
         self._store: Union[DataStore, "GenericWorkerStore"] = hs.get_datastores().main
         self._storage_controllers = hs.get_storage_controllers()
         self._auth = hs.get_auth()
@@ -1797,7 +1797,8 @@ class ModuleApi:
         Added in Synapse v1.89.0.
         """
         # Future extensions to this method might want to e.g. allow use of `force_purge`.
-        # TODO In the future we should make sure this is persistent.
+        # Follow-up (matrix-org/synapse#17484, owner: module-api team): make
+        # this persistent across restarts.
         await self._hs.get_pagination_handler().start_shutdown_and_purge_room(
             room_id,
             {
