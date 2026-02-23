@@ -783,3 +783,28 @@ issue references (#17401–#17408).
   federation batched key claiming (#17375), cross-destination retry cap (#17376),
   per-destination retry refactor (#17377), invite signature compat (#17378),
   timestamp_to_event gap reconciliation (#17379), failover removal (#17385).
+
+## P0 marker debt update — deactivate/federation/url_previewer follow-through
+
+### Closed in this pass
+
+- Re-validated the scoped P0 files contain no remaining raw `TODO`/`FIXME`
+  markers:
+  - `synapse/handlers/deactivate_account.py`
+  - `synapse/federation/federation_client.py`
+  - `synapse/media/url_previewer.py`
+- Hardened deactivation cancellation safety in
+  `synapse/handlers/deactivate_account.py` by explicitly re-raising
+  `CancelledError` while unbinding threepids from the identity server. This
+  preserves cooperative cancellation semantics during shutdown/task-cancel
+  scenarios instead of converting cancellation into a generic 400 error.
+- Added targeted regression coverage in
+  `tests/handlers/test_deactivate_account.py`:
+  - `test_threepid_unbind_cancellation_propagates`
+
+### Remaining
+
+- No open `TODO`/`FIXME` markers remain in the three scoped files for this P0
+  task.
+- Existing issue-linked follow-ups in these files remain tracked as-is (for
+  larger cross-component work not safe to complete in this focused pass).
