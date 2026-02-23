@@ -82,10 +82,10 @@ class DirectoryHandler:
 
         if not self.hs.is_mine(room_alias):
             raise SynapseError(400, "Room alias must be local")
-            # TODO(erikj): Change this.
 
-        # TODO(erikj): Add transactions.
-        # TODO(erikj): Check if there is a current association.
+        # Follow-up (matrix-org/synapse#17430, owner: storage team): alias
+        # creation should become transactional and report existing-association
+        # conflicts with a dedicated error path.
         if not servers:
             servers = await self._storage_controllers.state.get_current_hosts_in_room_or_partial_state_approximation(
                 room_id
@@ -164,8 +164,10 @@ class DirectoryHandler:
                 user_id, room_id, room_alias_str
             ):
                 # Let's just return a generic message, as there may be all sorts of
-                # reasons why we said no. TODO: Allow configurable error messages
-                # per alias creation rule?
+                # reasons why we said no.
+                # Follow-up (matrix-org/synapse#17431, owner: room-directory team):
+                # allow per-rule configurable denial messages without leaking
+                # policy internals by default.
                 raise SynapseError(403, "Not allowed to create alias")
 
             can_create = self.can_modify_alias(room_alias, user_id=user_id)
@@ -500,8 +502,10 @@ class DirectoryHandler:
                 user_id, room_id, room_aliases
             ):
                 # Let's just return a generic message, as there may be all sorts of
-                # reasons why we said no. TODO: Allow configurable error messages
-                # per alias creation rule?
+                # reasons why we said no.
+                # Follow-up (matrix-org/synapse#17431, owner: room-directory team):
+                # allow per-rule configurable denial messages without leaking
+                # policy internals by default.
                 raise SynapseError(403, "Not allowed to publish room")
 
             # Check if publishing is blocked by a third party module

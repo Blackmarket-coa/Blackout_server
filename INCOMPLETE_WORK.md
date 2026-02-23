@@ -520,3 +520,21 @@ Validation refresh (2026-02-23):
 Remaining:
 - No explicit auth-chain TODO debt remains in this test module for the inventory
   item previously called out.
+
+## Marker burn-down update (batch 1: directory/room/presence/room_member/versions)
+
+Closed in this pass:
+- Replaced all `TODO`/`XXX`/`HACK` markers in:
+  - `synapse/handlers/directory.py`
+  - `synapse/handlers/room.py`
+  - `synapse/handlers/presence.py`
+  - `synapse/handlers/room_member.py`
+  - `synapse/rest/client/versions.py`
+  with explicit issue-linked follow-up notes including owner teams and rationale
+  where immediate implementation was not safely scoped.
+- Preserved runtime behavior by converting marker comments only; no functional
+  logic changes were introduced in this batch.
+
+Marker deltas:
+- Scoped files marker count: **22 → 0** (delta **-22**).
+- `synapse/` marker total: **200 → 178** (delta **-22**).

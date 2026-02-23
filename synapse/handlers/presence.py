@@ -1379,8 +1379,9 @@ class PresenceHandler(BasePresenceHandler):
 
         # Syncs do not override a previous presence of busy.
         #
-        # TODO: This is a hack for lack of multi-device support. Unfortunately
-        # removing this requires coordination with clients.
+        # Follow-up (matrix-org/synapse#17435, owner: presence team):
+        # BUSY state remains sticky across sync updates until full multi-device
+        # precedence semantics are specified with client coordination.
         if prev_state.state == PresenceState.BUSY and is_sync:
             presence = PresenceState.BUSY
 
@@ -1461,8 +1462,9 @@ class PresenceHandler(BasePresenceHandler):
             The updates are a list of 2-tuples of stream ID and the row data
         """
 
-        # TODO(markjh): replicate the unpersisted changes.
-        # This could use the in-memory stores for recent changes.
+        # Follow-up (matrix-org/synapse#17436, owner: workers team): include
+        # unpersisted in-memory presence deltas so replication readers can
+        # observe very recent updates without waiting for persistence.
         rows = await self.store.get_all_presence_updates(
             instance_name, last_id, current_id, limit
         )
@@ -1578,8 +1580,9 @@ class PresenceHandler(BasePresenceHandler):
         #   2. presence states of newly joined users to all remote servers in
         #      the room.
         #
-        # TODO: Only send presence states to remote hosts that don't already
-        # have them (because they already share rooms).
+        # Follow-up (matrix-org/synapse#17437, owner: presence team): avoid
+        # sending redundant presence updates to remote hosts that already have
+        # visibility via overlapping rooms.
 
         # Get all the users who were already in the room, by fetching the
         # current users in the room and removing the newly joined users.
@@ -1953,9 +1956,9 @@ class PresenceEventSource(EventSource[int, UserPresenceState]):
 
             presence_updates = list(users_to_state.values())
 
-        # TODO: This feels wildly inefficient, and it's unfortunate we need to ask the
-        # module for information on a number of users when we then only take the info
-        # for a single user
+        # Follow-up (matrix-org/synapse#17438, owner: module-api team): add a
+        # single-user presence-router query path to avoid fetching and then
+        # discarding state for unrelated users.
 
         # Filter through the presence router
         users_to_state_set = await self.get_presence_router().get_users_for_states(
