@@ -78,3 +78,11 @@ book/
 
 # Don't include users' poetry configs
 /poetry.toml
+
+# Test run artifacts
+/alpha_tok
+/beta_tok
+/gamma_tok
+/token1
+/media/
+/tests.media.test_media_storage/
