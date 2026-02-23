@@ -18,6 +18,7 @@ from unittest import mock
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import AccountDataTypes
+from synapse.api.errors import SynapseError
 from synapse.push.rulekinds import PRIORITY_CLASS_MAP
 from synapse.rest import admin
 from synapse.rest.client import account, login
@@ -105,6 +106,42 @@ class DeactivateAccountTestCase(HomeserverTestCase):
             # CancelledError should propagate out of _part_user rather than
             # being swallowed by the per-room exception handler.
             self.get_failure(handler._part_user(self.user), CancelledError)
+
+    def test_threepid_unbind_failure_aborts_deactivation(self) -> None:
+        """
+        Failing to unbind a threepid from the identity server must abort the
+        deactivation so the account stays active and the user can retry.
+        """
+        handler = self.hs.get_deactivate_account_handler()
+
+        # Pretend the user has one bound threepid.
+        with mock.patch.object(
+            handler.store,
+            "user_get_bound_threepids",
+            new=mock.AsyncMock(return_value=[("email", "alice@example.com")]),
+        ), mock.patch.object(
+            handler._identity_handler,
+            "try_unbind_threepid",
+            new=mock.AsyncMock(side_effect=Exception("IS is down")),
+        ):
+            failure = self.get_failure(
+                handler.deactivate_account(
+                    self.user,
+                    erase_data=False,
+                    requester=mock.Mock(user=mock.Mock(to_string=lambda: self.user)),
+                    id_server=None,
+                    by_admin=False,
+                ),
+                SynapseError,
+            )
+            # The deactivation should fail with 400 so the account remains active.
+            self.assertEqual(failure.value.code, 400)
+
+        # Verify the user is still active (not deactivated).
+        deactivated = self.get_success(
+            self._store.get_user_deactivated_status(self.user)
+        )
+        self.assertFalse(deactivated)
 
     def test_global_account_data_deleted_upon_deactivation(self) -> None:
         """
