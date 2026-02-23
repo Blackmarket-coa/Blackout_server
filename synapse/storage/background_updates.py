@@ -259,7 +259,8 @@ class BackgroundUpdater:
 
         self._background_update_performance: Dict[str, BackgroundUpdatePerformance] = {}
         self._background_update_handlers: Dict[str, _BackgroundUpdateHandler] = {}
-        # TODO: all these bool flags make me feel icky---can we combine into a status
+        # Follow-up (matrix-org/synapse#17478, owner: storage team): replace
+        # this set of booleans with an explicit status state machine.
         # enum?
         self._all_done = False
 
@@ -285,7 +286,8 @@ class BackgroundUpdater:
         """An integer summarising the updater status. Used as a metric."""
         if self._aborted:
             return UpdaterStatus.ABORTED
-        # TODO: a status for "have seen at least one failure, but haven't aborted yet".
+        # Follow-up (matrix-org/synapse#17478, owner: storage team): include
+        # a degraded state for "seen failures but not aborted yet".
         if not self.enabled:
             return UpdaterStatus.DISABLED
 

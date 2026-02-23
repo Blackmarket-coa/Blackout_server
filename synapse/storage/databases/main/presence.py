@@ -266,7 +266,9 @@ class PresenceStore(PresenceBackgroundUpdateStore, CacheInvalidationWorkerStore)
     async def get_presence_for_users(
         self, user_ids: Iterable[str]
     ) -> Mapping[str, UserPresenceState]:
-        # TODO All these columns are nullable, but we don't expect that:
+        # Follow-up (matrix-org/synapse#17501, owner: storage team): these
+        # columns are nullable in schema but expected non-null in practice;
+        # tighten invariants when safe.
         #      https://github.com/matrix-org/synapse/issues/16467
         rows = cast(
             List[Tuple[str, str, int, int, int, Optional[str], Union[int, bool]]],
@@ -405,7 +407,9 @@ class PresenceStore(PresenceBackgroundUpdateStore, CacheInvalidationWorkerStore)
         limit = 100
         offset = 0
         while True:
-            # TODO All these columns are nullable, but we don't expect that:
+            # Follow-up (matrix-org/synapse#17501, owner: storage team): these
+        # columns are nullable in schema but expected non-null in practice;
+        # tighten invariants when safe.
             #      https://github.com/matrix-org/synapse/issues/16467
             rows = cast(
                 List[Tuple[str, str, int, int, int, Optional[str], Union[int, bool]]],

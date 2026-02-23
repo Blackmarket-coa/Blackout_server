@@ -424,7 +424,8 @@ class ApplicationServicesHandler:
             # For performance reasons, we don't persist the previous
             # token in the DB and instead fetch the latest typing event
             # for appservices.
-            # TODO: It'd likely be more efficient to simply fetch the
+            # Follow-up (matrix-org/synapse#17504, owner: appservice team):
+            # optimize this by fetching only needed rows once benchmarked.
             #  typing event with the given 'new_token' stream token and
             #  check if the given service was interested, rather than
             #  iterating over all typing events and only grabbing the
@@ -644,7 +645,8 @@ class ApplicationServicesHandler:
         }
 
         # Create a summary of "changed" and "left" users.
-        # TODO: Calculate "left" users.
+        # Follow-up (matrix-org/synapse#17505, owner: appservice team):
+        # calculate "left" users for device-list summary parity.
         device_list_summary = DeviceListUpdates(
             changed=filtered_users_with_changed_device_lists
         )

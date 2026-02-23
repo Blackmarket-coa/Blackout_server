@@ -98,7 +98,9 @@ logger = logging.getLogger(__name__)
 # control how we batch/bulk fetch events from the database.
 # The values are plucked out of thing air to make initial sync run faster
 # on jki.re
-# TODO: Make these configurable.
+# Follow-up (matrix-org/synapse#17458, owner: storage team):
+# expose event-fetch queue tuning values via config once operational bounds
+# are characterized across typical deployments.
 EVENT_QUEUE_THREADS = 3  # Max number of threads that will fetch events
 EVENT_QUEUE_ITERATIONS = 3  # No. times we block waiting for requests for events
 EVENT_QUEUE_TIMEOUT_S = 0.1  # Timeout when waiting for requests for events
@@ -312,7 +314,9 @@ class EventsWorkerStore(SQLBaseStore):
                     ("un_partial_stated_event_stream", "instance_name", "stream_id")
                 ],
                 sequence_name="un_partial_stated_event_stream_sequence",
-                # TODO(faster_joins, multiple writers) Support multiple writers.
+                # Follow-up (matrix-org/synapse#17459, owner: storage team):
+                # add support for multiple writers for this stream as part of
+                # the faster-joins rollout.
                 writers=["master"],
             )
         else:
@@ -1645,9 +1649,9 @@ class EventsWorkerStore(SQLBaseStore):
         Returns:
              a dict {event_id -> bool}
         """
-        # TODO: We used to query the _get_event_cache here as a fast-path before
-        #  hitting the database. For if an event were in the cache, we've presumably
-        #  seen it before.
+        # Follow-up (matrix-org/synapse#17460, owner: storage team):
+        # restore a safe cache fast-path here after cache invalidation on room
+        # purge is fully reliable.
         #
         #  But this is currently an invalid assumption due to the _get_event_cache
         #  not being invalidated when purging events from a room. The optimisation can

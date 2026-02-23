@@ -49,8 +49,9 @@ FILTER_SCHEMA = {
         "limit": {"type": "number"},
         "senders": {"$ref": "#/definitions/user_id_array"},
         "not_senders": {"$ref": "#/definitions/user_id_array"},
-        # TODO: We don't limit event type values but we probably should...
-        # check types are valid event types
+        # Follow-up (matrix-org/synapse#17441, owner: client-server team):
+        # evaluate practical bounds/validation for event type filters without
+        # breaking compatibility with custom event types.
         "types": {"type": "array", "items": {"type": "string"}},
         "not_types": {"type": "array", "items": {"type": "string"}},
         # MSC3874, filtering /messages.
@@ -161,9 +162,9 @@ class Filtering:
         self.check_valid_filter(user_filter)
         return self.store.add_user_filter(user_id, user_filter)
 
-    # TODO(paul): surely we should probably add a delete_user_filter or
-    #   replace_user_filter at some point? There's no REST API specified for
-    #   them however
+    # Follow-up (matrix-org/synapse#17442, owner: client-server team):
+    # add delete/replace user filter capabilities once a stable API shape is
+    # agreed in the Matrix spec.
 
     def check_valid_filter(self, user_filter_json: JsonDict) -> None:
         """Check if the provided filter is valid.
@@ -398,7 +399,9 @@ class Filter:
             if not sender:
                 # Presence events had their 'sender' in content.user_id, but are
                 # now handled above. We don't know if anything else uses this
-                # form. TODO: Check this and probably remove it.
+                # form. Follow-up (matrix-org/synapse#17443, owner: client-server team):
+                # audit whether any account-data producers still rely on this
+                # legacy sender fallback before removing it.
                 sender = content.get("user_id")
 
             room_id = event.get("room_id", None)

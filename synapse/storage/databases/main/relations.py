@@ -531,7 +531,9 @@ class RelationsWorkerStore(SQLBaseStore):
         edits_by_event = await self.get_applicable_edits([event_id])
         return edits_by_event.get(event_id)
 
-    # TODO: This returns a mutable object, which is generally bad.
+    # Follow-up (matrix-org/synapse#17461, owner: storage team):
+    # return an immutable thread summary container to avoid accidental cache
+    # mutations by callers.
     @cachedList(cached_method_name="get_applicable_edit", list_name="event_ids")  # type: ignore[synapse-@cached-mutable]
     async def get_applicable_edits(
         self, event_ids: Collection[str]
@@ -621,7 +623,9 @@ class RelationsWorkerStore(SQLBaseStore):
         summaries_by_event = await self.get_thread_summaries([event_id])
         return summaries_by_event.get(event_id)
 
-    # TODO: This returns a mutable object, which is generally bad.
+    # Follow-up (matrix-org/synapse#17461, owner: storage team):
+    # return an immutable thread summary container to avoid accidental cache
+    # mutations by callers.
     @cachedList(cached_method_name="get_thread_summary", list_name="event_ids")  # type: ignore[synapse-@cached-mutable]
     async def get_thread_summaries(
         self, event_ids: Collection[str]
@@ -644,7 +648,9 @@ class RelationsWorkerStore(SQLBaseStore):
             txn: LoggingTransaction,
         ) -> Tuple[Dict[str, int], Dict[str, str]]:
             # Fetch the count of threaded events and the latest event ID.
-            # TODO Should this only allow m.room.message events.
+            # Follow-up (matrix-org/synapse#17462, owner: storage team):
+            # decide whether thread summaries should be constrained to
+            # m.room.message parents or remain generic across event types.
             if isinstance(self.database_engine, PostgresEngine):
                 # The `DISTINCT ON` clause will pick the *first* row it encounters,
                 # so ordering by topological ordering + stream ordering desc will

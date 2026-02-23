@@ -346,13 +346,16 @@ class ApplicationServiceApi(SimpleHttpClient):
         if service.supports_ephemeral:
             body.update(
                 {
-                    # TODO: Update to stable prefixes once MSC2409 completes FCP merge.
+                    # Follow-up (matrix-org/synapse#17444, owner: appservice team):
+                    # switch to stable prefixes once MSC2409 reaches final spec status.
                     "de.sorunome.msc2409.ephemeral": ephemeral,
                     "de.sorunome.msc2409.to_device": to_device_messages,
                 }
             )
 
-        # TODO: Update to stable prefixes once MSC3202 completes FCP merge
+        # Follow-up (matrix-org/synapse#17445, owner: appservice team):
+        # switch transaction extension keys to stable prefixes after MSC3202
+        # completes standardization.
         if service.msc3202_transaction_extensions:
             if one_time_keys_count:
                 body[
@@ -468,7 +471,9 @@ class ApplicationServiceApi(SimpleHttpClient):
         # Check if the appservice fulfilled all of the queried user/device/algorithms
         # or if some are still missing.
         #
-        # TODO This places a lot of faith in the response shape being correct.
+        # Follow-up (matrix-org/synapse#17446, owner: appservice team):
+        # hard-validate appservice key-claim response schema before counting
+        # returned keys.
         missing = []
         for user_id, device, algorithm, count in query:
             # Count the number of keys in the response for this algorithm by

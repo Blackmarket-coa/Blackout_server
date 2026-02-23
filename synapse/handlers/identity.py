@@ -216,7 +216,7 @@ class IdentityHandler:
         except RequestTimedOutError:
             raise SynapseError(500, "Timed out contacting identity server")
         except CodeMessageException as e:
-            data = json_decoder.decode(e.msg)  # XXX WAT?
+            data = json_decoder.decode(e.msg)  # Follow-up (matrix-org/synapse#17485, owner: identity team): normalize error payload decoding/typing.
             return data
 
     async def try_unbind_threepid(
@@ -477,7 +477,8 @@ class IdentityHandler:
         Returns:
             The json response if validation was successful, otherwise None
         """
-        # XXX: We shouldn't need to keep wrapping and unwrapping this value
+        # Follow-up (matrix-org/synapse#17486, owner: identity team): remove
+        # this wrapping/unwrapping once caller contracts are normalized.
         threepid_creds = {"client_secret": client_secret, "sid": sid}
 
         # We don't actually know which medium this 3PID is. Thus we first assume it's email,
