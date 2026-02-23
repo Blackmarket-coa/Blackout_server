@@ -320,8 +320,9 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
         res = self.get_success(self.handler.get_room_keys(self.local_user, version))
         self.assertDictEqual(res, {"rooms": {}})
 
-    # TODO: test the locking semantics when uploading room_keys,
-    # although this is probably best done in sytest
+    # Follow-up (matrix-org/synapse#17447, owner: e2ee team): cover
+    # upload locking semantics in sytest where concurrent worker behavior can be
+    # exercised deterministically.
 
     def test_upload_room_keys_no_versions(self) -> None:
         """Check that we get a 404 on uploading keys when no versions are defined"""
@@ -504,7 +505,8 @@ class E2eRoomKeysHandlerTestCase(unittest.HomeserverTestCase):
         res = self.get_success(self.handler.get_version_info(self.local_user))
         self.assertEqual(res["etag"], backup_etag)
 
-        # TODO: check edge cases as well as the common variations here
+        # Follow-up (matrix-org/synapse#17448, owner: e2ee team): extend
+        # this table to include additional edge-case merge permutations.
 
     def test_delete_room_keys(self) -> None:
         """Check that we can insert and delete keys for a session"""

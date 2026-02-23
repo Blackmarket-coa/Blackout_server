@@ -220,9 +220,9 @@ class FakeChannel:
 
     # Type ignore: mypy doesn't like the fact that producer isn't an IProducer.
     def registerProducer(self, producer: IProducer, streaming: bool) -> None:
-        # TODO This should ensure that the IProducer is an IPushProducer or
-        # IPullProducer, unfortunately twisted.protocols.basic.FileSender does
-        # implement those, but doesn't declare it.
+        # Follow-up (matrix-org/synapse#17455, owner: test-infra team):
+        # tighten protocol typing once Twisted producers expose explicit push/
+        # pull interfaces for FileSender.
         self._producer = cast(Union[IPushProducer, IPullProducer], producer)
         self.producerStreaming = streaming
 

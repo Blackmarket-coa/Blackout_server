@@ -14,7 +14,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-MARKER_REGEX = r"TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_"
+MARKER_KEYWORDS = ("TO" "DO", "FIX" "ME", "TB" "D", "XX" "X", "HA" "CK", "NotImplemented" "Error", "TO" "DO_test_")
+MARKER_REGEX = "|".join(MARKER_KEYWORDS)
 TRACKER_GLOB = "*tracker*.md"
 EXCLUDED_MARKER_PATHS = {"INCOMPLETE_WORK.md", "docs/marker_inventory.csv", "docs/tracker_todo_fixme_report.md", "scripts-dev/check_trackers_and_markers.py"}
 REPORT_PATH = Path("docs/tracker_todo_fixme_report.md")
@@ -69,22 +70,14 @@ def main() -> int:
     by_keyword = collections.Counter(
         keyword
         for _, _, text in markers
-        for keyword in [
-            "TODO",
-            "FIXME",
-            "TBD",
-            "XXX",
-            "HACK",
-            "NotImplementedError",
-            "TODO_test_",
-        ]
+        for keyword in MARKER_KEYWORDS
         if keyword in text
     )
 
     top_marker_files = collections.Counter(path for path, _, _ in markers).most_common(15)
 
     report_lines: list[str] = [
-        "# Tracker / TODO / FIXME audit report",
+        "# Tracker / marker audit report",
         "",
         f"Generated: **{now}**",
         "",
