@@ -107,6 +107,33 @@ class DeactivateAccountTestCase(HomeserverTestCase):
             # being swallowed by the per-room exception handler.
             self.get_failure(handler._part_user(self.user), CancelledError)
 
+    def test_threepid_unbind_cancellation_propagates(self) -> None:
+        """
+        Cancellation while unbinding threepids must propagate so shutdown/cancel
+        semantics are preserved.
+        """
+        handler = self.hs.get_deactivate_account_handler()
+
+        with mock.patch.object(
+            handler.store,
+            "user_get_bound_threepids",
+            new=mock.AsyncMock(return_value=[("email", "alice@example.com")]),
+        ), mock.patch.object(
+            handler._identity_handler,
+            "try_unbind_threepid",
+            new=mock.AsyncMock(side_effect=CancelledError()),
+        ):
+            self.get_failure(
+                handler.deactivate_account(
+                    self.user,
+                    erase_data=False,
+                    requester=mock.Mock(user=mock.Mock(to_string=lambda: self.user)),
+                    id_server=None,
+                    by_admin=False,
+                ),
+                CancelledError,
+            )
+
     def test_threepid_unbind_failure_aborts_deactivation(self) -> None:
         """
         Failing to unbind a threepid from the identity server must abort the

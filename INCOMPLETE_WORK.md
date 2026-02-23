@@ -783,3 +783,90 @@ issue references (#17401–#17408).
   federation batched key claiming (#17375), cross-destination retry cap (#17376),
   per-destination retry refactor (#17377), invite signature compat (#17378),
   timestamp_to_event gap reconciliation (#17379), failover removal (#17385).
+
+## P0 marker debt update — deactivate/federation/url_previewer follow-through
+
+### Closed in this pass
+
+- Re-validated the scoped P0 files contain no remaining raw `TODO`/`FIXME`
+  markers:
+  - `synapse/handlers/deactivate_account.py`
+  - `synapse/federation/federation_client.py`
+  - `synapse/media/url_previewer.py`
+- Hardened deactivation cancellation safety in
+  `synapse/handlers/deactivate_account.py` by explicitly re-raising
+  `CancelledError` while unbinding threepids from the identity server. This
+  preserves cooperative cancellation semantics during shutdown/task-cancel
+  scenarios instead of converting cancellation into a generic 400 error.
+- Added targeted regression coverage in
+  `tests/handlers/test_deactivate_account.py`:
+  - `test_threepid_unbind_cancellation_propagates`
+
+### Remaining
+
+- No open `TODO`/`FIXME` markers remain in the three scoped files for this P0
+  task.
+- Existing issue-linked follow-ups in these files remain tracked as-is (for
+  larger cross-component work not safe to complete in this focused pass).
+
+## Runtime NotImplementedError audit (synapse/)
+
+### Closed in this pass
+
+- Audited `synapse/` for `raise NotImplementedError` runtime paths.
+- Result: no raw runtime `raise NotImplementedError` paths were found.
+- Added `docs/notimplemented_audit_report.md` with per-file classification and disposition.
+
+### Remaining
+
+- No Category-B runtime NotImplementedError gaps identified in `synapse/` during this pass.
+
+## Marker burn-down pass (10-file handlers/http/core batch)
+
+### Scope
+
+- `synapse/_scripts/generate_workers_map.py`
+- `synapse/event_auth.py`
+- `synapse/events/__init__.py`
+- `synapse/visibility.py`
+- `synapse/http/federation/srv_resolver.py`
+- `synapse/http/client.py`
+- `synapse/handlers/auth.py`
+- `synapse/handlers/pagination.py`
+- `synapse/handlers/relations.py`
+- `synapse/handlers/message.py`
+
+### Results
+
+- `TODO`/`FIXME`/`TBD`/`XXX`/`HACK`/`TODO_test_` markers in scope: **0**.
+- `NotImplementedError` textual matches in scope: **2**, both from Twisted's
+  typed `DNSNotImplementedError` import/exception handling in
+  `synapse/http/federation/srv_resolver.py` (not marker debt).
+- No code-path changes were required in this pass because there were no
+  actionable marker comments in the scoped files.
+
+### Verification commands
+
+```bash
+rg -n "TODO|FIXME|TBD|XXX|HACK|TODO_test_" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
+rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
+```
+
+## Repository-wide marker inventory refresh
+
+### Closed in this pass
+
+- Re-ran full repository marker scan:
+  - `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .`
+- Re-ran Synapse-only marker scan:
+  - `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse`
+
+### Current counts
+
+- Repository-wide total markers: **799**
+- `synapse/` total markers: **145**
+
+### Remaining
+
+- Continue iterative burn-down in prioritized runtime-sensitive subsystems while
+  preserving issue-linked follow-ups where immediate implementation is unsafe.

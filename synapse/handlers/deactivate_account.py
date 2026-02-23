@@ -110,6 +110,8 @@ class DeactivateAccountHandler:
                 result = await self._identity_handler.try_unbind_threepid(
                     user_id, medium, address, id_server
                 )
+            except CancelledError:
+                raise
             except Exception:
                 # Intentionally fatal: aborting deactivation here leaves the
                 # account active so the user (or admin) can retry.  Continuing
