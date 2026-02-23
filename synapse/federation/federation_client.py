@@ -567,8 +567,13 @@ class FederationClient(FederationBase):
             destination, room_id, event_id=event_id
         )
 
-        state_event_ids = result["pdu_ids"]
+        state_event_ids = result.get("pdu_ids")
         auth_event_ids = result.get("auth_chain_ids", [])
+
+        if not isinstance(state_event_ids, list) or not isinstance(
+            auth_event_ids, list
+        ):
+            raise InvalidResponseError("invalid response from /state_ids")
 
         set_tag(
             SynapseTags.RESULT_PREFIX + "state_event_ids",
@@ -586,11 +591,6 @@ class FederationClient(FederationBase):
             SynapseTags.RESULT_PREFIX + "auth_event_ids.length",
             str(len(auth_event_ids)),
         )
-
-        if not isinstance(state_event_ids, list) or not isinstance(
-            auth_event_ids, list
-        ):
-            raise InvalidResponseError("invalid response from /state_ids")
 
         return state_event_ids, auth_event_ids
 

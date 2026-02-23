@@ -23,6 +23,7 @@ from synapse.api.constants import Direction
 from synapse.api.errors import SynapseError
 from synapse.api.room_versions import RoomVersions
 from synapse.events import EventBase
+from synapse.federation.federation_client import InvalidResponseError
 from synapse.rest import admin
 from synapse.rest.client import login, room
 from synapse.server import HomeServer
@@ -256,6 +257,47 @@ class FederationClientTest(FederatingHomeserverTestCase):
         self.assertIsNone(result)
         # Verify the warning was emitted via logger.warning (not deprecated warn).
         mock_logger.warning.assert_called()
+
+    def test_get_room_state_ids_rejects_non_list_pdu_ids(self) -> None:
+        """get_room_state_ids must raise InvalidResponseError (not TypeError)
+        when the remote server returns a non-list value for ``pdu_ids``."""
+        self._mock_agent.request.side_effect = lambda *args, **kwargs: defer.succeed(
+            FakeResponse.json(
+                payload={
+                    "pdu_ids": None,
+                    "auth_chain_ids": [],
+                }
+            )
+        )
+
+        self.get_failure(
+            self.hs.get_federation_client().get_room_state_ids(
+                "yet.another.server",
+                self.test_room_id,
+                "event_id",
+            ),
+            InvalidResponseError,
+        )
+
+    def test_get_room_state_ids_rejects_missing_pdu_ids(self) -> None:
+        """get_room_state_ids must raise InvalidResponseError when the remote
+        server omits ``pdu_ids`` entirely from the response."""
+        self._mock_agent.request.side_effect = lambda *args, **kwargs: defer.succeed(
+            FakeResponse.json(
+                payload={
+                    "auth_chain_ids": [],
+                }
+            )
+        )
+
+        self.get_failure(
+            self.hs.get_federation_client().get_room_state_ids(
+                "yet.another.server",
+                self.test_room_id,
+                "event_id",
+            ),
+            InvalidResponseError,
+        )
 
     def _get_pdu_once(self) -> EventBase:
         """Retrieve an event via `get_pdu()` and assert that an event was returned.

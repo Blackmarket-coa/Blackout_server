@@ -212,6 +212,45 @@ class URLPreviewTests(unittest.HomeserverTestCase):
                 CancelledError,
             )
 
+    def test_download_result_handles_non_ascii_content_type(self) -> None:
+        """Non-ASCII bytes in the Content-Type header must not crash the
+        download; they should be replaced rather than raising UnicodeDecodeError."""
+        headers = {
+            b"Content-Type": [b"text/html; charset=\xff"],
+        }
+        result = self.get_success(
+            self._download_with_headers(headers)
+        )
+        # The replacement character should appear instead of the invalid byte.
+        self.assertIn("\ufffd", result.media_type)
+
+    def test_download_result_handles_non_ascii_etag(self) -> None:
+        """Non-ASCII bytes in the ETag header must not crash the download."""
+        headers = {
+            b"Content-Type": [b"text/html"],
+            b"ETag": [b"\x80invalid"],
+        }
+        result = self.get_success(
+            self._download_with_headers(headers)
+        )
+        self.assertIsNotNone(result.etag)
+        self.assertIn("\ufffd", result.etag)
+
+    async def _download_with_headers(self, response_headers: dict) -> "DownloadResult":
+        """Helper that exercises _download_url's header parsing with given
+        response headers."""
+        with mock.patch.object(
+            self.url_previewer.client,
+            "get_file",
+            new=mock.AsyncMock(
+                return_value=(0, response_headers, "http://example.com", 200)
+            ),
+        ):
+            result = await self.url_previewer._download_url(
+                "http://example.com", mock.MagicMock()
+            )
+        return result
+
     @override_config({"max_spider_size": 16})
     def test_read_file_for_parsing_rejects_oversized_body(self) -> None:
         body_file = self.mktemp()

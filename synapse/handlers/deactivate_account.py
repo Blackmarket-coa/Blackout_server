@@ -202,6 +202,8 @@ class DeactivateAccountHandler:
         user = UserID.from_string(user_id)
         pending_invites = await self.store.get_invited_rooms_for_local_user(user_id)
 
+        rejected = 0
+        failed = 0
         for room in pending_invites:
             try:
                 await self._room_member_handler.update_membership(
@@ -212,6 +214,7 @@ class DeactivateAccountHandler:
                     ratelimit=False,
                     require_consent=False,
                 )
+                rejected += 1
                 logger.info(
                     "Rejected invite for deactivated user %r in room %r",
                     user_id,
@@ -220,12 +223,22 @@ class DeactivateAccountHandler:
             except CancelledError:
                 raise
             except Exception:
+                failed += 1
                 logger.exception(
                     "Failed to reject invite for user %r in room %r:"
                     " ignoring and continuing",
                     user_id,
                     room.room_id,
                 )
+
+        if pending_invites:
+            logger.info(
+                "Invite rejection summary for %r: %d rejected, %d failed out of %d",
+                user_id,
+                rejected,
+                failed,
+                len(pending_invites),
+            )
 
     def _start_user_parting(self) -> None:
         """
