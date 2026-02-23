@@ -267,22 +267,105 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
             ],
         )
 
-        # the auth chain should not include anything already in "state"
+        # The auth chain must never duplicate events already in state.
         returned_auth_chain_events = [
             (ev["type"], ev["state_key"]) for ev in channel.json_body["auth_chain"]
         ]
-        # In this room setup, every event needed to auth the join is already
-        # present in the reduced state response above.
+        # In this room setup (no m.room.name, no canonical alias) heroes are
+        # included in reduced state, so every auth-chain dependency is already
+        # present in state and the auth_chain response is correctly empty.
         self.assertEqual(channel.json_body["auth_chain"], [])
-        self.assertEqual(returned_auth_chain_events, [])
-
-        # /send_join with omit_members=true must not duplicate auth events in state.
-        # This remains deterministic for this fixture because room setup is static.
-        self.assertTrue(set(returned_auth_chain_events).isdisjoint(returned_state))
+        self.assertTrue(
+            set(returned_auth_chain_events).isdisjoint(set(returned_state)),
+            "auth_chain and state must not overlap",
+        )
 
         # the room should show that the new user is a member
         r = self.get_success(
             self._storage_controllers.state.get_current_state(self._room_id)
+        )
+        self.assertEqual(r[("m.room.member", joining_user)].membership, "join")
+
+    def test_send_join_partial_state_non_empty_auth_chain(self) -> None:
+        """When a named room omits hero members from reduced state, auth-chain
+        events that are not in state must be returned separately.
+
+        Rooms with an m.room.name suppress hero inclusion in partial state
+        (see _get_event_ids_for_partial_state_join).  The creator's membership
+        event is still an auth dependency of the power_levels event, so it must
+        appear in auth_chain instead of being silently dropped.  This test
+        fulfils the original test-debt TODO: exercise a non-empty auth_chain in
+        the omit_members=true code-path.
+        """
+        # Create a room *with* a name so hero member events are excluded from
+        # the partial-state response.
+        creator = self.register_user("waldorf", "pass")
+        tok = self.login("waldorf", "pass")
+        room_id = self.helper.create_room_as(
+            room_creator=creator,
+            tok=tok,
+            extra_content={"name": "The Balcony"},
+        )
+
+        second = self.register_user("statler", "pass")
+        tok2 = self.login("statler", "pass")
+        self.helper.join(room_id, second, tok=tok2)
+
+        # Federated join with omit_members=true.
+        joining_user = "@misspiggy:" + self.OTHER_SERVER_NAME
+        channel = self.make_signed_federation_request(
+            "GET",
+            f"/_matrix/federation/v1/make_join/{room_id}/{joining_user}"
+            f"?ver={DEFAULT_ROOM_VERSION}",
+        )
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.json_body)
+        join_event_dict = channel.json_body["event"]
+        self.add_hashes_and_signatures_from_other_server(
+            join_event_dict,
+            KNOWN_ROOM_VERSIONS[DEFAULT_ROOM_VERSION],
+        )
+
+        channel = self.make_signed_federation_request(
+            "PUT",
+            f"/_matrix/federation/v2/send_join/{room_id}/x?omit_members=true",
+            content=join_event_dict,
+        )
+        self.assertEqual(channel.code, HTTPStatus.OK, channel.json_body)
+
+        returned_state = [
+            (ev["type"], ev["state_key"]) for ev in channel.json_body["state"]
+        ]
+        returned_auth_chain_events = [
+            (ev["type"], ev["state_key"]) for ev in channel.json_body["auth_chain"]
+        ]
+
+        # Reduced state must contain non-member events (including m.room.name)
+        # but must NOT contain hero member events when a name is set.
+        self.assertIn(("m.room.name", ""), returned_state)
+        self.assertNotIn(("m.room.member", "@waldorf:test"), returned_state)
+        self.assertNotIn(("m.room.member", "@statler:test"), returned_state)
+
+        # The creator's membership is an auth dependency of power_levels
+        # (and transitively of join_rules etc.) but is not in reduced state,
+        # so it must appear in auth_chain.
+        self.assertIn(
+            ("m.room.member", "@waldorf:test"), returned_auth_chain_events
+        )
+        self.assertGreaterEqual(
+            len(returned_auth_chain_events),
+            1,
+            "Expected at least one auth chain event when heroes are suppressed",
+        )
+
+        # Structural invariant: auth_chain and state must never overlap.
+        self.assertTrue(
+            set(returned_auth_chain_events).isdisjoint(set(returned_state)),
+            "auth_chain and state must not contain duplicate events",
+        )
+
+        # Verify the join was persisted.
+        r = self.get_success(
+            self._storage_controllers.state.get_current_state(room_id)
         )
         self.assertEqual(r[("m.room.member", joining_user)].membership, "join")
 
