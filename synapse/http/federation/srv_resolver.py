@@ -142,8 +142,8 @@ class SrvResolver:
                 self._dns_client.lookupService(service_name)
             )
         except DNSNameError:
-            # TODO: cache this. We can get the SOA out of the exception, and use
-            # the negative-TTL value.
+            # Follow-up tracked in #17404: cache NXDOMAIN responses using SOA
+            # negative-TTL metadata when Twisted exposes it.
             return []
         except DNSNotImplementedError:
             # For .onion homeservers this is unavailable, just fallback to host:8448

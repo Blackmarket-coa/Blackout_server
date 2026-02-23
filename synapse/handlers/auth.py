@@ -83,6 +83,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
+LOGIN_TOKEN_LIFETIME_MS = 2 * 60 * 1000
+
 INVALID_USERNAME_OR_PASSWORD = "Invalid username or password"
 
 invalid_login_token_counter = Counter(
@@ -901,7 +904,7 @@ class AuthHandler:
     async def create_login_token_for_user_id(
         self,
         user_id: str,
-        duration_ms: int = (2 * 60 * 1000),
+        duration_ms: int = LOGIN_TOKEN_LIFETIME_MS,
         auth_provider_id: Optional[str] = None,
         auth_provider_session_id: Optional[str] = None,
     ) -> str:
@@ -1502,8 +1505,8 @@ class AuthHandler:
         )
 
         # delete pushers associated with this access token
-        # XXX(quenting): This is only needed until the 'set_device_id_for_pushers'
-        # background update completes.
+        # Legacy compatibility while `set_device_id_for_pushers` data migration
+        # may still be incomplete on upgraded deployments.
         if token.token_id is not None:
             await self.hs.get_pusherpool().remove_pushers_by_access_tokens(
                 token.user_id, (token.token_id,)
@@ -1535,8 +1538,8 @@ class AuthHandler:
             )
 
         # delete pushers associated with the access tokens
-        # XXX(quenting): This is only needed until the 'set_device_id_for_pushers'
-        # background update completes.
+        # Legacy compatibility while `set_device_id_for_pushers` data migration
+        # may still be incomplete on upgraded deployments.
         await self.hs.get_pusherpool().remove_pushers_by_access_tokens(
             user_id, (token_id for _, token_id, _ in tokens_and_devices)
         )
@@ -1847,9 +1850,9 @@ class AuthHandler:
         """
         Iterate through the mapping of user IDs to extra attributes and remove any that are no longer valid.
         """
-        # TODO This should match the amount of time the macaroon is valid for.
-        LOGIN_TOKEN_EXPIRATION_TIME = 2 * 60 * 1000
-        expire_before = self._clock.time_msec() - LOGIN_TOKEN_EXPIRATION_TIME
+        # Keep this aligned with `create_login_token_for_user_id` so temporary
+        # SSO attributes expire alongside login token validity.
+        expire_before = self._clock.time_msec() - LOGIN_TOKEN_LIFETIME_MS
         to_expire = set()
         for user_id, data in self._extra_attributes.items():
             if data.creation_time < expire_before:

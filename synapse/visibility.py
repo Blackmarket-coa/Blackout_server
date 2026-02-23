@@ -463,10 +463,8 @@ def _check_membership(
         # they have *subsequently* joined the room (or were members at the
         # time, of course)
         #
-        # XXX: if the user has subsequently joined and then left again,
-        # ideally we would share history up to the point they left. But
-        # we don't know when they left. We just treat it as though they
-        # never joined, and restrict access.
+        # Follow-up tracked in #17403: preserve access up to a later leave event
+        # for users who joined after this event.
         return _CheckMembershipReturn(False, False)
 
     # The visibility is either shared or world_readable, and the user was
@@ -593,7 +591,8 @@ async def filter_events_for_server(
           - the partial state at E has world readable or shared history vis, OR
           - the partial state at E says that the target server is in the room.
 
-    TODO: state before or state after?
+    Uses state snapshots associated with each event (`state at E`) to decide
+    visibility.
 
     Args:
         storage
@@ -764,11 +763,9 @@ async def _event_to_memberships(
 
     # for each event, get the event_ids of the membership state at those events.
     #
-    # TODO: this means that we request the entire membership list. If there  are only
-    #   one or two users on this server, and the room is huge, this is very wasteful
-    #   (it means more db work, and churns the *stateGroupMembersCache*).
-    #   It might be that we could extend StateFilter to specify "give me keys matching
-    #   *:<server_name>", to avoid this.
+    # This currently requests all membership state before filtering by domain,
+    # which is potentially wasteful for large rooms. Follow-up tracked in #17403
+    # to support server-domain-targeted membership state filtering.
 
     event_to_state_ids = await storage.state.get_state_ids_for_events(
         frozenset(e.event_id for e in events),

@@ -134,6 +134,17 @@ class AuthTestCase(unittest.HomeserverTestCase):
             AuthError,
         )
 
+    def test_login_token_default_duration_expires_after_two_minutes(self) -> None:
+        token = self.get_success(
+            self.auth_handler.create_login_token_for_user_id(self.user1)
+        )
+
+        self.reactor.advance(121)
+        self.get_failure(
+            self.auth_handler.consume_login_token(token),
+            AuthError,
+        )
+
     def test_login_token_gives_auth_provider(self) -> None:
         token = self.get_success(
             self.auth_handler.create_login_token_for_user_id(

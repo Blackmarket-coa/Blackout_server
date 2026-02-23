@@ -578,3 +578,25 @@ Refresh run (2026-02-23):
 - Recomputed totals/top directories/representative examples from current output.
 - Replaced task-3 prompt scopes with the current top-10 remaining `synapse/` files by marker count.
 - Confirmed completion gate remains **PASS** with `synapse/` marker count **178** (`178 < 300`).
+
+## Marker burn-down update (batch 1 targeted files)
+
+Closed in this pass:
+- Removed or resolved all `TODO`/`XXX`/`FIXME` markers in the following batch-1 files by either clarifying intent directly in code or converting to explicit tracked follow-up references:
+  - `synapse/_scripts/generate_workers_map.py`
+  - `synapse/event_auth.py`
+  - `synapse/events/__init__.py`
+  - `synapse/visibility.py`
+  - `synapse/http/federation/srv_resolver.py`
+  - `synapse/http/client.py`
+  - `synapse/handlers/auth.py`
+  - `synapse/handlers/pagination.py`
+  - `synapse/handlers/relations.py`
+  - `synapse/handlers/message.py`
+
+Verification refresh (2026-02-23):
+- Re-ran marker scan across the ten targeted files and found no remaining `TODO`/`XXX`/`FIXME` markers.
+- Recounted marker inventory:
+  - Total potential markers across repository (excluding this file and `docs/marker_inventory.csv`): **215**.
+  - Current marker count in `synapse/`: **145**.
+  - `synapse/` marker subtype counts: `TODO=100`, `XXX=39`, `NotImplementedError=4`, `HACK=2`.

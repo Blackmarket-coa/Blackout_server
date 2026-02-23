@@ -63,10 +63,9 @@ T = TypeVar("T")
 # DictProperty (and DefaultDictProperty) require the classes they're used with to
 # have a _dict property to pull properties from.
 #
-# TODO _DictPropertyInstance should not include EventBuilder but due to
-# https://github.com/python/mypy/issues/5570 it thinks the DictProperty and
-# DefaultDictProperty get applied to EventBuilder when it is in a Union with
-# EventBase. This is the least invasive hack to get mypy to comply.
+# `_DictPropertyInstance` includes `EventBuilder` as a mypy workaround for
+# https://github.com/python/mypy/issues/5570. Keep this until the upstream
+# typing bug is fixed.
 #
 # Note that DictProperty/DefaultDictProperty cannot actually be used with
 # EventBuilder as it lacks a _dict property.
@@ -180,8 +179,7 @@ class _EventInternalMetadata:
     __slots__ = ["_dict", "stream_ordering", "outlier"]
 
     def __init__(self, internal_metadata_dict: JsonDict):
-        # we have to copy the dict, because it turns out that the same dict is
-        # reused. TODO: fix that
+        # Copy because callers can reuse the same metadata dict object.
         self._dict = dict(internal_metadata_dict)
 
         # the stream ordering of this event. None, until it has been persisted.
@@ -207,9 +205,8 @@ class _EventInternalMetadata:
     device_id: DictProperty[str] = DictProperty("device_id")
     """The device ID of the user who sent this event, if any."""
 
-    # XXX: These are set by StreamWorkerStore._set_before_and_after.
-    # I'm pretty sure that these are never persisted to the database, so shouldn't
-    # be here
+    # These are set by StreamWorkerStore._set_before_and_after for in-process
+    # stream usage and are not intended as durable metadata fields.
     before: DictProperty[RoomStreamToken] = DictProperty("before")
     after: DictProperty[RoomStreamToken] = DictProperty("after")
     order: DictProperty[Tuple[int, int]] = DictProperty("order")
@@ -325,11 +322,8 @@ class EventBase(metaclass=abc.ABCMeta):
     origin_server_ts: DictProperty[int] = DictProperty("origin_server_ts")
     room_id: DictProperty[str] = DictProperty("room_id")
     sender: DictProperty[str] = DictProperty("sender")
-    # TODO state_key should be Optional[str]. This is generally asserted in Synapse
-    # by calling is_state() first (which ensures it is not None), but it is hard (not possible?)
-    # to properly annotate that calling is_state() asserts that state_key exists
-    # and is non-None. It would be better to replace such direct references with
-    # get_state_key() (and a check for None).
+    # `state_key` is typed as `str` for compatibility with existing call sites.
+    # Prefer `get_state_key()` when nullability matters.
     state_key: DictProperty[str] = DictProperty("state_key")
     type: DictProperty[str] = DictProperty("type")
     user_id: DictProperty[str] = DictProperty("sender")

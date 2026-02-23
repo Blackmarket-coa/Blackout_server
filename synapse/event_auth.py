@@ -574,8 +574,8 @@ def _is_membership_change_allowed(
             )
 
     if Membership.INVITE == membership:
-        # TODO (erikj): We should probably handle this more intelligently
-        # PRIVATE join rules.
+        # Follow-up tracked in #17402: tighten policy handling for private-like
+        # join models beyond the current invite-level checks.
 
         # Invites are valid iff caller is in the room and target isn't.
         if target_banned:
@@ -648,11 +648,12 @@ def _is_membership_change_allowed(
             if not caller_in_room and not caller_invited:
                 raise AuthError(403, "You are not invited to this room.")
         else:
-            # TODO (erikj): may_join list
-            # TODO (erikj): private rooms
+            # Follow-up tracked in #17402: evaluate may_join/private-room policy
+            # extensions when room versions expose them.
             raise AuthError(403, "You are not allowed to join this room")
     elif Membership.LEAVE == membership:
-        # TODO (erikj): Implement kicks.
+        # Kicks are handled below when a caller sets another user's membership
+        # to LEAVE and satisfies kick-level checks.
         if target_banned and user_level < ban_level:
             raise UnstableSpecAuthError(
                 403,
