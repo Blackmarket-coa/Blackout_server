@@ -851,3 +851,22 @@ issue references (#17401–#17408).
 rg -n "TODO|FIXME|TBD|XXX|HACK|TODO_test_" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
 ```
+
+## Repository-wide marker inventory refresh
+
+### Closed in this pass
+
+- Re-ran full repository marker scan:
+  - `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .`
+- Re-ran Synapse-only marker scan:
+  - `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse`
+
+### Current counts
+
+- Repository-wide total markers: **799**
+- `synapse/` total markers: **145**
+
+### Remaining
+
+- Continue iterative burn-down in prioritized runtime-sensitive subsystems while
+  preserving issue-linked follow-ups where immediate implementation is unsafe.
