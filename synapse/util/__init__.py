@@ -193,7 +193,7 @@ def log_failure(
 
 # Version string with git info. Computed here once so that we don't invoke git multiple
 # times.
-SYNAPSE_VERSION = get_distribution_version_string("matrix-synapse", __file__)
+SYNAPSE_VERSION = get_distribution_version_string("blackout-server", __file__)
 
 
 class ExceptionBundle(Exception):

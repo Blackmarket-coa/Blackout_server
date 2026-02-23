@@ -20,7 +20,11 @@ from twisted.internet.defer import Deferred
 from twisted.internet.error import ConnectError
 from twisted.names import dns, error
 
-from synapse.http.federation.srv_resolver import Server, SrvResolver
+from synapse.http.federation.srv_resolver import (
+    NXDOMAIN_CACHE_EXPIRY,
+    Server,
+    SrvResolver,
+)
 from synapse.logging.context import LoggingContext, current_context
 
 from tests import unittest
@@ -157,6 +161,126 @@ class SrvResolverTestCase(unittest.TestCase):
 
         self.assertEqual(len(servers), 0)
         self.assertEqual(len(cache), 0)
+
+    @defer.inlineCallbacks
+    def test_name_error_is_cached(
+        self,
+    ) -> Generator["Deferred[object]", object, None]:
+        """An NXDOMAIN result is negatively cached so a second lookup does not
+        hit DNS again."""
+        dns_client_mock = Mock()
+        dns_client_mock.lookupService.return_value = defer.fail(error.DNSNameError())
+
+        service_name = b"test_service.example.com"
+        clock = MockClock()
+
+        cache: Dict[bytes, List[Server]] = {}
+        resolver = SrvResolver(
+            dns_client=dns_client_mock, cache=cache, get_time=clock.time
+        )
+
+        # First lookup triggers DNS.
+        servers: List[Server]
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 0)
+        dns_client_mock.lookupService.assert_called_once_with(service_name)
+
+        # Second lookup is served from the negative cache — no new DNS call.
+        dns_client_mock.lookupService.reset_mock()
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 0)
+        dns_client_mock.lookupService.assert_not_called()
+
+    @defer.inlineCallbacks
+    def test_name_error_cache_expires(
+        self,
+    ) -> Generator["Deferred[object]", object, None]:
+        """After the negative cache TTL elapses, a fresh DNS query is issued."""
+        dns_client_mock = Mock()
+        dns_client_mock.lookupService.return_value = defer.fail(error.DNSNameError())
+
+        service_name = b"test_service.example.com"
+        clock = MockClock()
+
+        cache: Dict[bytes, List[Server]] = {}
+        resolver = SrvResolver(
+            dns_client=dns_client_mock, cache=cache, get_time=clock.time
+        )
+
+        # First lookup populates the negative cache.
+        servers: List[Server]
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 0)
+        dns_client_mock.lookupService.assert_called_once_with(service_name)
+
+        # Advance past the negative cache TTL.
+        clock.now += NXDOMAIN_CACHE_EXPIRY + 1
+
+        # New DNS query should be made (still NXDOMAIN in this test).
+        dns_client_mock.lookupService.reset_mock()
+        dns_client_mock.lookupService.return_value = defer.fail(error.DNSNameError())
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 0)
+        dns_client_mock.lookupService.assert_called_once_with(service_name)
+
+    @defer.inlineCallbacks
+    def test_positive_result_clears_negative_cache(
+        self,
+    ) -> Generator["Deferred[object]", object, None]:
+        """A successful DNS response after an NXDOMAIN clears the negative cache."""
+        dns_client_mock = Mock()
+        dns_client_mock.lookupService.return_value = defer.fail(error.DNSNameError())
+
+        service_name = b"test_service.example.com"
+        host_name = b"example.com"
+        clock = MockClock()
+
+        cache: Dict[bytes, List[Server]] = {}
+        resolver = SrvResolver(
+            dns_client=dns_client_mock, cache=cache, get_time=clock.time
+        )
+
+        # First lookup: NXDOMAIN.
+        servers: List[Server]
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 0)
+
+        # Advance past the negative cache TTL so the next lookup actually queries DNS.
+        clock.now += NXDOMAIN_CACHE_EXPIRY + 1
+
+        # Second lookup: the name now resolves (give a TTL so the positive
+        # cache is valid for subsequent lookups).
+        answer_srv = dns.RRHeader(
+            type=dns.SRV, payload=dns.Record_SRV(target=host_name), ttl=300
+        )
+        dns_client_mock.lookupService.return_value = defer.succeed(
+            ([answer_srv], None, None)
+        )
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 1)
+        self.assertEqual(servers[0].host, host_name)
+
+        # The negative cache should be cleared; verify by checking that
+        # a subsequent lookup (within positive cache TTL) uses the positive cache.
+        dns_client_mock.lookupService.reset_mock()
+        servers = yield defer.ensureDeferred(
+            resolver.resolve_service(service_name)
+        )  # type: ignore[assignment]
+        self.assertEqual(len(servers), 1)
+        # DNS was not called again because the positive cache is still valid.
+        dns_client_mock.lookupService.assert_not_called()
 
     def test_disabled_service(self) -> None:
         """

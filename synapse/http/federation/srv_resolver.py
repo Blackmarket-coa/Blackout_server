@@ -30,6 +30,11 @@ logger = logging.getLogger(__name__)
 
 SERVER_CACHE: Dict[bytes, List["Server"]] = {}
 
+# Default negative cache TTL for NXDOMAIN responses (seconds).
+# RFC 2308 recommends using SOA minimum TTL; since Twisted does not expose
+# SOA metadata on DNSNameError we use a conservative fixed TTL instead.
+NXDOMAIN_CACHE_EXPIRY = 5 * 60
+
 
 @attr.s(auto_attribs=True, slots=True, frozen=True)
 class Server:
@@ -116,6 +121,8 @@ class SrvResolver:
         self._dns_client = dns_client
         self._cache = cache
         self._get_time = get_time
+        # Negative cache: maps service_name → expiry epoch (seconds).
+        self._negative_cache: Dict[bytes, int] = {}
 
     async def resolve_service(self, service_name: bytes) -> List[Server]:
         """Look up a SRV record
@@ -131,6 +138,11 @@ class SrvResolver:
         if not isinstance(service_name, bytes):
             raise TypeError("%r is not a byte string" % (service_name,))
 
+        # Check negative cache for previously-seen NXDOMAIN responses.
+        neg_expires = self._negative_cache.get(service_name)
+        if neg_expires is not None and neg_expires > now:
+            return []
+
         cache_entry = self._cache.get(service_name, None)
         if cache_entry:
             if all(s.expires > now for s in cache_entry):
@@ -142,8 +154,9 @@ class SrvResolver:
                 self._dns_client.lookupService(service_name)
             )
         except DNSNameError:
-            # Follow-up tracked in #17404: cache NXDOMAIN responses using SOA
-            # negative-TTL metadata when Twisted exposes it.
+            # Cache the negative result so we don't re-query the same name
+            # on every federation attempt.
+            self._negative_cache[service_name] = now + NXDOMAIN_CACHE_EXPIRY
             return []
         except DNSNotImplementedError:
             # For .onion homeservers this is unavailable, just fallback to host:8448
@@ -186,5 +199,6 @@ class SrvResolver:
                 )
             )
 
+        self._negative_cache.pop(service_name, None)
         self._cache[service_name] = list(servers)
         return _sort_server_list(servers)
