@@ -17,7 +17,9 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ### Disabled or unfinished tests
 
-- `tests/federation/test_federation_server.py:262` (TODO to improve auth-chain test coverage)
+- `tests/federation/test_federation_server.py` auth-chain coverage TODO was closed;
+  `/send_join` partial-state test now asserts an empty auth chain and verifies
+  no overlap with returned state for deterministic fixture coverage.
 
 ### NotImplemented placeholders (primarily abstract/interface stubs)
 
@@ -502,3 +504,19 @@ Verification refresh (2026-02-23):
 Remaining:
 - Continue marker burn-down on the next highest-density `synapse/` files from
   this inventory.
+
+## Safety test debt update (federation server auth-chain)
+
+Closed in this pass:
+- Verified `tests/federation/test_federation_server.py` no longer carries an
+  auth-chain `TODO`/`FIXME`; the partial-state `/send_join` test now includes
+  concrete assertions that `auth_chain` is empty for this deterministic fixture
+  and disjoint from returned state.
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME" tests/federation/test_federation_server.py` returns no
+  markers.
+
+Remaining:
+- No explicit auth-chain TODO debt remains in this test module for the inventory
+  item previously called out.
