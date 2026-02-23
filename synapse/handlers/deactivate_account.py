@@ -93,10 +93,10 @@ class DeactivateAccountHandler:
         # identity-server flows; that follow-up is tracked in
         # https://github.com/matrix-org/synapse/issues/17374.
 
-        # delete threepids first. We remove these from the IS so if this fails,
+        # Delete threepids first. We remove these from the IS so if this fails,
         # leave the user still active so they can try again.
-        # Ideally we would prevent password resets and then do this in the
-        # background thread.
+        # Preventing password resets during deactivation is part of the
+        # threepid-race follow-up tracked in #17374 above.
 
         # This will be set to false if the identity server doesn't support
         # unbinding
@@ -111,7 +111,10 @@ class DeactivateAccountHandler:
                     user_id, medium, address, id_server
                 )
             except Exception:
-                # Do we want this to be a fatal error or should we carry on?
+                # Intentionally fatal: aborting deactivation here leaves the
+                # account active so the user (or admin) can retry.  Continuing
+                # would leave bound threepids on the identity server while the
+                # local account is deactivated, making future cleanup harder.
                 logger.exception("Failed to remove threepid from ID server")
                 raise SynapseError(400, "Failed to remove threepid from ID server")
 

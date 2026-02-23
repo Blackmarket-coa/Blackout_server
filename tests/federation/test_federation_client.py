@@ -19,6 +19,8 @@ import twisted.web.client
 from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
+from synapse.api.constants import Direction
+from synapse.api.errors import SynapseError
 from synapse.api.room_versions import RoomVersions
 from synapse.events import EventBase
 from synapse.rest import admin
@@ -227,6 +229,33 @@ class FederationClientTest(FederatingHomeserverTestCase):
                 ),
                 CancelledError,
             )
+
+    def test_timestamp_to_event_logs_warning_on_failure(self) -> None:
+        """
+        When all destinations fail, timestamp_to_event should log a warning
+        (using logger.warning, not the deprecated logger.warn) and return None.
+        """
+        # Have the transport layer raise a SynapseError for all destinations.
+        self._mock_agent.request.side_effect = lambda *args, **kwargs: defer.succeed(
+            FakeResponse(code=502)
+        )
+
+        with mock.patch(
+            "synapse.federation.federation_client.logger"
+        ) as mock_logger:
+            result = self.get_success(
+                self.hs.get_federation_client().timestamp_to_event(
+                    destinations=["yet.another.server"],
+                    room_id="!room:test",
+                    timestamp=1000,
+                    direction=Direction.FORWARDS,
+                )
+            )
+
+        # timestamp_to_event returns None on complete failure.
+        self.assertIsNone(result)
+        # Verify the warning was emitted via logger.warning (not deprecated warn).
+        mock_logger.warning.assert_called()
 
     def _get_pdu_once(self) -> EventBase:
         """Retrieve an event via `get_pdu()` and assert that an event was returned.

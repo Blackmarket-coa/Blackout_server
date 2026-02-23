@@ -563,6 +563,10 @@ class UrlPreviewer:
 
         try:
             logger.debug("Trying to parse data url '%s'", url)
+            # urlopen is intentionally synchronous here: data: URLs are decoded
+            # in-process without network I/O, so blocking the reactor is
+            # negligible and avoids pulling in an async HTTP client dependency
+            # for local-only parsing.
             with urlopen(url) as url_info:
                 length = 0
                 while True:

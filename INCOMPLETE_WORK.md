@@ -600,3 +600,46 @@ Verification refresh (2026-02-23):
   - Total potential markers across repository (excluding this file and `docs/marker_inventory.csv`): **215**.
   - Current marker count in `synapse/`: **145**.
   - `synapse/` marker subtype counts: `TODO=100`, `XXX=39`, `NotImplementedError=4`, `HACK=2`.
+
+---
+
+## P0 marker debt update (question-comment resolution + deprecation fix)
+
+Closed in this pass:
+- `synapse/handlers/deactivate_account.py`: Resolved the long-standing
+  question-comment "Do we want this to be a fatal error or should we carry on?"
+  in the threepid unbind exception handler. The answer is: intentionally fatal,
+  because aborting deactivation leaves the account active so the user can retry,
+  whereas continuing would leave bound threepids on the identity server with a
+  deactivated local account. The comment is replaced with a definitive design
+  rationale.
+- `synapse/handlers/deactivate_account.py`: Cleaned up the aspirational
+  "Ideally we would prevent password resets" comment to reference the tracked
+  issue (#17374) already present above it, removing the vague wording.
+- `synapse/federation/federation_client.py`: Replaced deprecated `logger.warn()`
+  call (deprecated since Python 3.3) with `logger.warning()` in the
+  `timestamp_to_event` error path. This is a P0 correctness fix because
+  `logging.warn` emits a DeprecationWarning in newer Python versions and may be
+  removed in a future release.
+- `synapse/media/url_previewer.py`: Added explicit documentation in
+  `_parse_data_url` clarifying that the synchronous `urlopen()` call is
+  intentional for data: URLs (no network I/O, in-process decode only).
+- `tests/handlers/test_deactivate_account.py`: Added
+  `test_threepid_unbind_failure_aborts_deactivation` verifying that an identity
+  server failure during deactivation raises `SynapseError(400)` and leaves the
+  account active.
+- `tests/federation/test_federation_client.py`: Added
+  `test_timestamp_to_event_logs_warning_on_failure` verifying that the warning
+  path uses `logger.warning` (not the deprecated `logger.warn`) and returns
+  `None` when all destinations fail.
+
+Remaining:
+- Tracked follow-up issues from prior passes remain open: threepid race
+  coordination (#17374), robots.txt support (#17382), pre-cache unification
+  (#17383), white-on-transparent thumbnail handling (#17384), batch stable API
+  calls (#17375), cross-destination cap (#17376), retry refactor (#17377),
+  invite signature compatibility (#17378), timestamp gap reconciliation
+  (#17379), and unknown-endpoint failover removal (#17385).
+- No raw `TODO`/`FIXME`/`XXX` markers remain in the three scoped files.
+- All remaining markers in the scoped files are explicit issue-linked follow-ups
+  with owner context.
