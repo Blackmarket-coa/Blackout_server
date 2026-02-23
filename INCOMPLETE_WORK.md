@@ -259,6 +259,26 @@ Closed in this pass:
 - Regenerated the marker snapshot and updated high-level totals after the latest marker cleanups.
 - Recomputed `synapse/` marker subtype and subsystem counts to keep this inventory aligned with the current tree state.
 
+---
+
+## Marker pass update (auth/storage/preview_html scope)
+
+Closed in this pass:
+- Audited marker density for:
+  - `synapse/api/auth/msc3861_delegated.py`
+  - `synapse/storage/database.py`
+  - `synapse/media/preview_html.py`
+- Verified the scoped files currently have **no** `TODO`/`FIXME`/`TBD`/`XXX`/`HACK`/`NotImplementedError`/`TODO_test_*` markers.
+- Confirmed existing notes in these files are already in issue-linked follow-up format with explicit owners and rationale.
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/auth/msc3861_delegated.py synapse/storage/database.py synapse/media/preview_html.py` returned no matches.
+- `pytest -q tests -k "delegated or storage or preview_html"` was blocked during collection in this environment due missing package metadata (`importlib.metadata.PackageNotFoundError: blackout-server`).
+
+Remaining:
+- No unowned `TODO`/`XXX` markers remain in the scoped request/authentication or storage write-path files.
+- Re-run the scoped pytest command in an environment where `blackout-server` package metadata is installed.
+
 Remaining:
 - Continue follow-up remediation on `TODO`/`XXX` hotspots in `synapse/handlers/`, `synapse/storage/`, and `synapse/rest/`.
 - `tests/handlers/test_deactivate_account.py` adds coverage that `_start_user_parting()` clears its guard flag when background process scheduling fails and can be retried successfully, and that `_part_user(...)` propagates cancellation.
