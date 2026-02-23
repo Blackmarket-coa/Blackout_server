@@ -218,6 +218,11 @@ Closed in this pass:
   - `synapse/rest/client/room.py`
   - `synapse/handlers/federation_event.py`
   into explicit issue-linked follow-ups (`#17390`-`#17393`) where immediate implementation was not safely scoped.
+
+Verification refresh (2026-02-23):
+- Re-ran marker scan for the four scoped files and confirmed there are currently
+  no `TODO`/`FIXME`/`XXX`/`HACK`/`NotImplementedError` markers remaining.
+- Recounted the full `synapse/` marker inventory; total remains **200**.
 - Regenerated `synapse/` marker counts after this batch (see updated snapshot above).
 
 Remaining:
