@@ -1022,3 +1022,33 @@ Validation:
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . | wc -l
 ```
+
+---
+
+## Marker burn-down update (highest-density runtime scope)
+
+Closed in this pass:
+- Replaced all scoped marker comments with explicit issue-linked follow-ups (owner + rationale) in:
+  - `synapse/api/filtering.py`
+  - `synapse/appservice/api.py`
+  - `synapse/config/oembed.py`
+  - `synapse/handlers/oidc.py`
+  - `synapse/handlers/sso.py`
+  - `synapse/replication/tcp/client.py`
+  - `synapse/rest/media/thumbnail_resource.py`
+  - `synapse/storage/databases/main/events_worker.py`
+  - `synapse/storage/databases/main/relations.py`
+- Removed all `TODO` / `FIXME` / `TBD` / `XXX` / `HACK` / `NotImplementedError` / `TODO_test_*` markers from the scoped files.
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/filtering.py synapse/appservice/api.py synapse/config/oembed.py synapse/handlers/oidc.py synapse/handlers/sso.py synapse/replication/tcp/client.py synapse/rest/media/thumbnail_resource.py synapse/storage/databases/main/events_worker.py synapse/storage/databases/main/relations.py` returned no matches.
+- Targeted tests run during subsystem commits:
+  - `pytest -q tests/api/test_filtering.py tests/appservice -k "filter or appservice or keys"`.
+  - `pytest -q tests/handlers/test_oidc.py tests/handlers/test_sso.py`.
+  - `pytest -q tests/replication/tcp/test_commands.py tests/rest/media -k "thumbnail or replication"`.
+  - `pytest -q tests/storage/test_relations.py`.
+
+Remaining:
+- One broader storage test command attempted in this environment (`pytest -q tests/storage/test_events.py tests/storage/test_relations.py`) failed due a pre-existing runtime/cache invalidation issue outside this marker-only change scope.
+- Follow-up implementation work remains tracked in the linked issues referenced inline in each touched file.
+

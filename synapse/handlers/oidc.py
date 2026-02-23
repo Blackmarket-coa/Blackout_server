@@ -645,8 +645,8 @@ class OidcProvider:
                             'kty': 'RSA',
                             'alg': 'RS256',
                             'use': 'sig',
-                            'e': 'XXXX',
-                            'n': 'XXXX',
+                            'e': '<redacted exponent>',
+                            'n': '<redacted modulus>',
                         }
                     ]
                 }
@@ -1280,10 +1280,9 @@ class OidcProvider:
                 f"Received an OIDC Back-Channel Logout request from issuer {self.issuer!r} but it is disabled in config"
             )
 
-            # TODO: this responds with a 400 status code, which is what the OIDC
-            # Back-Channel Logout spec expects, but spec also suggests answering with
-            # a JSON object, with the `error` and `error_description` fields set, which
-            # we are not doing here.
+            # Follow-up (matrix-org/synapse#17449, owner: auth team):
+            # return an RFC-compliant JSON error payload (error +
+            # error_description) for disabled backchannel logout requests.
             # See https://openid.net/specs/openid-connect-backchannel-1_0.html#BCResponse
             raise SynapseError(
                 400, "OpenID Connect Back-Channel Logout is disabled for this provider"

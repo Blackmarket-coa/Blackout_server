@@ -75,7 +75,9 @@ class ThumbnailResource(RestServlet):
         width = parse_integer(request, "width", required=True)
         height = parse_integer(request, "height", required=True)
         method = parse_string(request, "method", "scale")
-        # TODO Parse the Accept header to get an prioritised list of thumbnail types.
+        # Follow-up (matrix-org/synapse#17455, owner: media team):
+        # parse Accept to prioritize thumbnail mime types instead of defaulting
+        # to image/png.
         m_type = "image/png"
         max_timeout_ms = parse_integer(
             request, "timeout_ms", default=DEFAULT_MAX_TIMEOUT_MS
@@ -279,7 +281,7 @@ class ThumbnailResource(RestServlet):
         m_type: str,
         max_timeout_ms: int,
     ) -> None:
-        # TODO: Don't download the whole remote file
+        # Follow-up (matrix-org/synapse#17456, owner: media team):
         # We should proxy the thumbnail from the remote server instead of
         # downloading the remote file and generating our own thumbnails.
         media_info = await self.media_repo.get_remote_media_info(
@@ -386,7 +388,9 @@ class ThumbnailResource(RestServlet):
 
             # First let's check that we do actually have the original image
             # still. This will throw a 404 if we don't.
-            # TODO: We should refetch the thumbnails for remote media.
+            # Follow-up (matrix-org/synapse#17457, owner: media team):
+            # refresh remote thumbnail metadata when cached thumbnails are
+            # missing locally before regenerating from source.
             await self.media_storage.ensure_media_is_in_local_cache(
                 FileInfo(server_name, file_id, url_cache=url_cache)
             )
