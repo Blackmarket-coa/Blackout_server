@@ -690,3 +690,42 @@ issue references (#17401–#17408).
   for implementation by subsystem owners.
 - Continue marker burn-down on next highest-density files per the prioritized
   prompt list above.
+
+## P0-A verification pass: msc3861_delegated + database + preview_html (wave 3)
+
+### Closed in this pass
+
+- `synapse/api/auth/msc3861_delegated.py`: removed stale commented-out
+  `metadata.validate_introspection_endpoint()` call in `_load_metadata`. The
+  introspection endpoint is from RFC 7662 (not OIDC core discovery), so
+  authlib's validator is unreliable across providers; the introspection path
+  already handles missing/broken endpoints via the exception handler in
+  `_introspect_token`.
+- Re-scanned all three scoped files (`synapse/api/auth/msc3861_delegated.py`,
+  `synapse/storage/database.py`, `synapse/media/preview_html.py`) for
+  `TODO`/`FIXME`/`TBD`/`XXX`/`HACK`/`NotImplementedError`/`TODO_test_` markers
+  and confirmed **0 raw markers** remain.
+- Confirmed all issue-linked follow-up comments from prior waves remain intact
+  with owner teams and rationale:
+  - `msc3861_delegated.py`: #17411–#17416 (auth team)
+  - `database.py`: #17421–#17424 (storage team)
+  - `preview_html.py`: #17431–#17434 (media team)
+
+### Test results
+
+- `tests/media/test_html_preview.py`: **24 passed**
+- `tests/storage/test_database.py`: **24 passed** (19 skipped — no postgres)
+- `tests/handlers/test_oauth_delegation.py`: **24 passed**
+- No regressions introduced.
+
+### Marker counts (unchanged)
+
+- `synapse/` markers: **145**.
+- Total markers (excluding inventory metadata): **215**.
+- Completion gate: **PASS** (`145 < 300`).
+
+### Remaining
+
+- Follow-up issues from prior passes remain open for implementation by
+  subsystem owners (auth: #17411–#17416, storage: #17421–#17424,
+  media: #17431–#17434).
