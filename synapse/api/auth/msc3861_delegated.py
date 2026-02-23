@@ -133,7 +133,6 @@ class MSC3861DelegatedAuth(BaseAuth):
         url = get_well_known_url(self._config.issuer, external=True)
         response = await self._http_client.get_json(url)
         metadata = OpenIDProviderMetadata(**response)
-        # metadata.validate_introspection_endpoint()
         return metadata
 
     async def _introspect_token(self, token: str) -> IntrospectionToken:
