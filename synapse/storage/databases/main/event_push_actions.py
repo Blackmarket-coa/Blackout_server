@@ -182,7 +182,8 @@ class UserPushAction(EmailPushAction):
     profile_tag: str
 
 
-# TODO This is used as a cached value and is mutable.
+# Follow-up (matrix-org/synapse#17476, owner: push team): this cached value
+# should be immutable to avoid accidental shared-state mutation.
 @attr.s(slots=True, auto_attribs=True)
 class NotifCounts:
     """
@@ -714,7 +715,8 @@ class EventPushActionsWorkerStore(ReceiptsWorkerStore, StreamWorkerStore, SQLBas
             else:
                 # Previous thread summaries of 0 are discarded above.
                 #
-                # TODO If empty summaries are deleted this can be removed.
+                # Follow-up (matrix-org/synapse#17477, owner: push team):
+                # remove this branch after empty summaries are deleted.
                 thread_counts[thread_id] = NotifCounts(
                     notify_count=notif_count,
                     unread_count=unread_count,

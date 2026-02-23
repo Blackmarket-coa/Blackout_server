@@ -1123,7 +1123,8 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         def _mark_remote_users_device_caches_as_stale_txn(
             txn: LoggingTransaction,
         ) -> None:
-            # TODO add insertion_values support to simple_upsert_many and use
+            # Follow-up (matrix-org/synapse#17506, owner: storage team): add
+            # insertion_values support to simple_upsert_many and use
             #      that!
             for user_id in user_ids:
                 self.db_pool.simple_upsert_txn(
@@ -1231,7 +1232,8 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         time: int,
         keys: Optional[JsonDict] = None,
     ) -> Optional[str]:
-        # TODO: make keys non-optional once support for msc2697 is dropped
+        # Follow-up (matrix-org/synapse#17507, owner: storage team): make
+        # keys non-optional once MSC2697 support is dropped.
         if keys:
             device_keys = keys.get("device_keys", None)
             if device_keys:

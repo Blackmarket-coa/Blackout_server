@@ -276,7 +276,9 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
                     # exactly once, rather than once for every room they're in.
                     if self.hs.is_mine_id(user_id):
                         continue
-                    # TODO `users_with_profile` above reads from the `user_directory`
+                    # Follow-up (matrix-org/synapse#17489, owner: storage team):
+                    # users_with_profile currently re-reads from user_directory
+                    # while rebuilding it; optimize this query plan.
                     #   table, meaning that `profile` is bespoke to this room.
                     #   and this leaks remote users' per-room profiles to the user directory.
                     await self.update_profile_in_user_dir(
@@ -486,7 +488,8 @@ class UserDirectoryBackgroundUpdateStore(StateDeltasStore):
         # be configurable per-appservice whether the appservice users can be
         # contacted.
         if self.get_if_app_services_interested_in_user(user):  # type: ignore[attr-defined]
-            # TODO we might want to make this configurable for each app service
+            # Follow-up (matrix-org/synapse#17490, owner: storage team):
+            # consider making this configurable per appservice.
             return False
 
         # Support users are for diagnostics and should not appear in the user directory.

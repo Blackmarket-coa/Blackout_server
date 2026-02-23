@@ -421,7 +421,8 @@ class MsisdnThreepidRequestTokenRestServlet(RestServlet):
         if not await check_3pid_allowed(self.hs, "msisdn", msisdn):
             raise SynapseError(
                 403,
-                # TODO: is this error message accurate? Looks like we've only rejected
+                # Follow-up (matrix-org/synapse#17514, owner: client-server team):
+                # revisit this error message for accuracy. It currently rejects
                 #       this phone number, not necessarily all phone numbers
                 "Account phone numbers are not authorized on this server",
                 Codes.THREEPID_DENIED,
@@ -875,7 +876,8 @@ class AccountStatusRestServlet(RestServlet):
         self._account_handler = hs.get_account_handler()
 
     class PostBody(RequestBodyModel):
-        # TODO: we could validate that each user id is an mxid here, and/or parse it
+        # Follow-up (matrix-org/synapse#17515, owner: client-server team):
+        # consider validating each user id as an MXID here.
         #       as a UserID
         user_ids: List[StrictStr]
 

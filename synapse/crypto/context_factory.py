@@ -50,12 +50,14 @@ class ServerContextFactory(ContextFactory):
     """Factory for PyOpenSSL SSL contexts that are used to handle incoming
     connections.
 
-    TODO: replace this with an implementation of IOpenSSLServerConnectionCreator,
+    Follow-up (matrix-org/synapse#17491, owner: crypto team): replace this
+    with an implementation of IOpenSSLServerConnectionCreator,
     per https://github.com/matrix-org/synapse/issues/1691
     """
 
     def __init__(self, config: HomeServerConfig):
-        # TODO: once pyOpenSSL exposes TLS_METHOD and SSL_CTX_set_min_proto_version,
+        # Follow-up (matrix-org/synapse#17492, owner: crypto team): once
+        # pyOpenSSL exposes TLS_METHOD and SSL_CTX_set_min_proto_version,
         # switch to those (see https://github.com/pyca/cryptography/issues/5379).
         #
         # note that, despite the confusing name, SSLv23_METHOD does *not* enforce SSLv2

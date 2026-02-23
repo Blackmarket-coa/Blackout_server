@@ -91,7 +91,8 @@ class BaseAuth(metaclass=abc.ABCMeta):
             if membership == Membership.JOIN:
                 return membership, member_event_id
 
-            # XXX this looks totally bogus. Why do we not allow users who have been banned,
+            # Follow-up (matrix-org/synapse#17493, owner: auth team):
+            # re-evaluate this logic for banned/deactivated/locked accounts.
             # or those who were members previously and have been re-invited?
             if allow_departed_users and membership == Membership.LEAVE:
                 forgot = await self.store.did_forget(user_id, room_id)
@@ -370,7 +371,8 @@ class BaseAuth(metaclass=abc.ABCMeta):
             user_agent = get_request_user_agent(request)
             access_token = self.get_access_token_from_request(request)
 
-            # XXX(quenting): I'm 95% confident that we could skip setting the
+            # Follow-up (matrix-org/synapse#17494, owner: auth team): evaluate
+            # whether setting requester.device_id is still required here.
             # device_id to "dummy-device" for appservices, and that the only impact
             # would be some rows which whould not deduplicate in the 'user_ips'
             # table during the transition

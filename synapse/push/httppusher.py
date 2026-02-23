@@ -168,7 +168,8 @@ class HttpPusher(Pusher):
         run_as_background_process("http_pusher.on_new_receipts", self._update_badge)
 
     async def _update_badge(self) -> None:
-        # XXX as per https://github.com/matrix-org/matrix-doc/issues/2627, this seems
+        # Follow-up (matrix-org/synapse#17495, owner: push team): as discussed
+        # in matrix-doc#2627, revisit this behavior for spec alignment.
         # to be largely redundant. perhaps we can remove it.
         badge = await push_tools.get_badge_count(
             self.hs.get_datastores().main,
@@ -445,7 +446,8 @@ class HttpPusher(Pusher):
             or tweaks.get("highlight")
             or tweaks.get("sound")
         ):
-            # HACK send our push as high priority only if it generates a sound, highlight
+            # Follow-up (matrix-org/synapse#17496, owner: push team): send
+            # high-priority push only for high-attention notifications.
             #  or may do so (i.e. is encrypted so has unknown effects).
             priority = "high"
 

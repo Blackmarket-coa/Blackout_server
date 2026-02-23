@@ -192,15 +192,17 @@ class ReplicationDataHandler:
 
                 # If this event is a join, make a note of it so we have an accurate
                 # cross-worker room rate limit.
-                # TODO: Erik said we should exclude rows that came from ex_outliers
-                #  here, but I don't see how we can determine that. I guess we could
-                #  add a flag to row.data?
+                # Follow-up (matrix-org/synapse#17453, owner: federation team):
+                # avoid counting membership rows sourced from ex_outliers once
+                # replication rows expose enough provenance metadata.
                 if (
                     row.data.type == EventTypes.Member
                     and row.data.membership == Membership.JOIN
                     and not row.data.outlier
                 ):
-                    # TODO retrieve the previous state, and exclude join -> join transitions
+                    # Follow-up (matrix-org/synapse#17453, owner: federation team):
+                    # fetch previous membership state so join->join transitions do
+                    # not inflate room-join rate calculations.
                     self.notifier.notify_user_joined_room(
                         row.data.event_id, row.data.room_id
                     )
@@ -484,7 +486,9 @@ class FederationSenderHandler:
         try:
             # We linearize here to ensure we don't have races updating the token
             #
-            # XXX this appears to be redundant, since the ReplicationCommandHandler
+            # Follow-up (matrix-org/synapse#17454, owner: replication team):
+            # confirm whether this linearizer is still required now that the
+            # ReplicationCommandHandler serializes per-connection command handling.
             # has a linearizer which ensures that we only process one line of
             # replication data at a time. Should we remove it, or is it doing useful
             # service for robustness? Or could we replace it with an assertion that

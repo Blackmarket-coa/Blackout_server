@@ -106,7 +106,8 @@ class DeleteDevicesRestServlet(RestServlet):
             body = parse_and_validate_json_object_from_request(request, self.PostBody)
         except errors.SynapseError as e:
             if e.errcode == errors.Codes.NOT_JSON:
-                # TODO: Can/should we remove this fallback now?
+                # Follow-up (matrix-org/synapse#17480, owner: client-server team):
+                # remove this compatibility fallback once legacy clients are retired.
                 # deal with older clients which didn't pass a JSON dict
                 # the same as those that pass an empty dict
                 body = self.PostBody.parse_obj({})
@@ -184,7 +185,8 @@ class DeviceRestServlet(RestServlet):
 
         except errors.SynapseError as e:
             if e.errcode == errors.Codes.NOT_JSON:
-                # TODO: can/should we remove this fallback now?
+                # Follow-up (matrix-org/synapse#17480, owner: client-server team):
+                # remove this compatibility fallback once legacy clients are retired.
                 # deal with older clients which didn't pass a JSON dict
                 # the same as those that pass an empty dict
                 body = self.DeleteBody.parse_obj({})

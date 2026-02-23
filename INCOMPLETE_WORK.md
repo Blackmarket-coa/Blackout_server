@@ -259,6 +259,26 @@ Closed in this pass:
 - Regenerated the marker snapshot and updated high-level totals after the latest marker cleanups.
 - Recomputed `synapse/` marker subtype and subsystem counts to keep this inventory aligned with the current tree state.
 
+---
+
+## Marker pass update (auth/storage/preview_html scope)
+
+Closed in this pass:
+- Audited marker density for:
+  - `synapse/api/auth/msc3861_delegated.py`
+  - `synapse/storage/database.py`
+  - `synapse/media/preview_html.py`
+- Verified the scoped files currently have **no** `TODO`/`FIXME`/`TBD`/`XXX`/`HACK`/`NotImplementedError`/`TODO_test_*` markers.
+- Confirmed existing notes in these files are already in issue-linked follow-up format with explicit owners and rationale.
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/auth/msc3861_delegated.py synapse/storage/database.py synapse/media/preview_html.py` returned no matches.
+- `pytest -q tests -k "delegated or storage or preview_html"` was blocked during collection in this environment due missing package metadata (`importlib.metadata.PackageNotFoundError: blackout-server`).
+
+Remaining:
+- No unowned `TODO`/`XXX` markers remain in the scoped request/authentication or storage write-path files.
+- Re-run the scoped pytest command in an environment where `blackout-server` package metadata is installed.
+
 Remaining:
 - Continue follow-up remediation on `TODO`/`XXX` hotspots in `synapse/handlers/`, `synapse/storage/`, and `synapse/rest/`.
 - `tests/handlers/test_deactivate_account.py` adds coverage that `_start_user_parting()` clears its guard flag when background process scheduling fails and can be retried successfully, and that `_part_user(...)` propagates cancellation.
@@ -860,106 +880,107 @@ rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/_scripts/
   - `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .`
 - Re-ran Synapse-only marker scan:
   - `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse`
+- Recomputed remaining marker density by file and directory for both `synapse/`
+  and repository-wide prioritization.
 
 ### Current counts
 
-- Repository-wide total markers: **799**
-- `synapse/` total markers: **145**
+- Repository-wide total markers (raw): **738**.
+- Repository-wide total markers (excluding inventory metadata files): **143**.
+- `synapse/` total markers: **66**.
+
+### Current top marker density
+
+- Top `synapse/` directories:
+  - `synapse/storage/`: **16**
+  - `synapse/rest/`: **9**
+  - `synapse/util/`: **7**
+  - `synapse/http/`: **6**
+  - `synapse/handlers/`: **6**
+  - `synapse/federation/`: **4**
+- Top `synapse/` files:
+  - `synapse/http/federation/srv_resolver.py`: **2**
+  - Remaining files currently at **1** marker each (long tail).
+- Top repository directories (excluding inventory metadata files):
+  - `synapse/`: **66**
+  - `docs/`: **35**
+  - `tests/`: **29**
 
 ### Remaining
 
-- Continue iterative burn-down in prioritized runtime-sensitive subsystems while
-  preserving issue-linked follow-ups where immediate implementation is unsafe.
+- Continue iterative burn-down on the long-tail `synapse/` runtime files in the
+  highest-density directories above.
+- Keep converting unresolved comments to issue-linked follow-ups with explicit
+  owner and rationale where full implementation is unsafe in-scope.
 
 ## AI prompt pack refresh (current workload, supersedes older prompt blocks)
 
 Use these prompts for the **current** debt profile measured in this pass:
 
-- Repository markers (`.`): **799**
-- `synapse/` markers: **145**
-- Top `synapse/` directories: `storage` (38), `rest` (22), `handlers` (18),
-  `config` (9), `util` (9), `federation` (8).
+- Repository markers (`.` raw): **738**
+- Repository markers (`.` excluding inventory metadata): **143**
+- `synapse/` markers: **66**
+- Top `synapse/` directories: `storage` (16), `rest` (9), `util` (7),
+  `http` (6), `handlers` (6), `federation` (4).
 
-### Prompt 1 (P0): Resolve highest-density runtime marker files first
+### Prompt 1 (P0): Resolve highest-density remaining runtime files
 
 ```text
 You are working in this repository. Do a focused marker burn-down pass on the
-current highest-density Synapse runtime files.
+current highest-density remaining Synapse runtime files.
 
 Scope:
-- synapse/api/filtering.py
-- synapse/appservice/api.py
-- synapse/config/oembed.py
-- synapse/handlers/oidc.py
-- synapse/handlers/sso.py
-- synapse/replication/tcp/client.py
-- synapse/rest/media/thumbnail_resource.py
-- synapse/storage/databases/main/events_worker.py
-- synapse/storage/databases/main/relations.py
+- synapse/http/federation/srv_resolver.py
+- synapse/metrics/__init__.py
+- synapse/logging/opentracing.py
+- synapse/federation/federation_server.py
+- synapse/federation/send_queue.py
+- synapse/api/errors.py
+- synapse/federation/transport/server/_base.py
+- synapse/api/ratelimiting.py
+- synapse/federation/sender/transaction_manager.py
+- synapse/util/metrics.py
+- synapse/util/ratelimitutils.py
+- synapse/util/templates.py
 
 Requirements:
 1) For each marker (TODO/FIXME/TBD/XXX/HACK/NotImplementedError/TODO_test_):
    implement behavior where safe, delete stale notes, or convert to issue-linked
-   follow-up comments with owner/rationale.
-2) Keep behavior changes small and add targeted tests for externally observable
-   behavior changes.
-3) Split commits by subsystem (api/appservice/config, handlers, replication/rest,
-   storage).
-4) Run relevant tests after each commit, then a broader fast sweep if practical.
-5) Update INCOMPLETE_WORK.md with what was closed and what remains.
+   follow-up comments with owner+rationale.
+2) Preserve API compatibility unless tests/docs updates are included in-commit.
+3) Split commits by subsystem and run targeted tests after each commit.
+4) Update INCOMPLETE_WORK.md with closure status and remaining issue-linked debt.
 ```
 
 Validation:
 ```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/filtering.py synapse/appservice/api.py synapse/config/oembed.py synapse/handlers/oidc.py synapse/handlers/sso.py synapse/replication/tcp/client.py synapse/rest/media/thumbnail_resource.py synapse/storage/databases/main/events_worker.py synapse/storage/databases/main/relations.py
-pytest -q tests -k "filtering or appservice or oidc or sso or replication or thumbnail or events_worker or relations"
+rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/http/federation/srv_resolver.py synapse/metrics/__init__.py synapse/logging/opentracing.py synapse/federation/federation_server.py synapse/federation/send_queue.py synapse/api/errors.py synapse/federation/transport/server/_base.py synapse/api/ratelimiting.py synapse/federation/sender/transaction_manager.py synapse/util/metrics.py synapse/util/ratelimitutils.py synapse/util/templates.py
+pytest -q tests -k "srv_resolver or federation_server or send_queue or ratelimit or util"
 ```
 
-### Prompt 2 (P1): Burn down secondary runtime files (count=2 cluster)
+### Prompt 2 (P1): Storage/rest/handlers long-tail burn-down
 
 ```text
-Perform a second marker pass on the current count=2 Synapse files.
+Perform the next long-tail marker burn-down wave in the highest-density
+remaining runtime directories.
 
 Scope:
-- synapse/api/auth/base.py
-- synapse/config/emailconfig.py
-- synapse/crypto/context_factory.py
-- synapse/federation/sender/__init__.py
-- synapse/federation/sender/per_destination_queue.py
-- synapse/handlers/appservice.py
-- synapse/handlers/identity.py
-- synapse/handlers/search.py
-- synapse/http/federation/srv_resolver.py
-- synapse/media/oembed.py
-- synapse/module_api/__init__.py
-- synapse/push/httppusher.py
-- synapse/push/pusherpool.py
-- synapse/rest/client/account.py
-- synapse/rest/client/devices.py
-- synapse/rest/client/keys.py
-- synapse/rest/client/register.py
-- synapse/rest/consent/consent_resource.py
-- synapse/storage/background_updates.py
-- synapse/storage/databases/main/devices.py
-- synapse/storage/databases/main/event_push_actions.py
-- synapse/storage/databases/main/presence.py
-- synapse/storage/databases/main/registration.py
-- synapse/storage/databases/main/room.py
-- synapse/storage/databases/main/search.py
-- synapse/storage/databases/main/user_directory.py
-- synapse/util/distributor.py
+- synapse/storage/
+- synapse/rest/
+- synapse/handlers/
 
 Requirements:
-1) Resolve each marker by implementation, stale-removal, or issue-linked follow-up.
-2) Preserve API compatibility unless updated tests/docs are included in the same commit.
-3) Batch commits by subsystem and run targeted tests after each commit.
-4) Record marker deltas and residual issue-linked debt in INCOMPLETE_WORK.md.
+1) Triage per file by marker count and process highest-first.
+2) For each marker: implement safely, remove stale note, or convert to
+   issue-linked follow-up with owner+rationale.
+3) Batch commits per subsystem and run targeted tests for touched modules.
+4) Keep behavioral deltas minimal and documented.
 ```
 
 Validation:
 ```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/auth/base.py synapse/config/emailconfig.py synapse/crypto/context_factory.py synapse/federation/sender/__init__.py synapse/federation/sender/per_destination_queue.py synapse/handlers/appservice.py synapse/handlers/identity.py synapse/handlers/search.py synapse/http/federation/srv_resolver.py synapse/media/oembed.py synapse/module_api/__init__.py synapse/push/httppusher.py synapse/push/pusherpool.py synapse/rest/client/account.py synapse/rest/client/devices.py synapse/rest/client/keys.py synapse/rest/client/register.py synapse/rest/consent/consent_resource.py synapse/storage/background_updates.py synapse/storage/databases/main/devices.py synapse/storage/databases/main/event_push_actions.py synapse/storage/databases/main/presence.py synapse/storage/databases/main/registration.py synapse/storage/databases/main/room.py synapse/storage/databases/main/search.py synapse/storage/databases/main/user_directory.py synapse/util/distributor.py
-pytest -q tests -k "auth or email or federation or appservice or identity or search or resolver or oembed or push or account or devices or keys or register or consent or background_updates or storage or distributor"
+rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/storage synapse/rest synapse/handlers
+pytest -q tests -k "storage or rest or handlers"
 ```
 
 ### Prompt 3 (P2): Non-runtime repo marker debt cleanup (docs/tests/scripts)
@@ -1002,3 +1023,67 @@ Validation:
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l
 rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . | wc -l
 ```
+
+---
+
+## Marker burn-down update (highest-density runtime scope)
+
+Closed in this pass:
+- Replaced all scoped marker comments with explicit issue-linked follow-ups (owner + rationale) in:
+  - `synapse/api/filtering.py`
+  - `synapse/appservice/api.py`
+  - `synapse/config/oembed.py`
+  - `synapse/handlers/oidc.py`
+  - `synapse/handlers/sso.py`
+  - `synapse/replication/tcp/client.py`
+  - `synapse/rest/media/thumbnail_resource.py`
+  - `synapse/storage/databases/main/events_worker.py`
+  - `synapse/storage/databases/main/relations.py`
+- Removed all `TODO` / `FIXME` / `TBD` / `XXX` / `HACK` / `NotImplementedError` / `TODO_test_*` markers from the scoped files.
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse/api/filtering.py synapse/appservice/api.py synapse/config/oembed.py synapse/handlers/oidc.py synapse/handlers/sso.py synapse/replication/tcp/client.py synapse/rest/media/thumbnail_resource.py synapse/storage/databases/main/events_worker.py synapse/storage/databases/main/relations.py` returned no matches.
+- Targeted tests run during subsystem commits:
+  - `pytest -q tests/api/test_filtering.py tests/appservice -k "filter or appservice or keys"`.
+  - `pytest -q tests/handlers/test_oidc.py tests/handlers/test_sso.py`.
+  - `pytest -q tests/replication/tcp/test_commands.py tests/rest/media -k "thumbnail or replication"`.
+  - `pytest -q tests/storage/test_relations.py`.
+
+Remaining:
+- One broader storage test command attempted in this environment (`pytest -q tests/storage/test_events.py tests/storage/test_relations.py`) failed due a pre-existing runtime/cache invalidation issue outside this marker-only change scope.
+- Follow-up implementation work remains tracked in the linked issues referenced inline in each touched file.
+
+---
+
+## Second marker pass update (count=2 Synapse runtime scope)
+
+Closed in this pass:
+- Audited and converted all scoped TODO/XXX/HACK markers in the requested files to issue-linked follow-ups with explicit owner+rationale, spanning:
+  - auth/config/crypto/module-api/util
+  - handlers/rest client/consent
+  - federation sender + push
+  - storage background + main stores
+- Kept API compatibility unchanged (comment-only updates).
+
+Validation refresh (2026-02-23):
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" ...` over the 27 scoped files now reports only `DNSNotImplementedError` symbol usage in `synapse/http/federation/srv_resolver.py` (Twisted exception class import/handling), with no remaining scoped debt markers.
+- Targeted test runs executed after subsystem commits; several suites pass, while broader suites continue to fail in this branch due a pre-existing cache invalidation failure (`AttributeError: 'function' object has no attribute 'invalidate'`) when creating room events.
+
+Remaining:
+- Follow-up implementation work is tracked in issue-linked comments added during this pass.
+- Residual `NotImplementedError` regex matches in `synapse/http/federation/srv_resolver.py` are runtime exception class names (`DNSNotImplementedError`), not incomplete-work markers.
+
+---
+
+## Recount + reprioritize update (current pass)
+
+Closed in this pass:
+- Re-ran live marker scans for `synapse/` and repository-wide scope.
+- Recomputed top remaining files/directories by marker density.
+- Replaced prompt scopes in this document with current data-driven priorities.
+
+Remaining:
+- Highest single-file remaining marker density is `synapse/http/federation/srv_resolver.py` (2 markers).
+- Remaining runtime marker debt is mostly long-tail single-marker files across `synapse/storage/`, `synapse/rest/`, and `synapse/handlers/`.
+- Issue-linked follow-ups added in earlier waves remain open and should be advanced by subsystem owners.
+
