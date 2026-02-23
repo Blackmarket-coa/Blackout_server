@@ -690,8 +690,8 @@ class DatabasePool:
         Similarly, the arguments to `func` (`args`, `kwargs`) should not be generators,
         since they could be evaluated multiple times (which would produce an empty
         result on the second or subsequent evaluation). Likewise, the closure of `func`
-        must not reference any generators.  This method attempts to detect such usage
-        and will log an error.
+        must not reference any generators.  This method detects such usage and raises
+        `TypeError`.
 
         Args:
             conn
@@ -704,27 +704,20 @@ class DatabasePool:
             **kwargs
         """
 
-        # Robustness check: ensure that none of the arguments are generators, since that
-        # will fail if we have to repeat the transaction.
-        # For now, we just log an error, and hope that it works on the first attempt.
-        # Follow-up (matrix-org/synapse#17425, owner: storage team):
-        # raise a typed exception for generator inputs after auditing all callers.
-
+        # Robustness check: ensure that none of the arguments are generators, since
+        # they will be exhausted after the first attempt and silently yield no rows
+        # on any subsequent retry—causing data corruption.
         for i, arg in enumerate(args):
             if inspect.isgenerator(arg):
-                logger.error(
-                    "Programming error: generator passed to new_transaction as "
-                    "argument %i to function %s",
-                    i,
-                    func,
+                raise TypeError(
+                    "generator passed to new_transaction as positional "
+                    f"argument {i} to function {func}"
                 )
         for name, val in kwargs.items():
             if inspect.isgenerator(val):
-                logger.error(
-                    "Programming error: generator passed to new_transaction as "
-                    "argument %s to function %s",
-                    name,
-                    func,
+                raise TypeError(
+                    "generator passed to new_transaction as keyword "
+                    f"argument {name!r} to function {func}"
                 )
         # also check variables referenced in func's closure
         if inspect.isfunction(func):
@@ -741,11 +734,9 @@ class DatabasePool:
                         continue
 
                     if inspect.isgenerator(contents):
-                        logger.error(
-                            "Programming error: function %s references generator %s "
-                            "via its closure",
-                            f,
-                            f.__code__.co_freevars[i],
+                        raise TypeError(
+                            f"function {f} references generator "
+                            f"{f.__code__.co_freevars[i]!r} via its closure"
                         )
 
         start = monotonic_time()

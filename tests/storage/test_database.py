@@ -225,6 +225,61 @@ class CallbacksTestCase(unittest.HomeserverTestCase):
         exception_callback.assert_not_called()
 
 
+class GeneratorArgumentTestCase(unittest.HomeserverTestCase):
+    """Tests that new_transaction rejects generator arguments."""
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.store = hs.get_datastores().main
+        self.db_pool: DatabasePool = self.store.db_pool
+
+    def test_rejects_generator_positional_arg(self) -> None:
+        """Passing a generator as a positional arg raises TypeError."""
+
+        def _noop_txn(txn: LoggingTransaction, rows: object) -> None:
+            pass
+
+        gen = (x for x in range(3))
+        self.get_failure(
+            self.db_pool.runInteraction("gen_pos", _noop_txn, gen),
+            TypeError,
+        )
+
+    def test_rejects_generator_keyword_arg(self) -> None:
+        """Passing a generator as a keyword arg raises TypeError."""
+
+        def _noop_txn(txn: LoggingTransaction, rows: object = None) -> None:
+            pass
+
+        gen = (x for x in range(3))
+        self.get_failure(
+            self.db_pool.runInteraction("gen_kw", _noop_txn, rows=gen),
+            TypeError,
+        )
+
+    def test_rejects_generator_in_closure(self) -> None:
+        """A function whose closure references a generator raises TypeError."""
+        gen = (x for x in range(3))
+
+        def _closure_txn(txn: LoggingTransaction) -> None:
+            # Reference gen via closure
+            list(gen)
+
+        self.get_failure(
+            self.db_pool.runInteraction("gen_closure", _closure_txn),
+            TypeError,
+        )
+
+    def test_accepts_list_arg(self) -> None:
+        """A plain list should be accepted without error."""
+
+        def _noop_txn(txn: LoggingTransaction, rows: object) -> None:
+            pass
+
+        self.get_success(
+            self.db_pool.runInteraction("list_arg", _noop_txn, [1, 2, 3])
+        )
+
+
 class CancellationTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastores().main
