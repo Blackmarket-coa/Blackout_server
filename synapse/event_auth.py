@@ -972,8 +972,8 @@ def get_user_power_level(user_id: str, auth_events: StateMap["EventBase"]) -> in
         # if there is no power levels event, the creator gets 100 and everyone
         # else gets 0.
 
-        # some things which call this don't pass the create event: hack around
-        # that.
+        # Not all callers include the create event in auth_events, so
+        # handle its absence gracefully by defaulting to 0.
         key = (EventTypes.Create, "")
         create_event = auth_events.get(key)
         if create_event is not None:

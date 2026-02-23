@@ -248,7 +248,7 @@ class MSC3861DelegatedAuth(BaseAuth):
             # Follow-up (matrix-org/synapse#17412, owner: auth team):
             # this compatibility path can be removed once MAS supports OIDC client
             # credentials grant for admin API access.
-            logging.info("Admin toked used")
+            logging.info("Admin token used")
             # Follow-up (matrix-org/synapse#17412, owner: auth team):
             # this virtual user is intentionally not provisioned; revisit how to
             # represent requesters that do not map to a local user.

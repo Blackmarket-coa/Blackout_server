@@ -600,3 +600,36 @@ Verification refresh (2026-02-23):
   - Total potential markers across repository (excluding this file and `docs/marker_inventory.csv`): **215**.
   - Current marker count in `synapse/`: **145**.
   - `synapse/` marker subtype counts: `TODO=100`, `XXX=39`, `NotImplementedError=4`, `HACK=2`.
+
+## P0-A marker debt update (msc3861_delegated + database + preview_html, wave 2)
+
+Closed in this pass:
+- `synapse/api/auth/msc3861_delegated.py`: fixed log-message typo
+  `"Admin toked used"` → `"Admin token used"` in the admin-token authentication
+  path.
+- `synapse/storage/database.py`: implemented #17425 — `new_transaction` now
+  raises `TypeError` instead of only logging when a generator is passed as a
+  positional arg, keyword arg, or captured in the transaction function's closure.
+  This prevents silent data corruption on transaction retry where an exhausted
+  generator would yield no rows.
+- `synapse/media/preview_html.py`: removed a misplaced download-cleanup
+  follow-up comment from the pure-parsing function `parse_html_to_open_graph`;
+  the concern (disk-filling abuse from retained downloads) is the caller's
+  responsibility and is tracked in #17402.
+- `tests/storage/test_database.py`: added `GeneratorArgumentTestCase` with four
+  tests covering positional-arg, keyword-arg, closure, and non-generator
+  (list) acceptance for the new `TypeError` behavior.
+
+Marker deltas:
+- Scoped files marker scan: **0 matches** (unchanged — raw markers were already
+  converted in the prior wave; this wave implemented the underlying fixes).
+- `synapse/` marker count: **145** (unchanged).
+
+Remaining follow-ups (already issue-linked with owners):
+- `msc3861_delegated.py`: #17411–#17416 (auth team) — guest plumbing, admin
+  compat path, audience checks, claim mapping, SCIM provisioning, requester
+  enrichment.
+- `database.py`: #17421–#17424 (storage team) — type annotation narrowing,
+  logging levels, legacy metric hooks.
+- `preview_html.py`: #17431–#17434 (media team) — lxml stubs, article OG tags,
+  CSS-based image sizing, sentence-boundary summarization.
