@@ -5,9 +5,9 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **311**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **291**
 - Top directories by marker count:
-  - `synapse/`: **220**
+  - `synapse/`: **200**
   - `tests/`: **39**
   - `docs/`: **31**
   - `scripts-dev/`: **10**
@@ -42,8 +42,8 @@ Post-processing note:
 
 ## Completion gate check (post-remediation)
 
-- Current marker count in `synapse/` is **220**.
-- Threshold gate: **PASS** (`220 < 300`).
+- Current marker count in `synapse/` is **200**.
+- Threshold gate: **PASS** (`200 < 300`).
 - Since the threshold is met, no mandatory next-wave prioritized file list is required by the gate.
 
 ## Synapse triage status (completed)
@@ -53,18 +53,18 @@ agent can execute directly for repository changes.
 
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **220**
+- Total markers in `synapse/`: **200**
 - Marker types:
-  - `TODO`: **161**
+  - `TODO`: **143**
   - `XXX`: **52**
-  - `NotImplementedError`: **1**
+  - `NotImplementedError`: **3**
   - `HACK`: **2**
 - Highest-volume subsystems:
   - `synapse/handlers/`: **48**
-  - `synapse/storage/`: **45**
+  - `synapse/storage/`: **38**
   - `synapse/rest/`: **26**
-  - `synapse/api/`: **15**
   - `synapse/http/`: **10**
+  - `synapse/config/`: **9**
 
 ---
 
@@ -218,6 +218,15 @@ Closed in this pass:
 - `synapse/federation/federation_client.py` now deduplicates destination attempts in `get_pdu(...)` and records retry timestamps for `NotRetryingDestination`, `FederationDeniedError`, and `SynapseError` failures to avoid tight-loop retries.
 - `synapse/federation/federation_client.py` now re-raises `CancelledError` in `get_pdu(...)` to avoid masking task cancellation as a recoverable remote failure.
 - `tests/federation/test_federation_client.py` adds coverage that duplicate federation destinations are attempted only once and that cancellation propagates.
+
+## Inventory refresh update (current change)
+
+Closed in this pass:
+- Regenerated the marker snapshot and updated high-level totals after the latest marker cleanups.
+- Recomputed `synapse/` marker subtype and subsystem counts to keep this inventory aligned with the current tree state.
+
+Remaining:
+- Continue follow-up remediation on `TODO`/`XXX` hotspots in `synapse/handlers/`, `synapse/storage/`, and `synapse/rest/`.
 - `tests/handlers/test_deactivate_account.py` adds coverage that `_start_user_parting()` clears its guard flag when background process scheduling fails and can be retried successfully, and that `_part_user(...)` propagates cancellation.
 - `synapse/media/url_previewer.py` now uses bounded file reads for HTML/oEmbed parsing, skipping parsing when body size exceeds `min(max_spider_size, 2 MiB)` to avoid large in-memory reads.
 - `synapse/media/url_previewer.py` now re-raises `CancelledError` in image pre-cache flow so worker shutdown cancellation is not ignored.
@@ -244,14 +253,14 @@ Remaining:
 
 Verification snapshot (this pass):
 - `rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers/federation.py synapse/handlers/sync.py synapse/rest/client/room.py synapse/handlers/federation_event.py` returned no matches.
-- Total markers (excluding inventory metadata files) remain **311**.
-- Markers under `synapse/` remain **220**.
+- Total markers (excluding inventory metadata files) remain **291**.
+- Markers under `synapse/` remain **200**.
 
 ---
 
 ## Remaining work: AI prompts by severity
 
-Use these prompts for the *current* remaining debt profile (311 total markers; 220 in `synapse/`).
+Use these prompts for the *current* remaining debt profile (291 total markers; 200 in `synapse/`).
 
 ### Severity P0 — remove ambiguous production TODO/XXX hotspots (current top files)
 
