@@ -86,3 +86,4 @@ book/
 /token1
 /media/
 /tests.media.test_media_storage/
+/tests.media.test_url_previewer/
