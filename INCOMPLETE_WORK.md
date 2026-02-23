@@ -5,21 +5,20 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **291**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **245**
 - Top directories by marker count:
-  - `synapse/`: **200**
-  - `tests/`: **39**
-  - `docs/`: **31**
-  - `scripts-dev/`: **10**
+  - `synapse/`: **178**
+  - `docs/`: **29**
+  - `tests/`: **27**
   - `NOTIMPLEMENTED_AUDIT.md`: **7**
+  - `docker/`: **2**
 
 ## Representative examples to prioritize
 
 ### Disabled or unfinished tests
 
-- `tests/federation/test_federation_server.py` auth-chain coverage TODO was closed;
-  `/send_join` partial-state test now asserts an empty auth chain and verifies
-  no overlap with returned state for deterministic fixture coverage.
+- `synapse/_scripts/generate_workers_map.py:63` (TODO cluster around worker-map generation heuristics and endpoint handling).
+- `tests/server.py:248` (`NotImplementedError` abstract test doubles remain intentional interface stubs).
 
 ### NotImplemented placeholders (primarily abstract/interface stubs)
 
@@ -44,8 +43,8 @@ Post-processing note:
 
 ## Completion gate check (post-remediation)
 
-- Current marker count in `synapse/` is **200**.
-- Threshold gate: **PASS** (`200 < 300`).
+- Current marker count in `synapse/` is **178**.
+- Threshold gate: **PASS** (`178 < 300`).
 - Since the threshold is met, no mandatory next-wave prioritized file list is required by the gate.
 
 ## Synapse triage status (completed)
@@ -55,18 +54,18 @@ agent can execute directly for repository changes.
 
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **200**
+- Total markers in `synapse/`: **178**
 - Marker types:
-  - `TODO`: **143**
-  - `XXX`: **52**
+  - `TODO`: **126**
+  - `XXX`: **47**
   - `NotImplementedError`: **3**
   - `HACK`: **2**
 - Highest-volume subsystems:
-  - `synapse/handlers/`: **48**
   - `synapse/storage/`: **38**
-  - `synapse/rest/`: **26**
+  - `synapse/handlers/`: **30**
+  - `synapse/rest/`: **22**
   - `synapse/http/`: **10**
-  - `synapse/config/`: **9**
+  - `synapse/util/`: **9**
 
 ---
 
@@ -162,18 +161,30 @@ Reduce marker count in highest-volume files while preserving behavior and test
 coverage.
 
 ### Priority files (batch 1)
-- `synapse/handlers/federation.py` (18)
-- `synapse/handlers/sync.py` (15)
-- `synapse/rest/client/room.py` (12)
-- `synapse/handlers/federation_event.py` (12)
+- `synapse/_scripts/generate_workers_map.py` (7)
+- `synapse/event_auth.py` (4)
+- `synapse/events/__init__.py` (4)
+- `synapse/visibility.py` (3)
+- `synapse/http/federation/srv_resolver.py` (3)
+- `synapse/http/client.py` (3)
+- `synapse/handlers/auth.py` (3)
+- `synapse/handlers/pagination.py` (3)
+- `synapse/handlers/relations.py` (3)
+- `synapse/handlers/message.py` (3)
 
 ### AI prompt (copy/paste)
 ```text
 Perform a marker burn-down pass on the following files:
-- synapse/handlers/federation.py
-- synapse/handlers/sync.py
-- synapse/rest/client/room.py
-- synapse/handlers/federation_event.py
+- synapse/_scripts/generate_workers_map.py
+- synapse/event_auth.py
+- synapse/events/__init__.py
+- synapse/visibility.py
+- synapse/http/federation/srv_resolver.py
+- synapse/http/client.py
+- synapse/handlers/auth.py
+- synapse/handlers/pagination.py
+- synapse/handlers/relations.py
+- synapse/handlers/message.py
 
 Process:
 1) For each TODO/XXX/FIXME: implement, delete stale note, or convert to issue-linked comment.
@@ -185,8 +196,8 @@ Process:
 
 ### Verification commands (copy/paste)
 ```bash
-rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/handlers/federation.py synapse/handlers/sync.py synapse/rest/client/room.py synapse/handlers/federation_event.py
-pytest -q tests/handlers tests/rest/client -k "federation or sync or room"
+rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
+pytest -q tests/handlers tests/http -k "auth or pagination or relations or message or resolver"
 ```
 
 ---
@@ -558,3 +569,12 @@ Validation refresh (2026-02-23):
 - Full marker scan over `docs/`, `scripts-dev/`, and `tests/` was re-run.
 - No behavior changes were introduced; edits are documentation/comment/tooling
   metadata updates only.
+
+
+## Inventory refresh (post-remediation wave)
+
+Refresh run (2026-02-23):
+- Re-ran repository marker scan with `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .`.
+- Recomputed totals/top directories/representative examples from current output.
+- Replaced task-3 prompt scopes with the current top-10 remaining `synapse/` files by marker count.
+- Confirmed completion gate remains **PASS** with `synapse/` marker count **178** (`178 < 300`).
