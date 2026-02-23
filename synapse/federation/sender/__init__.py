@@ -200,6 +200,13 @@ WAKEUP_INTERVAL_BETWEEN_DESTINATIONS_SEC = 5
 
 
 class AbstractFederationSender(metaclass=abc.ABCMeta):
+    """Abstract interface for federation senders.
+
+    Required behavior is encoded via ``@abc.abstractmethod`` declarations.
+    This keeps missing implementations explicit and avoids runtime
+    ``raise NotImplementedError`` fallthroughs in replication paths.
+    """
+
     @abc.abstractmethod
     def notify_new_events(self, max_token: RoomStreamToken) -> None:
         """This gets called when we have some new events we might want to
