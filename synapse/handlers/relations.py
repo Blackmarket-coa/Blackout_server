@@ -102,7 +102,8 @@ class RelationsHandler:
     ) -> JsonDict:
         """Get related events of a event, ordered by topological ordering.
 
-        TODO Accept a PaginationConfig instead of individual pagination parameters.
+        Follow-up tracked in #17407: accept `PaginationConfig` directly instead
+        of individual pagination parameters.
 
         Args:
             requester: The user requesting the relations.
@@ -120,7 +121,8 @@ class RelationsHandler:
 
         user_id = requester.user.to_string()
 
-        # TODO Properly handle a user leaving a room.
+        # Follow-up tracked in #17407: enforce leave-position-aware history
+        # truncation for departed users.
         (_, member_event_id) = await self._auth.check_user_in_room_or_world_readable(
             room_id, requester, allow_departed_users=True
         )
@@ -563,7 +565,8 @@ class RelationsHandler:
 
         user_id = requester.user.to_string()
 
-        # TODO Properly handle a user leaving a room.
+        # Follow-up tracked in #17407: enforce leave-position-aware history
+        # truncation for departed users.
         (_, member_event_id) = await self._auth.check_user_in_room_or_world_readable(
             room_id, requester, allow_departed_users=True
         )

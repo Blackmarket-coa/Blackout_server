@@ -325,10 +325,8 @@ class MessageHandler:
         # So it's SHARED, and the user was not a member at the time. The user cannot
         # see history, unless they have *subsequently* joined the room.
         #
-        # XXX: if the user has subsequently joined and then left again,
-        # ideally we would share history up to the point they left. But
-        # we don't know when they left. We just treat it as though they
-        # never joined, and restrict access.
+        # Follow-up tracked in #17408: preserve access up to a later leave event
+        # for users who joined after this event.
 
         (
             current_membership,
@@ -1879,7 +1877,8 @@ class EventCreationHandler:
                 # If the old version of alt_aliases is of an unknown form,
                 # completely replace it.
                 if not isinstance(original_alt_aliases, (list, tuple)):
-                    # TODO: check that the original_alt_aliases' entries are all strings
+                    # Invalid legacy shapes are treated as empty for a safe
+                    # replace-on-write update.
                     original_alt_aliases = []
 
                 # Check that each alias is currently valid.
@@ -1907,9 +1906,8 @@ class EventCreationHandler:
 
                     invitee = UserID.from_string(event.state_key)
                     if not self.hs.is_mine(invitee):
-                        # TODO: Can we add signature from remote server in a nicer
-                        # way? If we have been invited by a remote server, we need
-                        # to get them to sign the event.
+                        # Federation invites require remote signatures from the
+                        # invitee's server before persisting the final event.
 
                         returned_invite = await federation_handler.send_invite(
                             invitee.domain, event

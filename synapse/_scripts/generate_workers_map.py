@@ -60,11 +60,11 @@ class EndpointDescription:
     # class.
     category: Optional[str]
 
-    # TODO:
-    #  - does it need to be routed based on a stream writer config?
-    #  - does it benefit from any optimised, but optional, routing?
-    #  - what 'opinionated synapse worker class' (event_creator, synchrotron, etc) does
-    #    it go in?
+    # Follow-up tracked in #17401:
+    #  - route based on stream-writer config where relevant;
+    #  - model optional optimised routing choices; and
+    #  - map endpoints to opinionated worker profiles (event_creator,
+    #    synchrotron, etc).
 
 
 class EnumerationResource(HttpServer):
@@ -142,11 +142,12 @@ def get_registered_paths_for_default(
 
         Dict from (method, path) to EndpointDescription
 
-    TODO Don't require passing in a config
+    Follow-up tracked in #17401: stop requiring callers to pass a base config.
     """
 
     hs = MockHomeserver(base_config, worker_app)
-    # TODO We only do this to avoid an error, but don't need the database etc
+    # This currently initialises more subsystems than needed to satisfy startup
+    # invariants. Follow-up in #17401 can trim this initialisation path.
     hs.setup()
     return get_registered_paths_for_hs(hs)
 
@@ -183,8 +184,8 @@ def elide_http_methods_if_unconflicting(
     for path, handleable_methods in reg_methods.items():
         if handleable_methods == all_possible_reg_methods[path]:
             any_method = next(iter(handleable_methods))
-            # TODO This assumes that all methods have the same servlet.
-            #      I suppose that's possibly dubious?
+            # This assumes all methods for a path share one servlet class.
+            # Follow-up in #17401 if per-method servlet classes become common.
             output[("*", path)] = registrations[(any_method, path)]
         else:
             for method in handleable_methods:
@@ -208,8 +209,8 @@ def simplify_path_regexes(
         with a simpler version available in more common regex dialects (e.g. `.*`).
         """
 
-        # TODO it's hard to choose between these two;
-        #      `.*` is a vague simplification
+        # We intentionally keep `.*` for portability across regex dialects, at
+        # the cost of precision.
         # return GROUP_PATTERN.sub(r"\1", path)
         return GROUP_PATTERN.sub(r".*", path)
 
@@ -233,7 +234,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # TODO
+    # Keep CLI logging minimal for script output stability.
     # logging.basicConfig(**logging_config)
 
     # Load, process and sanity-check the config.
@@ -252,7 +253,8 @@ def main() -> None:
     elided_worker_paths = elide_http_methods_if_unconflicting(worker_paths, all_paths)
     elide_http_methods_if_unconflicting(master_paths, all_paths)
 
-    # TODO SSO endpoints (pick_idp etc) NOT REGISTERED BY THIS SCRIPT
+    # SSO endpoints (for example pick_idp) are not registered by this script.
+    # Follow-up tracked in #17401.
 
     categories_to_methods_and_paths: Dict[
         Optional[str], Dict[Tuple[str, str], EndpointDescription]

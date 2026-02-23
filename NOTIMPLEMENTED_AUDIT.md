@@ -2,24 +2,29 @@
 
 ## Scope
 - Directory audited: `synapse/`
-- Pattern audited: `raise NotImplementedError` (including `raise NotImplementedError()` and attribute-call variants)
+- Runtime gap pattern audited: `raise NotImplementedError(...)`
 
-## Method
-- Static AST walk over all `synapse/**/*.py` files to find `ast.Raise` nodes targeting `NotImplementedError`.
-- Confirmed with ripgrep string scan for `NotImplementedError` references.
+## Commands executed
+- `rg -n "raise NotImplementedError\(" synapse`
+- `python tests/check_runtime_notimplemented.py`
 
 ## Disposition by file
-- `synapse/federation/sender/__init__.py`
-  - **Classification:** informational comment only (not a raise site).
-  - **Category:** N/A (neither A nor B).
+No concrete `raise NotImplementedError(...)` statements were found under `synapse/`.
+
+`NotImplementedError` references that exist are **not** runtime gaps:
+
 - `synapse/http/federation/srv_resolver.py`
-  - **Classification:** catches Twisted `DNSNotImplementedError` import/exception type; not a local `raise NotImplementedError` runtime gap.
-  - **Category:** N/A (neither A nor B).
+  - Imports / handles Twisted's `DNSNotImplementedError` (third-party DNS resolver exception).
+  - **Category:** not A/B (not a local `raise NotImplementedError`).
+
+- `synapse/federation/sender/__init__.py`
+  - Abstract API surface is modeled via `@abc.abstractmethod` methods on `AbstractFederationSender`.
+  - Class docstring now explicitly documents that this is intentional and preferred over runtime `raise NotImplementedError` stubs.
+  - **Category A:** valid abstract interface.
 
 ## Category summary
-- **A) valid abstract interface:** 0 instances found.
-- **B) concrete runtime gap:** 0 instances found.
+- **A) valid abstract interface:** `synapse/federation/sender/__init__.py` (`AbstractFederationSender`).
+- **B) concrete runtime gap:** none.
 
-## Outcome
-- No runtime `raise NotImplementedError` paths exist under `synapse/` at this point.
-- Added a regression check script at `tests/check_runtime_notimplemented.py` to prevent reintroduction of runtime `NotImplementedError` raises.
+## Runtime-path safety checks
+- `tests/check_runtime_notimplemented.py` statically parses all `synapse/**/*.py` modules via `ast` and fails if any runtime `raise NotImplementedError` sites are introduced.

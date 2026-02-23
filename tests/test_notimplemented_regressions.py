@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 
 
@@ -8,12 +9,34 @@ def _synapse_files():
     return sorted((REPO_ROOT / "synapse").rglob("*.py"))
 
 
+def _find_notimplemented_raises(path: Path) -> list[int]:
+    source = path.read_text(encoding="utf-8")
+    tree = ast.parse(source, filename=str(path))
+
+    hits = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Raise) or node.exc is None:
+            continue
+
+        exc = node.exc
+        target = exc.func if isinstance(exc, ast.Call) else exc
+
+        if isinstance(target, ast.Name) and target.id == "NotImplementedError":
+            hits.append(node.lineno)
+        elif isinstance(target, ast.Attribute) and target.attr == "NotImplementedError":
+            hits.append(node.lineno)
+
+    return hits
+
+
 def test_synapse_has_no_raw_not_implemented_error_raises() -> None:
     offending = []
     for path in _synapse_files():
-        text = path.read_text(encoding="utf-8")
-        if "raise NotImplementedError(" in text:
-            offending.append(path.relative_to(REPO_ROOT).as_posix())
+        hit_lines = _find_notimplemented_raises(path)
+        if hit_lines:
+            offending.append(
+                f"{path.relative_to(REPO_ROOT).as_posix()}:{','.join(str(line) for line in hit_lines)}"
+            )
 
     assert offending == []
 

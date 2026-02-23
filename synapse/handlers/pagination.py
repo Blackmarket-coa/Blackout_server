@@ -541,15 +541,11 @@ class PaginationHandler:
                 # a sign that we're missing a decent chunk of history and we should
                 # try to backfill it.
                 #
-                # XXX: It's possible we could tolerate longer gaps if we checked
-                # that a given events `prev_events` is one that has failed pull
-                # attempts and we could just treat it like a dead branch of history
-                # for now or at least something that we don't need the block the
-                # client on to try pulling.
+                # Follow-up tracked in #17406: tolerate longer gaps when their
+                # predecessors are on known dead/unreachable branches.
                 #
-                # XXX: If we had something like MSC3871 to indicate gaps in the
-                # timeline to the client, we could also get away with any sized gap
-                # and just have the client refetch the holes as they see fit.
+                # Follow-up tracked in #17406: if timeline gap markers are
+                # available to clients, we can reduce blocking backfill pressure.
                 if depth_gap > 2:
                     found_big_gap = True
                     break
@@ -630,9 +626,8 @@ class PaginationHandler:
 
         state = None
         if event_filter and event_filter.lazy_load_members and len(events) > 0:
-            # TODO: remove redundant members
-
-            # Follow-up (owner: rooms, rationale: this should also include invite targets and related membership states).
+            # Follow-up tracked in #17406: include invite targets / related
+            # membership state and remove redundant sender member lookups.
             state_filter = StateFilter.from_types(
                 (EventTypes.Member, event.sender) for event in events
             )

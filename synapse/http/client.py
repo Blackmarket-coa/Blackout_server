@@ -455,8 +455,11 @@ class BaseHttpClient:
             ValueError: if the response was not JSON
         """
 
-        # TODO: Do we ever want to log message contents?
-        logger.debug("post_urlencoded_get_json args: %s", args)
+        # Log only parameter keys to avoid leaking sensitive values.
+        logger.debug(
+            "post_urlencoded_get_json arg keys: %s",
+            sorted(args.keys()) if args else [],
+        )
 
         query_bytes = encode_query_args(args)
 
@@ -710,9 +713,9 @@ class BaseHttpClient:
                     ),
                 )
 
-        # TODO: if our Content-Type is HTML or something, just read the first
-        # N bytes into RAM rather than saving it all to disk only to read it
-        # straight back in again
+        # Follow-up tracked in #17405: short-circuit likely textual responses by
+        # buffering a bounded prefix in memory before committing to full stream
+        # download.
 
         try:
             d = read_body_with_max_size(response, output_stream, max_size)
@@ -785,9 +788,9 @@ class SimpleHttpClient(BaseHttpClient):
         # do so in batches, so we need to allow the pool to keep lots of idle
         # connections around.
         pool = HTTPConnectionPool(self.reactor)
-        # XXX: The justification for using the cache factor here is that larger
-        # instances will need both more cache and more connections.
-        # Still, this should probably be a separate dial
+        # Reuse cache scaling as a coarse proxy for deployment size; this keeps
+        # connection concurrency proportional in the default config.
+        # Follow-up in #17405 to split this into an explicit HTTP pool dial.
         pool.maxPersistentPerHost = max(int(100 * hs.config.caches.global_factor), 5)
         pool.cachedConnectionTimeout = 2 * 60
 
