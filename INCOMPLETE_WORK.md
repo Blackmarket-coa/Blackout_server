@@ -485,3 +485,20 @@ failure remains:
 - Follow-up issues from previous passes (`#17374`, `#17382`–`#17384`) remain
   open for threepid race coordination, robots.txt support, pre-cache unification,
   and thumbnail transparency handling.
+
+## Marker burn-down update (auth/storage/media pass)
+
+Closed in this pass:
+- Re-scanned `synapse/api/auth/msc3861_delegated.py`, `synapse/storage/database.py`,
+  and `synapse/media/preview_html.py` for `TODO`/`FIXME`/`TBD`/`XXX`/`HACK`/
+  `NotImplementedError`/`TODO_test_` markers.
+- Confirmed no markers currently remain in any of the three scoped production
+  files, so no code-path marker remediation changes were required for this pass.
+
+Verification refresh (2026-02-23):
+- Scoped marker scan result: **0 markers** across the three files.
+- Full `synapse/` marker recount remains **200**.
+
+Remaining:
+- Continue marker burn-down on the next highest-density `synapse/` files from
+  this inventory.
