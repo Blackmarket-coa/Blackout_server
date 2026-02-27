@@ -464,11 +464,20 @@ class ServerConfig(Config):
 
         # Blackout signaling-only mode. When enabled, only signaling events are accepted
         # for non-state room events and signaling events are given an automatic expiry.
+        #
+        # During the migration window we support both:
+        #   * blackout_signaling_only_mode: true|false
+        #   * blackout.enabled: true|false
+        #
+        # If either is true, blackout mode is enabled.
         blackout_config = config.get("blackout", {}) or {}
         if not isinstance(blackout_config, dict):
             raise ConfigError("blackout must be a mapping")
 
-        self.blackout_enabled = bool(blackout_config.get("enabled", False))
+        self.blackout_enabled = bool(
+            config.get("blackout_signaling_only_mode", False)
+            or blackout_config.get("enabled", False)
+        )
         self.blackout_skip_push_actions_for_signal = bool(
             blackout_config.get("skip_push_actions_for_signal", False)
         )

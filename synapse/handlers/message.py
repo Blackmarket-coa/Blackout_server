@@ -625,6 +625,17 @@ class EventCreationHandler:
         event_type = event_dict["type"]
         is_state_event = "state_key" in event_dict
 
+        if not is_state_event and event_type in (
+            EventTypes.Message,
+            EventTypes.Encrypted,
+        ):
+            blackout_event_rejections_counter.labels(reason="blocked_payload_event_type").inc()
+            raise SynapseError(
+                403,
+                "%s events are blocked in blackout signaling-only mode" % (event_type,),
+                Codes.FORBIDDEN,
+            )
+
         if not is_state_event and event_type not in (
             EventTypes.BlackoutSignal,
             EventTypes.Dummy,

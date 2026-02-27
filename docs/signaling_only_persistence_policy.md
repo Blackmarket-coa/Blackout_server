@@ -41,6 +41,27 @@ The server MUST NOT retain:
 3. Allowed signaling artifacts MUST be retained only within configured TTL windows.
 4. Purged signaling artifacts MUST be irretrievable via API.
 
+## `m.blackout.signal` schema baseline (BLK-105)
+
+Server-side validation MUST enforce the following baseline:
+
+- Required root field: `message_metadata`
+- Required `message_metadata` fields:
+  - `message_id` (non-empty string)
+  - `sender_key_id` (non-empty string)
+- Optional payload sections:
+  - `ice_candidates`
+  - `sdp_offer`
+  - `sdp_answer`
+  - `chunk_announcements`
+  - `offline_retrieval`
+  - `self_destruct_after`
+- Unknown root fields are rejected.
+- Invalid section shapes are rejected.
+
+Validation is performed server-side with a JSON schema plus additional semantic checks
+for chunk hash shape and redundancy metadata consistency.
+
 ## Configuration contract
 
 - `blackout_signaling_only_mode: true|false`

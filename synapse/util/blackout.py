@@ -3,8 +3,96 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
+import jsonschema
+
 
 _HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
+
+_BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["message_metadata"],
+    "properties": {
+        "ice_candidates": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["candidate"],
+                "properties": {
+                    "candidate": {"type": "string", "minLength": 1},
+                    "sdpMLineIndex": {"type": "integer"},
+                    "sdpMid": {"type": "string"},
+                },
+                "additionalProperties": False,
+            },
+        },
+        "sdp_offer": {
+            "type": "object",
+            "required": ["type", "sdp"],
+            "properties": {
+                "type": {"const": "offer"},
+                "sdp": {"type": "string", "minLength": 1},
+            },
+            "additionalProperties": False,
+        },
+        "sdp_answer": {
+            "type": "object",
+            "required": ["type", "sdp"],
+            "properties": {
+                "type": {"const": "answer"},
+                "sdp": {"type": "string", "minLength": 1},
+            },
+            "additionalProperties": False,
+        },
+        "message_metadata": {
+            "type": "object",
+            "required": ["message_id", "sender_key_id"],
+            "properties": {
+                "message_id": {"type": "string", "minLength": 1},
+                "sender_key_id": {"type": "string", "minLength": 1},
+                "sender_key": {"type": "string"},
+                "topology_hints": {
+                    "type": "array",
+                    "items": {"type": "string", "minLength": 1},
+                },
+            },
+            "additionalProperties": False,
+        },
+        "chunk_announcements": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["chunk_id", "chunk_hash"],
+                "properties": {
+                    "chunk_id": {"type": "string", "minLength": 1},
+                    "chunk_hash": {"type": "string", "minLength": 1},
+                    "merkle_root": {"type": "string", "minLength": 1},
+                    "replication_factor": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                    },
+                    "replica_hints": {
+                        "type": "array",
+                        "maxItems": 20,
+                        "items": {"type": "string", "minLength": 1},
+                    },
+                },
+                "additionalProperties": False,
+            },
+        },
+        "offline_retrieval": {
+            "type": "object",
+            "required": ["manifest_id", "external_fetch_required"],
+            "properties": {
+                "manifest_id": {"type": "string"},
+                "external_fetch_required": {"type": "boolean"},
+            },
+            "additionalProperties": False,
+        },
+        "self_destruct_after": {"type": "integer"},
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -17,11 +105,9 @@ def _is_fixed_length_hash(value: Any) -> bool:
     if not isinstance(value, str):
         return False
 
-    # Accept SHA-256 hashes encoded as hex.
     if len(value) == 64 and _HEX_RE.fullmatch(value):
         return True
 
-    # Accept SHA-256 hashes encoded as base64.
     padded = value + ("=" * ((4 - (len(value) % 4)) % 4))
     try:
         decoded = base64.b64decode(padded, validate=True)
@@ -29,17 +115,6 @@ def _is_fixed_length_hash(value: Any) -> bool:
         return False
 
     return len(decoded) == 32
-
-
-def _validate_sdp(label: str, sdp: Any, expected_type: str) -> None:
-    if not isinstance(sdp, dict):
-        raise ValueError(f"{label} must be a JSON object")
-
-    if sdp.get("type") != expected_type:
-        raise ValueError(f"{label}.type must equal {expected_type!r}")
-
-    if not isinstance(sdp.get("sdp"), str) or not sdp["sdp"].strip():
-        raise ValueError(f"{label}.sdp must be a non-empty string")
 
 
 def _validate_message_metadata(metadata: Any) -> Dict[str, Any]:
@@ -98,21 +173,6 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
         replica_hints = chunk.get("replica_hints")
         if replication_factor is None:
             missing_redundancy_metadata = True
-        else:
-            if not isinstance(replication_factor, int) or not (1 <= replication_factor <= 10):
-                raise ValueError(
-                    f"{prefix}.replication_factor must be an integer between 1 and 10"
-                )
-
-        if replica_hints is not None:
-            if not isinstance(replica_hints, list) or len(replica_hints) > 20:
-                raise ValueError(
-                    f"{prefix}.replica_hints must be a list with at most 20 entries"
-                )
-            if any(not isinstance(hint, str) or not hint.strip() for hint in replica_hints):
-                raise ValueError(
-                    f"{prefix}.replica_hints must contain non-empty string entries"
-                )
 
         if isinstance(replication_factor, int) and isinstance(replica_hints, list):
             if len(replica_hints) < replication_factor:
@@ -125,67 +185,12 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
 
 
 def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationResult:
-    if not isinstance(content, dict):
-        raise ValueError("m.blackout.signal content must be a JSON object")
-
-    allowed_keys = {
-        "ice_candidates",
-        "sdp_offer",
-        "sdp_answer",
-        "message_metadata",
-        "chunk_announcements",
-        "offline_retrieval",
-        "self_destruct_after",
-    }
-
-    unknown = set(content) - allowed_keys
-    if unknown:
-        raise ValueError(
-            "m.blackout.signal content contains unsupported fields: %s"
-            % ", ".join(sorted(unknown))
-        )
-
-    ice_candidates = content.get("ice_candidates")
-    if ice_candidates is not None:
-        if not isinstance(ice_candidates, list):
-            raise ValueError("ice_candidates must be a list of candidate objects")
-
-        for idx, candidate in enumerate(ice_candidates):
-            if not isinstance(candidate, dict):
-                raise ValueError("ice_candidates must be a list of candidate objects")
-
-            prefix = f"ice_candidates[{idx}]"
-            if not isinstance(candidate.get("candidate"), str) or not candidate[
-                "candidate"
-            ].strip():
-                raise ValueError(f"{prefix}.candidate must be a non-empty string")
-
-            sdp_m_line_index = candidate.get("sdpMLineIndex")
-            if sdp_m_line_index is not None and not isinstance(sdp_m_line_index, int):
-                raise ValueError(f"{prefix}.sdpMLineIndex must be an integer")
-
-            sdp_mid = candidate.get("sdpMid")
-            if sdp_mid is not None and not isinstance(sdp_mid, str):
-                raise ValueError(f"{prefix}.sdpMid must be a string")
-
-    if "sdp_offer" in content:
-        _validate_sdp("sdp_offer", content.get("sdp_offer"), expected_type="offer")
-
-    if "sdp_answer" in content:
-        _validate_sdp("sdp_answer", content.get("sdp_answer"), expected_type="answer")
+    try:
+        jsonschema.validate(content, _BLACKOUT_SIGNAL_CONTENT_SCHEMA)
+    except jsonschema.ValidationError as e:
+        raise ValueError(f"invalid m.blackout.signal content: {e.message}")
 
     _validate_message_metadata(content.get("message_metadata"))
-
-    offline_retrieval = content.get("offline_retrieval")
-    if offline_retrieval is not None:
-        if not isinstance(offline_retrieval, dict):
-            raise ValueError("offline_retrieval must be a JSON object")
-        if not isinstance(offline_retrieval.get("manifest_id"), str):
-            raise ValueError("offline_retrieval.manifest_id must be a string")
-        if not isinstance(offline_retrieval.get("external_fetch_required"), bool):
-            raise ValueError(
-                "offline_retrieval.external_fetch_required must be a boolean"
-            )
 
     return _validate_chunk_announcements(content.get("chunk_announcements"))
 

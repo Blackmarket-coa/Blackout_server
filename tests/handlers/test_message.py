@@ -369,6 +369,25 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(exc.exception.code, 403)
         self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+        self.assertIn("blocked in blackout signaling-only mode", exc.exception.msg)
+
+    def test_room_encrypted_blocked_in_blackout_mode(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.Encrypted,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {"algorithm": "m.megolm.v1.aes-sha2", "ciphertext": {}},
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 403)
+        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+        self.assertIn("blocked in blackout signaling-only mode", exc.exception.msg)
 
 
     def test_non_signal_timeline_event_blocked(self) -> None:

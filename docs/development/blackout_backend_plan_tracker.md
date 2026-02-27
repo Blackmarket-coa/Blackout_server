@@ -291,7 +291,7 @@ Execution artifacts created in this pass:
 | BLK-114 | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Mobile Performance Engineer | Sprint 3 | Define benchmark harness and collect first representative mobile baseline. |
 | BLK-115 | 8 Phase 1 deliverables + Phase 1 exit criterion | Program Manager + Backend Lead | Sprint 1-2 | Convert Phase 1 bullets to sprint stories and run end-to-end demo gate. |
 | BLK-116 | 9 alignment seed: `faster_joins`, sync marker clusters, storage/search/media marker clusters, tracker-tagged follow-up markers | Tech Lead | Sprint 1 | Open mapped issues for each marker cluster and attach `blackout:*` labels. |
-| BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | Hold decision workshop and record resolutions in ADR set before feature merge. |
+| BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | ✅ Decision workshop completed; outcomes recorded in `docs/development/blackout_blocker_decision_record_2026-02-27.md`. |
 
 
 ### 13.1a Marker debt compliance gate (required-now policy)
@@ -365,11 +365,11 @@ Required-now ticket mapping for compliance gate:
 
 | Blocker | Owner | Next action | Next action date |
 |---|---|---|---|
-| Canonical behavior for blocked events: hard reject vs accept-and-drop | Architecture Council | Finalize decision in architecture review and publish ADR. | 2026-02-27 |
-| Backward compatibility mode for existing Matrix clients | Client Liaison + Backend Lead | Publish compatibility matrix and migration recommendation. | 2026-02-27 |
-| Minimum schema required to keep federation semantics healthy | Protocol Engineer | Submit minimum schema proposal with federation test cases. | 2026-02-27 |
-| Whether TURN runs on-device by default or external by policy | Infra Lead | Present cost/reliability tradeoff memo and recommended default. | 2026-02-27 |
-| Exact retention defaults (24h, 48h, or 72h) and compliance implications | Backend Lead + Security Architect | Finalize default retention setting and compliance note. | 2026-02-27 |
+| Canonical behavior for blocked events: hard reject vs accept-and-drop | Architecture Council | ✅ Published decision record + ADR/finalization artifact: `docs/development/blackout_blocker_decision_record_2026-02-27.md`. | 2026-02-27 |
+| Backward compatibility mode for existing Matrix clients | Client Liaison + Backend Lead | ✅ Published compatibility matrix + migration recommendation: `docs/development/blackout_client_compatibility_matrix.md`. | 2026-02-27 |
+| Minimum schema required to keep federation semantics healthy | Protocol Engineer | ✅ Published minimum federation-safe schema + test-case set: `docs/development/blackout_federation_schema_minimum.md`. | 2026-02-27 |
+| Whether TURN runs on-device by default or external by policy | Infra Lead | ✅ Published TURN default policy recommendation: `docs/development/blackout_turn_default_policy.md`. | 2026-02-27 |
+| Exact retention defaults (24h, 48h, or 72h) and compliance implications | Backend Lead + Security Architect | ✅ Published retention default + compliance note: `docs/development/blackout_retention_compliance_note.md`. | 2026-02-27 |
 
 ### 13.5 Exit-criteria confirmation for this triage pass
 

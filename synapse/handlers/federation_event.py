@@ -238,6 +238,28 @@ class FederationEventHandler:
         if not self._blackout_enabled:
             return
 
+        if not event.is_state() and event.type in (
+            EventTypes.Message,
+            EventTypes.Encrypted,
+        ):
+            blackout_federation_event_rejections_counter.labels(
+                reason="blocked_payload_event_type"
+            ).inc()
+            logger.info(
+                "Rejecting blocked federated payload event in blackout mode: room_id=%s event_id=%s type=%s origin=%s",
+                event.room_id,
+                event.event_id,
+                event.type,
+                event.sender,
+            )
+            raise FederationError(
+                "ERROR",
+                403,
+                "%s events are blocked in blackout signaling-only mode"
+                % (event.type,),
+                affected=event.event_id,
+            )
+
         if not event.is_state() and event.type not in (
             EventTypes.BlackoutSignal,
             EventTypes.Dummy,
