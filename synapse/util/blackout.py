@@ -7,6 +7,7 @@ import jsonschema
 
 
 _HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
+_INLINE_SIGNAL_PAYLOAD_FIELDS = ("sdp_offer", "sdp_answer", "ice_candidates")
 
 _BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
     "type": "object",
@@ -193,6 +194,41 @@ def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationRe
     _validate_message_metadata(content.get("message_metadata"))
 
     return _validate_chunk_announcements(content.get("chunk_announcements"))
+
+
+def strip_inline_payload_from_signal_content(content: Any) -> bool:
+    """Strip inline signaling payload fields from m.blackout.signal content.
+
+    Returns:
+        True if inline payload fields were present and stripped.
+
+    Raises:
+        ValueError if inline payload fields are present without metadata-only
+        offline retrieval markers.
+    """
+
+    if not isinstance(content, dict):
+        raise ValueError("invalid m.blackout.signal content: must be a JSON object")
+
+    has_inline_payload = any(key in content for key in _INLINE_SIGNAL_PAYLOAD_FIELDS)
+    if not has_inline_payload:
+        return False
+
+    offline_retrieval = content.get("offline_retrieval")
+    if not isinstance(offline_retrieval, dict):
+        raise ValueError(
+            "invalid m.blackout.signal content: offline_retrieval is required when inline signaling payload is present"
+        )
+
+    if offline_retrieval.get("external_fetch_required") is not True:
+        raise ValueError(
+            "invalid m.blackout.signal content: offline_retrieval.external_fetch_required must be true when inline signaling payload is present"
+        )
+
+    for payload_key in _INLINE_SIGNAL_PAYLOAD_FIELDS:
+        content.pop(payload_key, None)
+
+    return True
 
 
 def extract_sender_key_identifiers_from_signal_content(content: Any) -> List[str]:

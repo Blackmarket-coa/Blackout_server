@@ -80,6 +80,12 @@ database:
 
 event_cache_size: "{{ SYNAPSE_EVENT_CACHE_SIZE or "10K" }}"
 
+# Low-resource profile defaults (phone-hosting oriented).
+# These keep background and optional features conservative by default.
+use_presence: false
+cleanup_extremities_with_dummy_events: false
+dummy_events_threshold: 20
+
 ## Ratelimiting ##
 
 rc_messages_per_second: 0.2
@@ -93,6 +99,7 @@ federation_rc_concurrent: 3
 ## Files ##
 
 media_store_path: "/data/media"
+enable_media_repo: false
 max_upload_size: "{{ SYNAPSE_MAX_UPLOAD_SIZE or "50M" }}"
 max_image_pixels: "32M"
 dynamic_thumbnails: false
@@ -117,6 +124,7 @@ thumbnail_sizes:
 
 url_preview_enabled: False
 max_spider_size: "10M"
+enable_search: false
 
 ## Captcha ##
 
@@ -160,12 +168,12 @@ turn_allow_guests: True
 #   enable_media_repo: false
 #   Prefer 200-500 registered users and 20-50 active peers.
 blackout:
-  enabled: false
+  enabled: true
   signal_event_ttl: "48h"
   # Optional runtime minimization: skip push-action generation for signal events.
-  skip_push_actions_for_signal: false
+  skip_push_actions_for_signal: true
   # Optional profile hint for low-resource/phone-hosted deployments.
-  low_resource_profile: false
+  low_resource_profile: true
 
 ## Registration ##
 

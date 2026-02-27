@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections.abc
+import base64
+import re
 from typing import TYPE_CHECKING, List, Type, Union, cast
 
 import jsonschema
@@ -43,9 +45,109 @@ from synapse.http.servlet import validate_json_object
 from synapse.rest.models import RequestBodyModel
 from synapse.storage.controllers.state import server_acl_evaluator_from_event
 from synapse.types import EventID, JsonDict, RoomID, StrCollection, UserID
-from synapse.util.blackout import validate_blackout_signal_content as validate_blackout_signal_content_util
-# Re-export for callers that import from the validator module as the public facade.
-from synapse.util.blackout import validate_blackout_signal_content
+from synapse.util.blackout import (
+    BlackoutSignalValidationResult,
+    validate_blackout_signal_content as validate_blackout_signal_content_util,
+)
+
+
+_HEX_256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+_BASE64_256_RE = re.compile(r"^[A-Za-z0-9+/]{43}=$|^[A-Za-z0-9+/]{44}$")
+
+
+def _is_fixed_length_hash(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+
+    if _HEX_256_RE.fullmatch(value):
+        return True
+
+    if not _BASE64_256_RE.fullmatch(value):
+        return False
+
+    try:
+        return len(base64.b64decode(value, validate=True)) == 32
+    except Exception:
+        return False
+
+
+def validate_blackout_signal_content(
+    content: object,
+) -> BlackoutSignalValidationResult:
+    """Validate structure for m.blackout.signal payload sections.
+
+    This extends the utility validator with additional strict checks enforced at
+    event validation/ingress boundaries.
+    """
+
+    result = validate_blackout_signal_content_util(content)
+
+    if not isinstance(content, dict):
+        raise ValueError("invalid m.blackout.signal content: must be a JSON object")
+
+    if "sdp_offer" in content and "sdp_answer" in content:
+        raise ValueError(
+            "invalid m.blackout.signal content: only one of sdp_offer or sdp_answer is allowed"
+        )
+
+    ice_candidates = content.get("ice_candidates")
+    if ice_candidates is not None:
+        if not isinstance(ice_candidates, list):
+            raise ValueError("invalid m.blackout.signal content: ice_candidates must be a list")
+
+        for idx, candidate in enumerate(ice_candidates):
+            prefix = "ice_candidates[%d]" % (idx,)
+            if not isinstance(candidate, dict):
+                raise ValueError(f"invalid m.blackout.signal content: {prefix} must be an object")
+
+            if not isinstance(candidate.get("candidate"), str) or not candidate["candidate"].strip():
+                raise ValueError(
+                    "invalid m.blackout.signal content: %s.candidate must be a non-empty string"
+                    % (prefix,)
+                )
+
+            if "sdpMLineIndex" in candidate and not isinstance(
+                candidate["sdpMLineIndex"], int
+            ):
+                raise ValueError(
+                    "invalid m.blackout.signal content: %s.sdpMLineIndex must be an integer"
+                    % (prefix,)
+                )
+
+            if "sdpMid" in candidate and (
+                not isinstance(candidate["sdpMid"], str) or not candidate["sdpMid"].strip()
+            ):
+                raise ValueError(
+                    "invalid m.blackout.signal content: %s.sdpMid must be a non-empty string"
+                    % (prefix,)
+                )
+
+    chunk_announcements = content.get("chunk_announcements")
+    if chunk_announcements is not None:
+        if not isinstance(chunk_announcements, list):
+            raise ValueError(
+                "invalid m.blackout.signal content: chunk_announcements must be a list"
+            )
+
+        for idx, chunk in enumerate(chunk_announcements):
+            prefix = "chunk_announcements[%d]" % (idx,)
+            if not isinstance(chunk, dict):
+                raise ValueError(f"invalid m.blackout.signal content: {prefix} must be an object")
+
+            if not _is_fixed_length_hash(chunk.get("chunk_hash")):
+                raise ValueError(
+                    "invalid m.blackout.signal content: %s.chunk_hash must be a 32-byte hex/base64 hash"
+                    % (prefix,)
+                )
+
+            merkle_root = chunk.get("merkle_root")
+            if merkle_root is not None and not _is_fixed_length_hash(merkle_root):
+                raise ValueError(
+                    "invalid m.blackout.signal content: %s.merkle_root must be a 32-byte hex/base64 hash"
+                    % (prefix,)
+                )
+
+    return result
 
 
 

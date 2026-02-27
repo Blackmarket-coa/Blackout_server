@@ -79,7 +79,7 @@ from synapse.util.metrics import measure_func
 from synapse.visibility import get_effective_room_visibility_from_state
 from synapse.util.blackout import (
     extract_sender_key_identifiers_from_signal_content,
-    validate_blackout_signal_content,
+    strip_inline_payload_from_signal_content,
 )
 
 if TYPE_CHECKING:
@@ -650,6 +650,7 @@ class EventCreationHandler:
         if event_type == EventTypes.BlackoutSignal:
             content = event_dict.setdefault("content", {})
             self._validate_blackout_signal_content(content)
+            strip_inline_payload_from_signal_content(content)
             await self._enforce_blackout_signal_device_revocation(
                 event_dict["sender"], content
             )

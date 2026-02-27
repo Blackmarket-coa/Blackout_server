@@ -91,9 +91,10 @@ from synapse.util.async_helpers import Linearizer, concurrently_execute
 from synapse.util.iterutils import batch_iter, partition, sorted_topologically_batched
 from synapse.util.retryutils import NotRetryingDestination
 from synapse.util.stringutils import shortstr
+from synapse.events.validator import validate_blackout_signal_content
 from synapse.util.blackout import (
     extract_sender_key_identifiers_from_signal_content,
-    validate_blackout_signal_content,
+    strip_inline_payload_from_signal_content,
 )
 
 if TYPE_CHECKING:
@@ -308,6 +309,7 @@ class FederationEventHandler:
             if result.invalid_redundancy_metadata:
                 blackout_federation_signal_redundancy_metadata_invalid_counter.inc()
 
+            strip_inline_payload_from_signal_content(event.content)
             await self._enforce_blackout_signal_device_revocation(event)
             blackout_federation_signal_events_accepted_counter.inc()
 
