@@ -13,6 +13,7 @@ Related reliability and refactor tracking docs:
 1. Set the following in homeserver config:
 
 ```yaml
+blackout_signaling_only_mode: true   # migration alias for blackout.enabled
 blackout:
   enabled: true
   signal_event_ttl: "48h"

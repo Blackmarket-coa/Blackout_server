@@ -2152,6 +2152,27 @@ class RoomMessageListTestCase(RoomBase):
         self.assertEqual(len(chunk), 0, [event["content"] for event in chunk])
 
 
+class BlackoutRoomMessageListTestCase(RoomBase):
+    user_id = "@sid1:red"
+
+    def default_config(self) -> JsonDict:
+        config = super().default_config()
+        config["blackout_signaling_only_mode"] = True
+        return config
+
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.room_id = self.helper.create_room_as(self.user_id)
+
+    def test_room_messages_endpoint_disabled_in_blackout_mode(self) -> None:
+        token = "s0_0_0_0_0_0_0_0_0_0"
+        channel = self.make_request(
+            "GET", f"/rooms/{self.room_id}/messages?access_token=x&from={token}"
+        )
+        self.assertEqual(channel.code, HTTPStatus.FORBIDDEN, channel.json_body)
+        self.assertEqual(channel.json_body["errcode"], Codes.FORBIDDEN)
+        self.assertIn("history retrieval is disabled", channel.json_body["error"])
+
+
 class RoomSearchTestCase(unittest.HomeserverTestCase):
     servlets = [
         synapse.rest.admin.register_servlets_for_client_rest_resource,

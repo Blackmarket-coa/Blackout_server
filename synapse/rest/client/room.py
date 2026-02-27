@@ -692,6 +692,14 @@ class RoomMessageListRestServlet(RestServlet):
         )
 
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
+
+        if self._hs.config.server.blackout_enabled:
+            raise SynapseError(
+                403,
+                "Room history retrieval is disabled in blackout signaling-only mode",
+                Codes.FORBIDDEN,
+            )
+
         pagination_config = await PaginationConfig.from_request(
             self.store, request, default_limit=10
         )
@@ -768,6 +776,14 @@ class RoomInitialSyncRestServlet(RestServlet):
         self, request: SynapseRequest, room_id: str
     ) -> Tuple[int, JsonDict]:
         requester = await self.auth.get_user_by_req(request, allow_guest=True)
+
+        if self._hs.config.server.blackout_enabled:
+            raise SynapseError(
+                403,
+                "Room history retrieval is disabled in blackout signaling-only mode",
+                Codes.FORBIDDEN,
+            )
+
         pagination_config = await PaginationConfig.from_request(
             self.store, request, default_limit=10
         )

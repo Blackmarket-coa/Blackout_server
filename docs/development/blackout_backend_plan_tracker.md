@@ -291,7 +291,7 @@ Execution artifacts created in this pass:
 | BLK-114 | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Mobile Performance Engineer | Sprint 3 | Define benchmark harness and collect first representative mobile baseline. |
 | BLK-115 | 8 Phase 1 deliverables + Phase 1 exit criterion | Program Manager + Backend Lead | Sprint 1-2 | Convert Phase 1 bullets to sprint stories and run end-to-end demo gate. |
 | BLK-116 | 9 alignment seed: `faster_joins`, sync marker clusters, storage/search/media marker clusters, tracker-tagged follow-up markers | Tech Lead | Sprint 1 | Open mapped issues for each marker cluster and attach `blackout:*` labels. |
-| BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | Hold decision workshop and record resolutions in ADR set before feature merge. |
+| BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | ✅ Decision workshop completed; outcomes recorded in `docs/development/blackout_blocker_decision_record_2026-02-27.md`. |
 
 
 ### 13.1a Marker debt compliance gate (required-now policy)
