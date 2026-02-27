@@ -216,7 +216,9 @@ class IdentityHandler:
         except RequestTimedOutError:
             raise SynapseError(500, "Timed out contacting identity server")
         except CodeMessageException as e:
-            data = json_decoder.decode(e.msg)  # Follow-up (matrix-org/synapse#17485, owner: identity team): normalize error payload decoding/typing.
+            data = json_decoder.decode(
+                e.msg
+            )  # Follow-up (matrix-org/synapse#17485, owner: identity team): normalize error payload decoding/typing.
             return data
 
     async def try_unbind_threepid(
