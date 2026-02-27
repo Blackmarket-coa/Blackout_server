@@ -128,6 +128,15 @@ blackout_federation_signal_redundancy_metadata_invalid_counter = Counter(
     "synapse_blackout_federation_signal_redundancy_metadata_invalid_total",
     "Federated blackout signal chunk announcements accepted with invalid redundancy metadata",
 )
+blackout_federation_signal_redundancy_mismatch_counter = Counter(
+    "synapse_blackout_federation_signal_redundancy_mismatch_total",
+    "Federated blackout signal chunk announcements where declared replication factor exceeded observed replica hints",
+)
+blackout_federation_signal_declared_replication_factor_counter = Counter(
+    "synapse_blackout_federation_signal_declared_replication_factor_total",
+    "Declared replication factors observed in federated blackout signal chunk announcements",
+    ["replication_factor"],
+)
 
 # Added to debug performance and track progress on optimizations
 backfill_processing_after_timer = Histogram(
@@ -308,6 +317,12 @@ class FederationEventHandler:
                 blackout_federation_signal_redundancy_metadata_missing_counter.inc()
             if result.invalid_redundancy_metadata:
                 blackout_federation_signal_redundancy_metadata_invalid_counter.inc()
+            if result.redundancy_mismatch_detected:
+                blackout_federation_signal_redundancy_mismatch_counter.inc()
+            for replication_factor in result.declared_replication_factors:
+                blackout_federation_signal_declared_replication_factor_counter.labels(
+                    replication_factor=str(replication_factor)
+                ).inc()
 
             strip_inline_payload_from_signal_content(event.content)
             await self._enforce_blackout_signal_device_revocation(event)

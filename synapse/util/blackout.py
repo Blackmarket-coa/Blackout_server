@@ -1,7 +1,7 @@
 import base64
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import jsonschema
 
@@ -100,6 +100,8 @@ _BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
 class BlackoutSignalValidationResult:
     missing_redundancy_metadata: bool = False
     invalid_redundancy_metadata: bool = False
+    redundancy_mismatch_detected: bool = False
+    declared_replication_factors: Tuple[int, ...] = ()
 
 
 def _is_fixed_length_hash(value: Any) -> bool:
@@ -151,6 +153,8 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
 
     missing_redundancy_metadata = False
     invalid_redundancy_metadata = False
+    redundancy_mismatch_detected = False
+    declared_replication_factors: List[int] = []
     for idx, chunk in enumerate(chunk_announcements):
         prefix = f"chunk_announcements[{idx}]"
         if not isinstance(chunk, dict):
@@ -174,14 +178,19 @@ def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalVal
         replica_hints = chunk.get("replica_hints")
         if replication_factor is None:
             missing_redundancy_metadata = True
+        elif isinstance(replication_factor, int):
+            declared_replication_factors.append(replication_factor)
 
         if isinstance(replication_factor, int) and isinstance(replica_hints, list):
             if len(replica_hints) < replication_factor:
                 invalid_redundancy_metadata = True
+                redundancy_mismatch_detected = True
 
     return BlackoutSignalValidationResult(
         missing_redundancy_metadata=missing_redundancy_metadata,
         invalid_redundancy_metadata=invalid_redundancy_metadata,
+        redundancy_mismatch_detected=redundancy_mismatch_detected,
+        declared_replication_factors=tuple(declared_replication_factors),
     )
 
 

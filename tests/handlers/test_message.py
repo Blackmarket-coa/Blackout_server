@@ -592,6 +592,15 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
             "synapse_blackout_signal_redundancy_metadata_invalid_total"
         )
         baseline = before if before is not None else 0.0
+        mismatch_before = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_redundancy_mismatch_total"
+        )
+        mismatch_baseline = mismatch_before if mismatch_before is not None else 0.0
+        rf_before = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_declared_replication_factor_total",
+            labels={"replication_factor": "3"},
+        )
+        rf_baseline = rf_before if rf_before is not None else 0.0
 
         self.get_success(
             self.handler.create_and_send_nonmember_event(
@@ -624,6 +633,21 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.assertIsNotNone(after)
         assert after is not None
         self.assertGreaterEqual(after, baseline + 1.0)
+
+        mismatch_after = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_redundancy_mismatch_total"
+        )
+        self.assertIsNotNone(mismatch_after)
+        assert mismatch_after is not None
+        self.assertGreaterEqual(mismatch_after, mismatch_baseline + 1.0)
+
+        rf_after = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_declared_replication_factor_total",
+            labels={"replication_factor": "3"},
+        )
+        self.assertIsNotNone(rf_after)
+        assert rf_after is not None
+        self.assertGreaterEqual(rf_after, rf_baseline + 1.0)
 
     def test_blackout_signal_accepts_offline_retrieval_and_redundancy_metadata(self) -> None:
         event, _ = self.get_success(

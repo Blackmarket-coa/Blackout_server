@@ -125,3 +125,25 @@ class BlackoutSignalSchemaValidationTestCase(unittest.TestCase):
         self.assertTrue(stripped)
         self.assertNotIn("sdp_offer", content)
         self.assertNotIn("ice_candidates", content)
+
+    def test_validation_result_tracks_declared_replication_and_mismatch(self) -> None:
+        result = validate_blackout_signal_content(
+            {
+                "message_metadata": {
+                    "message_id": "m1",
+                    "sender_key_id": "ed25519:dev1",
+                },
+                "chunk_announcements": [
+                    {
+                        "chunk_id": "chunk-1",
+                        "chunk_hash": "a" * 64,
+                        "replication_factor": 3,
+                        "replica_hints": ["peer-1"],
+                    }
+                ],
+            }
+        )
+
+        self.assertTrue(result.invalid_redundancy_metadata)
+        self.assertTrue(result.redundancy_mismatch_detected)
+        self.assertEqual(result.declared_replication_factors, (3,))

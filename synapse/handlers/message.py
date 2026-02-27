@@ -108,6 +108,15 @@ blackout_signal_redundancy_metadata_invalid_counter = Counter(
     "synapse_blackout_signal_redundancy_metadata_invalid_total",
     "Blackout signal chunk announcements accepted with invalid redundancy metadata",
 )
+blackout_signal_redundancy_mismatch_counter = Counter(
+    "synapse_blackout_signal_redundancy_mismatch_total",
+    "Blackout signal chunk announcements where declared replication factor exceeded observed replica hints",
+)
+blackout_signal_declared_replication_factor_counter = Counter(
+    "synapse_blackout_signal_declared_replication_factor_total",
+    "Declared replication factors observed in blackout signal chunk announcements",
+    ["replication_factor"],
+)
 
 
 class MessageHandler:
@@ -599,6 +608,12 @@ class EventCreationHandler:
             blackout_signal_redundancy_metadata_missing_counter.inc()
         if result.invalid_redundancy_metadata:
             blackout_signal_redundancy_metadata_invalid_counter.inc()
+        if result.redundancy_mismatch_detected:
+            blackout_signal_redundancy_mismatch_counter.inc()
+        for replication_factor in result.declared_replication_factors:
+            blackout_signal_declared_replication_factor_counter.labels(
+                replication_factor=str(replication_factor)
+            ).inc()
 
     async def _enforce_blackout_signal_device_revocation(
         self, sender: str, content: JsonDict
