@@ -15,6 +15,7 @@
 import argparse
 import itertools
 import logging
+import os
 import os.path
 import urllib.parse
 from textwrap import indent
@@ -1038,7 +1039,21 @@ def parse_listener_def(num: int, listener: Any) -> ListenerConfig:
         )
 
     if socket_path:
-        # TODO: Add in path validation, like if the directory exists and is writable?
+        socket_dir = os.path.dirname(socket_path) or "."
+        if not os.path.isdir(socket_dir):
+            raise ConfigError(
+                "Listener UNIX socket directory does not exist: %s"
+                % (socket_dir,),
+                ("listeners", str(num), "path"),
+            )
+
+        if not os.access(socket_dir, os.W_OK):
+            raise ConfigError(
+                "Listener UNIX socket directory is not writable: %s"
+                % (socket_dir,),
+                ("listeners", str(num), "path"),
+            )
+
         # Set a default for the permission, in case it's left out
         socket_mode = listener.get("mode", 0o666)
 
