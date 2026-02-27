@@ -183,3 +183,79 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
         self.assertCountEqual(revoked_by_device.keys(), ["A", "B"])
         self.assertIsInstance(revoked_by_device["A"], int)
         self.assertIsInstance(revoked_by_device["B"], int)
+    def test_rejects_setting_device_keys_after_device_revocation(self) -> None:
+        user_id = "@alice:test"
+        device_id = "ALICEDEVICE"
+        key_json = {
+            "user_id": user_id,
+            "device_id": device_id,
+            "keys": {"ed25519:ALICEDEVICE": "ed25519-key-material"},
+        }
+
+        self.get_success(
+            self.store.set_e2e_device_keys(user_id, device_id, 1_000, key_json)
+        )
+        self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
+
+        with self.assertRaises(ValueError):
+            self.get_success(
+                self.store.set_e2e_device_keys(user_id, device_id, 2_000, key_json)
+            )
+
+    def test_upsert_device_key_revocations_records_key_identifier_and_value(self) -> None:
+        user_id = "@alice:test"
+        device_id = "ALICEDEVICE"
+        revoked_ts = 7_777
+        self.get_success(
+            self.store.upsert_device_key_revocations(
+                user_id,
+                device_id,
+                revoked_ts,
+                {
+                    "ed25519:ALICEDEVICE": "ed25519-key-material",
+                    "curve25519:ALICEDEVICE": "curve25519-key-material",
+                },
+            )
+        )
+
+        self.assertEqual(
+            self.get_success(
+                self.store.get_revoked_device_key_timestamp(
+                    user_id, "ed25519:ALICEDEVICE"
+                )
+            ),
+            revoked_ts,
+        )
+        self.assertEqual(
+            self.get_success(
+                self.store.get_revoked_device_key_timestamp(
+                    user_id, "curve25519-key-material"
+                )
+            ),
+            revoked_ts,
+        )
+    def test_federation_query_includes_revoked_deleted_devices(self) -> None:
+        user_id = "@alice:test"
+        device_id = "ALICEDEVICE"
+        key_json = {
+            "user_id": user_id,
+            "device_id": device_id,
+            "keys": {
+                "ed25519:ALICEDEVICE": "ed25519-key-material",
+            },
+        }
+        self.get_success(self.store.store_device(user_id, device_id))
+        self.get_success(
+            self.store.set_e2e_device_keys(user_id, device_id, 1_000, key_json)
+        )
+        self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
+
+        _, devices = self.get_success(
+            self.store.get_e2e_device_keys_for_federation_query(user_id)
+        )
+        revoked_device = next(d for d in devices if d["device_id"] == device_id)
+        self.assertTrue(revoked_device["deleted"])
+        self.assertTrue(revoked_device["org.matrix.msc_blackout_device_revoked"])
+        self.assertIsInstance(
+            revoked_device["org.matrix.msc_blackout_device_revoked_ts"], int
+        )
