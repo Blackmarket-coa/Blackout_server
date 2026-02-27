@@ -248,3 +248,20 @@ This order minimizes operational risk: first guarantee correctness, then interop
 - Add redundancy metadata (`replication_factor`, `replica_hints`) within chunk announcements.
 - Track counters for accepted events missing redundancy declarations to support withholding detection.
 - Operate with fan-out and purge-lag SLOs documented in runbook + metrics docs.
+
+### Explicit operating thresholds (mesh viability)
+
+- **Room fan-out target**: `<= 50` concurrently active peers (full mesh viable).
+- **Warning fan-out band**: `51-75` active peers (start staged temporary relay assignment).
+- **Critical fan-out**: `> 75` active peers (hierarchical mesh/super-peer policy required).
+- **Federation reject ratio**: warning at `>1% over 15m`, critical at `>5% over 15m`.
+- **Signal purge lag**: warning at `>15m`, critical at `>60m`.
+
+### Super-peer / hierarchical mesh policy requirements
+
+- Document room policy for temporary relay selection using stable nodes (power/network uptime,
+  low packet loss, predictable latency).
+- Distribute topology placement hints via signaling payload metadata in
+  `message_metadata.topology_hints`.
+- Include relay rollback/demotion conditions after sustained healthy windows below warning
+  thresholds.

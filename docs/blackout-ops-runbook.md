@@ -135,6 +135,8 @@ Reliability caveats (phone hosting):
 Suggested operating guardrails for blackout mesh signaling:
 
 - Room fan-out target: 20–50 active peers; introduce temporary relays above 50.
+- Room fan-out warning band: 51–75 active peers (move to staged relay assignments).
+- Room fan-out critical: >75 active peers (enforce hierarchical mesh / super-peer routing).
 - Warning threshold: federation blackout reject rate >1% over 15m.
 - Critical threshold: federation blackout reject rate >5% over 15m.
 - Warning threshold: signal purge lag >15m.
@@ -145,6 +147,27 @@ Temporary relay/super-peer selection guidance:
 - Prefer stable, always-on nodes with low packet loss and sufficient uplink.
 - Publish relay topology hints in `message_metadata.topology_hints`.
 - Roll back relay assignment if reject rates or ICE failures increase for 2 consecutive windows.
+
+Room policy template for temporary relay assignment:
+
+1. Elect 2-3 temporary relays from peers with best uptime, battery/power stability,
+   and observed packet-loss profile.
+2. Publish relay IDs in `message_metadata.topology_hints` for all room members.
+3. Keep relay assignment until fan-out and reject metrics stay below warning thresholds
+   for at least two consecutive 15m windows.
+4. Demote relays gradually (one relay per window) to avoid topology oscillation.
+
+Topology hints payload example:
+
+```json
+{
+  "message_metadata": {
+    "message_id": "<opaque-id>",
+    "sender_key_id": "ed25519:<device-id>",
+    "topology_hints": ["relay:peer-a", "relay:peer-b"]
+  }
+}
+```
 
 ### Triage playbook for rising federation rejection rates
 
