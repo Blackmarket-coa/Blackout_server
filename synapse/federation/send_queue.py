@@ -292,7 +292,8 @@ class FederationRemoteSendQueue(AbstractFederationSender):
            * `new_last_token` is the new position in stream.
            * `limited` is whether there are more updates to fetch.
         """
-        # TODO: Handle target_row_count.
+        # Follow-up (matrix-org/synapse#17422, owner: federation maintainers):
+        # support target_row_count to avoid oversized catch-up batches.
 
         # To handle restarts where we wrap around
         if from_token > self.pos:

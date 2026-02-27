@@ -62,7 +62,10 @@ class TransactionManager:
             hs.config.federation.federation_metrics_domains
         )
 
-        # HACK to get unique tx id
+        # Start transaction IDs at current msec so IDs remain monotonic after
+        # restart. Follow-up (matrix-org/synapse#17421, owner: federation
+        # maintainers): replace this process-local sequence with a distributed,
+        # persisted allocator if multi-writer transaction IDs are introduced.
         self._next_txn_id = int(self.clock.time_msec())
 
     @measure_func("_send_new_transaction")

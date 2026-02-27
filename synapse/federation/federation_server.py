@@ -1249,9 +1249,9 @@ class FederationServer(FederationBase):
                                 origin, event
                             )
                 except FederationError as e:
-                    # XXX: Ideally we'd inform the remote we failed to process
-                    # the event, but we can't return an error in the transaction
-                    # response (as we've already responded).
+                    # Follow-up (matrix-org/synapse#17427, owner: federation maintainers):
+                    # send asynchronous failure feedback for staged events that fail
+                    # after `/send` has already been acknowledged.
                     logger.warning("Error handling PDU %s: %s", event.event_id, e)
                 except Exception:
                     f = failure.Failure()

@@ -933,7 +933,8 @@ def _custom_sync_async_decorator(
                         return result
 
                     def err_back(result: R) -> R:
-                        # TODO: Pass the error details into `scope.__exit__(...)` for
+                        # Follow-up (matrix-org/synapse#17424, owner: tracing maintainers):
+                        # pass error details into `scope.__exit__(...)` for
                         #       consistency with the other paths.
                         scope.__exit__(None, None, None)
                         return result

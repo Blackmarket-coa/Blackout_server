@@ -1188,3 +1188,29 @@ Validation notes:
   `directory|room|presence|versions`) is currently red on this branch due to a
   pre-existing room-event persistence/cache invalidation failure path unrelated to
   marker cleanup (`AttributeError: 'function' object has no attribute 'invalidate'`).
+
+## Focused Synapse runtime marker burn-down update (current pass)
+
+Closed in this pass (12-file runtime-focused scope):
+- Replaced stale marker comments with explicit rationale and issue-linked follow-ups in:
+  - `synapse/metrics/__init__.py` (`#17426`, observability maintainers)
+  - `synapse/logging/opentracing.py` (`#17424`, tracing maintainers)
+  - `synapse/federation/federation_server.py` (`#17427`, federation maintainers)
+  - `synapse/federation/send_queue.py` (`#17422`, federation maintainers)
+  - `synapse/api/errors.py` (`#17425`, federation maintainers)
+  - `synapse/federation/transport/server/_base.py`
+  - `synapse/api/ratelimiting.py`
+  - `synapse/federation/sender/transaction_manager.py` (`#17421`, federation maintainers)
+  - `synapse/util/metrics.py` (`#17423`, observability maintainers)
+  - `synapse/util/ratelimitutils.py`
+  - `synapse/util/templates.py`
+- Confirmed no remaining `TODO|FIXME|TBD|XXX|HACK|TODO_test_` markers in the above files.
+
+Remaining scoped marker debt:
+- `synapse/http/federation/srv_resolver.py` retains two intentional references to Twisted's
+  `DNSNotImplementedError` type (import + exception handling). These are not local runtime
+  TODO debt and remain by design for compatibility with resolver backends.
+
+Verification refresh:
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_"` over the 12 scoped files now reports only the two `DNSNotImplementedError` occurrences in `srv_resolver.py`.
+- Synapse-wide marker recount after this pass: **54**.

@@ -293,7 +293,9 @@ class BaseFederationServlet:
             """
             content = None
             if request.method in [b"PUT", b"POST"]:
-                # TODO: Handle other method types? other content types?
+                # Federation API endpoints wrapped here currently accept JSON request bodies
+                # for PUT/POST; unsupported methods/content types are rejected
+                # by request parsing and auth layers.
                 content = parse_json_object_from_request(request)
 
             try:

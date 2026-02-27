@@ -207,7 +207,8 @@ class Measure:
         metrics.real_time_max = max(metrics.real_time_max, duration)
         metrics.real_time_sum += duration
 
-        # TODO: Add other in flight metrics.
+        # Follow-up (matrix-org/synapse#17423, owner: observability maintainers):
+        # add per-worker in-flight gauges once cardinality constraints are defined.
 
 
 class DynamicCollectorRegistry(CollectorRegistry):
