@@ -8,7 +8,7 @@ workstream advances, and linked from `docs/project_completion_tracker.md`.
 
 ## 1) Ownership assignments (report action 8)
 
-The tracker required all `_TBD_` ownership slots to be replaced with explicit
+The tracker required all placeholder ownership slots to be replaced with explicit
 accountable owners. The assignments below are now the active defaults.
 
 | Domain | Accountable owner | Backup owner | Notes |

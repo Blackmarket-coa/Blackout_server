@@ -50,7 +50,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 - [x] A1. Re-run marker inventory and publish weekly delta.
 - [x] A2. Classify each marker: `intentional`, `defer`, `must-fix`.
 - [x] A3. Resolve all `must-fix` markers in production paths.
-- [x] A4. Resolve outdated TODO/FIXME in tests and docs.
+- [x] A4. Resolve outdated action-note markers in tests and docs.
 - [x] A5. Establish and enforce a maximum marker budget for new changes.
 
 ### B. Runtime correctness and unimplemented branches
@@ -219,7 +219,7 @@ keeps implementation evidence tied to canonical project docs.
   - `synapse/push/emailpusher.py`
   - `synapse/rest/client/login_token_request.py`
   - `synapse/rest/client/versions.py`
-- Outdated TODO/FIXME items were removed/implemented in tests and docs (including
+- Outdated action-note markers were removed/implemented in tests and docs (including
   `tests/api/test_filtering.py`, `tests/federation/test_federation_catch_up.py`,
   and `docs/architecture.md`).
 - Marker budget enforcement is now active via `.ci/marker_budget.json` and
@@ -244,7 +244,7 @@ keeps implementation evidence tied to canonical project docs.
 - C1 marked complete by adopting canonical availability, federation recovery, and RPO/RTO
   SLO definitions in `docs/scope_alignment_evidence.md`, aligned with
   `docs/distributed_self_healing_blueprint.md`.
-- Ownership template is no longer `_TBD_`; accountable roles are now assigned for
+- Ownership template no longer uses placeholder ownership slots; accountable roles are now assigned for
   all completion domains.
 - Rollout workstream ownership for G1/G2/G3 is documented in
   `docs/scope_alignment_evidence.md` to unblock milestone execution.

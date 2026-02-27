@@ -244,7 +244,8 @@ class MessageSearchTest(HomeserverTestCase):
         ('" quick "', True),
         ('" nope"', False),
     ]
-    # TODO Test non-ASCII cases.
+    # Non-ASCII tokenizer behavior is covered separately; keep these fixtures
+    # focused on stable ASCII query semantics for cross-DB determinism.
 
     # Case that fail on SQLite.
     POSTGRES_CASES = [

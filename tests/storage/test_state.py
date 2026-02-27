@@ -598,7 +598,7 @@ class StateStoreTestCase(HomeserverTestCase):
 
         events = []
         for result in res:
-            self.assertNotIn(event3.event_id, result)  # XXX
+            self.assertNotIn(event3.event_id, result)
             events.append(result[0])
 
         for event, _ in processed_events_and_context:

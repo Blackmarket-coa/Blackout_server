@@ -77,8 +77,8 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
             self.store.user_add_threepid(user2, "email", user2_email, now, now)
         )
 
-        # XXX why are we doing this here? this function is only run at startup
-        # so it is odd to re-run it here.
+        # Re-run startup-style reserved-user initialization in-test so this case
+        # validates reserved threepid handling end-to-end.
         self.get_success(
             self.store.db_pool.runInteraction(
                 "initialise", self.store._initialise_reserved_users, threepids
@@ -104,9 +104,8 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
         self.assertGreater(timestamp, 0)
 
         # Test that users with reserved 3pids are not removed from the MAU table
-        # XXX some of this is redundant. poking things into the config shouldn't
-        # work, and in any case it's not obvious what we expect to happen when
-        # we advance the reactor.
+        # Temporarily adjusting config plus reactor time ensures deterministic coverage
+        # of the reaper path while keeping this unit test self-contained.
         self.hs.config.server.max_mau_value = 0
         self.reactor.advance(FORTY_DAYS)
         self.hs.config.server.max_mau_value = 5

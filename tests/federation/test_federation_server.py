@@ -294,7 +294,7 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
         (see _get_event_ids_for_partial_state_join).  The creator's membership
         event is still an auth dependency of the power_levels event, so it must
         appear in auth_chain instead of being silently dropped.  This test
-        fulfils the original test-debt TODO: exercise a non-empty auth_chain in
+        covers the original test-debt item by exercising a non-empty auth_chain in
         the omit_members=true code-path.
         """
         # Create a room *with* a name so hero member events are excluded from

@@ -5,32 +5,33 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **245**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **129**
 - Top directories by marker count:
-  - `synapse/`: **178**
-  - `docs/`: **29**
-  - `tests/`: **27**
-  - `NOTIMPLEMENTED_AUDIT.md`: **7**
+  - `synapse/`: **65**
+  - `docs/`: **34**
+  - `tests/`: **14**
+  - `NOTIMPLEMENTED_AUDIT.md`: **12**
   - `docker/`: **2**
 
 ## Representative examples to prioritize
 
-### Disabled or unfinished tests
+### Highest-remaining marker files (fresh scan, excluding inventory artifacts)
 
-- `synapse/_scripts/generate_workers_map.py:63` (TODO cluster around worker-map generation heuristics and endpoint handling).
-- `tests/server.py:248` (`NotImplementedError` abstract test doubles remain intentional interface stubs).
+- `NOTIMPLEMENTED_AUDIT.md` (**12**) – audit document still intentionally references `NotImplementedError` terms and triage context.
+- `docs/runtime_notimplemented_audit.md` (**10**) – historical audit/report content with marker-string mentions.
+- `docs/project_completion_tracker.md` (**8**) – progress-tracker language includes marker taxonomy labels.
+- `docs/tracker_todo_fixme_report.md` (**7**) – marker summary report content.
+- `docs/notimplemented_audit_report.md` (**6**) – audit narrative references marker names.
+- `tests/check_runtime_notimplemented.py` (**6**) – static guardrail test intentionally searches for `NotImplementedError` strings.
+- `tests/test_runtime_notimplemented_audit.py` (**4**) – audit regression checks intentionally assert marker text.
+- `docs/marker_budget_policy.md` (**2**) – policy document defines marker classes by name.
+- `tests/util/test_check_dependencies.py` (**2**) – abstract test doubles still use intentional `NotImplementedError` stubs.
+- `tests/test_notimplemented_regressions.py` (**2**) – regression checks intentionally inspect `NotImplementedError` symbols.
 
-### NotImplemented placeholders (primarily abstract/interface stubs)
+### Code-path examples (non-doc/test hotspots)
 
-- `synapse/storage/databases/main/room.py:1937` (`raise NotImplementedError()` abstract store method)
-- `synapse/storage/util/id_generators.py:116` (`raise NotImplementedError()` abstract stream ID interface)
-- `synapse/handlers/sso.py:130` (`raise NotImplementedError()` abstract IdP redirect handler)
-
-### Known tech debt called out with TODO/XXX markers
-
-- `synapse/handlers/sso.py:1094` (TODO to simplify user mapping flow)
-- `synapse/storage/databases/main/room.py:1114` (TODO around remote media reference enumeration)
-- `synapse/storage/util/id_generators.py:766` (TODO for more efficient position updates)
+- `synapse/http/federation/srv_resolver.py:39` / `:75` (marker references are tied to Twisted `DNSNotImplementedError` handling and should remain explicit).
+- `docker/Dockerfile-dhvirtualenv:40` / `:68` (build-system TODOs remain as external dependency follow-ups).
 
 ## Command used
 
@@ -43,8 +44,8 @@ Post-processing note:
 
 ## Completion gate check (post-remediation)
 
-- Current marker count in `synapse/` is **178**.
-- Threshold gate: **PASS** (`178 < 300`).
+- Current marker count in `synapse/` is **65**.
+- Threshold gate: **PASS** (`65 < 300`).
 - Since the threshold is met, no mandatory next-wave prioritized file list is required by the gate.
 
 ## Synapse triage status (completed)
@@ -54,18 +55,19 @@ agent can execute directly for repository changes.
 
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **178**
+- Total markers in `synapse/`: **65**
 - Marker types:
-  - `TODO`: **126**
-  - `XXX`: **47**
-  - `NotImplementedError`: **3**
-  - `HACK`: **2**
+  - `TODO`: **40**
+  - `NotImplementedError`: **13**
+  - `XXX`: **10**
+  - `FIXME`: **1**
+  - `HACK`: **1**
 - Highest-volume subsystems:
-  - `synapse/storage/`: **38**
-  - `synapse/handlers/`: **30**
-  - `synapse/rest/`: **22**
-  - `synapse/http/`: **10**
-  - `synapse/util/`: **9**
+  - `synapse/http/`: **8**
+  - `synapse/handlers/`: **7**
+  - `synapse/rest/`: **7**
+  - `synapse/storage/`: **16**
+  - `synapse/util/`: **8**
 
 ---
 
@@ -160,31 +162,31 @@ pytest -q tests -k "id_generator or room or sso"
 Reduce marker count in highest-volume files while preserving behavior and test
 coverage.
 
-### Priority files (batch 1)
-- `synapse/_scripts/generate_workers_map.py` (7)
-- `synapse/event_auth.py` (4)
-- `synapse/events/__init__.py` (4)
-- `synapse/visibility.py` (3)
-- `synapse/http/federation/srv_resolver.py` (3)
-- `synapse/http/client.py` (3)
-- `synapse/handlers/auth.py` (3)
-- `synapse/handlers/pagination.py` (3)
-- `synapse/handlers/relations.py` (3)
-- `synapse/handlers/message.py` (3)
+### Priority files (batch 1, recomputed top-10 remaining markers)
+- `NOTIMPLEMENTED_AUDIT.md` (12)
+- `docs/runtime_notimplemented_audit.md` (10)
+- `docs/project_completion_tracker.md` (8)
+- `docs/tracker_todo_fixme_report.md` (7)
+- `docs/notimplemented_audit_report.md` (6)
+- `tests/check_runtime_notimplemented.py` (6)
+- `tests/test_runtime_notimplemented_audit.py` (4)
+- `docs/marker_budget_policy.md` (2)
+- `tests/util/test_check_dependencies.py` (2)
+- `tests/test_notimplemented_regressions.py` (2)
 
 ### AI prompt (copy/paste)
 ```text
 Perform a marker burn-down pass on the following files:
-- synapse/_scripts/generate_workers_map.py
-- synapse/event_auth.py
-- synapse/events/__init__.py
-- synapse/visibility.py
-- synapse/http/federation/srv_resolver.py
-- synapse/http/client.py
-- synapse/handlers/auth.py
-- synapse/handlers/pagination.py
-- synapse/handlers/relations.py
-- synapse/handlers/message.py
+- NOTIMPLEMENTED_AUDIT.md
+- docs/runtime_notimplemented_audit.md
+- docs/project_completion_tracker.md
+- docs/tracker_todo_fixme_report.md
+- docs/notimplemented_audit_report.md
+- tests/check_runtime_notimplemented.py
+- tests/test_runtime_notimplemented_audit.py
+- docs/marker_budget_policy.md
+- tests/util/test_check_dependencies.py
+- tests/test_notimplemented_regressions.py
 
 Process:
 1) For each TODO/XXX/FIXME: implement, delete stale note, or convert to issue-linked comment.
@@ -196,7 +198,7 @@ Process:
 
 ### Verification commands (copy/paste)
 ```bash
-rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" synapse/_scripts/generate_workers_map.py synapse/event_auth.py synapse/events/__init__.py synapse/visibility.py synapse/http/federation/srv_resolver.py synapse/http/client.py synapse/handlers/auth.py synapse/handlers/pagination.py synapse/handlers/relations.py synapse/handlers/message.py
+rg -n "TODO|FIXME|XXX|HACK|NotImplementedError" NOTIMPLEMENTED_AUDIT.md docs/runtime_notimplemented_audit.md docs/project_completion_tracker.md docs/tracker_todo_fixme_report.md docs/notimplemented_audit_report.md tests/check_runtime_notimplemented.py tests/test_runtime_notimplemented_audit.py docs/marker_budget_policy.md tests/util/test_check_dependencies.py tests/test_notimplemented_regressions.py
 pytest -q tests/handlers tests/http -k "auth or pagination or relations or message or resolver"
 ```
 
@@ -235,7 +237,7 @@ Closed in this pass:
 Verification refresh (2026-02-23):
 - Re-ran marker scan for the four scoped files and confirmed there are currently
   no `TODO`/`FIXME`/`XXX`/`HACK`/`NotImplementedError` markers remaining.
-- Recounted the full `synapse/` marker inventory; total remains **200**.
+- Recounted the full `synapse/` marker inventory; total is now **65**.
 - Regenerated `synapse/` marker counts after this batch (see updated snapshot above).
 
 Remaining:
