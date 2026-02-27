@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tempfile
+from unittest.mock import patch
+
 import yaml
 
 from synapse.config._base import ConfigError
-from synapse.config.server import ServerConfig, generate_ip_set, is_threepid_reserved
+from synapse.config.server import (
+    ServerConfig,
+    generate_ip_set,
+    is_threepid_reserved,
+    parse_listener_def,
+)
 
 from tests import unittest
 
@@ -186,3 +194,39 @@ class GenerateIpSetTestCase(unittest.TestCase):
         # The following get treated as empty data.
         self.assertFalse(generate_ip_set(None))
         self.assertFalse(generate_ip_set({}))
+
+
+class ListenerConfigTestCase(unittest.TestCase):
+    def test_unix_listener_requires_existing_directory(self) -> None:
+        with self.assertRaises(ConfigError):
+            parse_listener_def(
+                0,
+                {
+                    "type": "http",
+                    "path": "/definitely/missing/synapse.sock",
+                },
+            )
+
+    def test_unix_listener_requires_writable_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch("synapse.config.server.os.access", return_value=False):
+                with self.assertRaises(ConfigError):
+                    parse_listener_def(
+                        0,
+                        {
+                            "type": "http",
+                            "path": f"{tmpdir}/synapse.sock",
+                        },
+                    )
+
+    def test_unix_listener_with_writable_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = parse_listener_def(
+                0,
+                {
+                    "type": "http",
+                    "path": f"{tmpdir}/synapse.sock",
+                },
+            )
+
+            self.assertEqual(config.path, f"{tmpdir}/synapse.sock")
