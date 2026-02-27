@@ -77,10 +77,7 @@ from synapse.util.async_helpers import Linearizer, gather_results
 from synapse.util.caches.expiringcache import ExpiringCache
 from synapse.util.metrics import measure_func
 from synapse.visibility import get_effective_room_visibility_from_state
-from synapse.util.blackout import (
-    extract_sender_key_identifiers_from_signal_content,
-    validate_blackout_signal_content,
-)
+from synapse.util.blackout import extract_sender_key_identifiers_from_signal_content
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
