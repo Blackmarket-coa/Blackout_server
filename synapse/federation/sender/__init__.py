@@ -204,7 +204,7 @@ class AbstractFederationSender(metaclass=abc.ABCMeta):
 
     Required behavior is encoded via ``@abc.abstractmethod`` declarations.
     This keeps missing implementations explicit and avoids runtime
-    runtime fallthroughs in replication paths.
+    fallthroughs in replication paths.
     """
 
     @abc.abstractmethod
