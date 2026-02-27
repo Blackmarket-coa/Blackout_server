@@ -1087,3 +1087,102 @@ Remaining:
 - Remaining runtime marker debt is mostly long-tail single-marker files across `synapse/storage/`, `synapse/rest/`, and `synapse/handlers/`.
 - Issue-linked follow-ups added in earlier waves remain open and should be advanced by subsystem owners.
 
+
+## P0 marker debt verification refresh (2026-02-27)
+
+Closed in this pass:
+- Re-verified the three P0-scoped files from task 1 still have zero `TODO`/`FIXME` markers:
+  - `synapse/handlers/deactivate_account.py`
+  - `synapse/federation/federation_client.py`
+  - `synapse/media/url_previewer.py`
+- Confirmed the previously-landed safety/correctness behavior in scope remains covered by tests in:
+  - `tests/handlers/test_deactivate_account.py`
+  - `tests/federation/test_federation_client.py`
+  - `tests/media/test_url_previewer.py`
+
+Remaining:
+- No open `TODO`/`FIXME` markers remain in the three P0-scoped files.
+- Broader marker inventory work remains in other Synapse subsystems.
+
+Inventory snapshot refresh:
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l`
+  now reports **65** markers across `synapse/`.
+
+## Marker burn-down update (batch 1 files, 2026-02-27)
+
+Closed in this pass:
+- Audited the requested batch-1 files for `TODO` / `FIXME` / `XXX` markers:
+  - `synapse/_scripts/generate_workers_map.py`
+  - `synapse/event_auth.py`
+  - `synapse/events/__init__.py`
+  - `synapse/visibility.py`
+  - `synapse/http/federation/srv_resolver.py`
+  - `synapse/http/client.py`
+  - `synapse/handlers/auth.py`
+  - `synapse/handlers/pagination.py`
+  - `synapse/handlers/relations.py`
+  - `synapse/handlers/message.py`
+- Result: no in-scope `TODO` / `FIXME` / `XXX` markers are currently present in those files, so no behavior change patch was required in this batch.
+
+Remaining:
+- No open `TODO` / `FIXME` / `XXX` markers remain in the batch-1 file list.
+- Broader marker reduction work remains in other `synapse/` files.
+
+Inventory snapshot refresh:
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l`
+  reports **65** markers across `synapse/`.
+
+## Marker burn-down update (batch 1 files, follow-up verification 2026-02-27)
+
+Closed in this pass:
+- Re-ran marker scan for the same batch-1 files using the broader inventory pattern
+  (`TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_`).
+- Confirmed there are no `TODO` / `FIXME` / `XXX` markers in:
+  - `synapse/_scripts/generate_workers_map.py`
+  - `synapse/event_auth.py`
+  - `synapse/events/__init__.py`
+  - `synapse/visibility.py`
+  - `synapse/http/client.py`
+  - `synapse/handlers/auth.py`
+  - `synapse/handlers/pagination.py`
+  - `synapse/handlers/relations.py`
+  - `synapse/handlers/message.py`
+- Clarified the only broad-pattern matches in the batch are in
+  `synapse/http/federation/srv_resolver.py` and are Twisted
+  `DNSNotImplementedError` references (external exception handling), not local
+  incomplete-work markers.
+
+Remaining:
+- No additional marker remediation is required in the batch-1 files for
+  `TODO` / `FIXME` / `XXX`.
+- Broader inventory debt remains outside this batch scope.
+
+Inventory snapshot refresh:
+- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" synapse | wc -l`
+  remains **65**.
+
+## Marker burn-down update (runtime high-volume batch 1, 2026-02-27)
+
+Scope audited:
+- `synapse/handlers/directory.py`
+- `synapse/handlers/room.py`
+- `synapse/handlers/presence.py`
+- `synapse/handlers/room_member.py`
+- `synapse/rest/client/versions.py`
+
+Closed in this pass:
+- Re-ran marker scans for `TODO` / `FIXME` / `TBD` / `XXX` / `HACK` /
+  `NotImplementedError` / `TODO_test_` on all five scoped files.
+- No scoped markers were found, so no code or test behavior changes were needed
+  for this batch.
+
+Marker-count delta:
+- Scoped files marker count: **0 → 0** (delta **0**).
+- Global `synapse/` marker count remains **65**.
+
+Validation notes:
+- Focused validation command for scoped files returned no matches.
+- Broader relevant test target (`tests/handlers` + `tests/rest/client` filtered by
+  `directory|room|presence|versions`) is currently red on this branch due to a
+  pre-existing room-event persistence/cache invalidation failure path unrelated to
+  marker cleanup (`AttributeError: 'function' object has no attribute 'invalidate'`).
