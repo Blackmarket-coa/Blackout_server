@@ -8,6 +8,8 @@ Legend:
 - [x] Complete
 - [!] Blocked / needs decision
 
+Last updated: 2026-02-27
+
 ---
 
 ## 0) Program Goals (North Star)
@@ -221,6 +223,42 @@ These items are a seed list to connect current backlog comments to this plan.
 - [!] Minimum schema required to keep federation semantics healthy.
 - [!] Whether TURN runs on-device by default or external by policy.
 - [!] Exact retention defaults (24h, 48h, or 72h) and compliance implications.
+
+---
+
+### 10.1) Implementation sequence (recommended order)
+
+This section translates the checklist into a practical build order that minimizes rework.
+
+1. **Finalize policy + decisions**
+   - Resolve section 10 blockers.
+   - Lock persistence policy from sections 1.1 and 2.1.
+2. **Introduce signaling-only enforcement in write path**
+   - Implement event gate and validator (sections 1.2 and 2.2).
+   - Add explicit error codes for blocked types.
+3. **Disable incompatible subsystems**
+   - Media, indexing, message-history retrieval (section 1.3).
+4. **Ship retention + purge mechanics**
+   - Config, purge worker, and safety checks (section 4).
+5. **Integrate TURN/STUN and operational visibility**
+   - Deployment defaults, health checks, and metrics (section 3).
+6. **Run viability + scale gates**
+   - Phone-host envelope and topology strategy validation (sections 6 and 7).
+
+---
+
+### 10.2) Immediate sprint slice (first deliverable)
+
+Goal: deliver a safe, test-backed MVP of signaling-only mode.
+
+- [ ] Add config flag `blackout_signaling_only_mode` with default and docs.
+- [ ] Gate event persistence to allow only auth-critical + `m.blackout.signal`.
+- [ ] Reject `m.room.message` and `m.room.encrypted` with stable error codes.
+- [ ] Disable media and search entry points behind the same mode flag.
+- [ ] Add integration tests for:
+  - [ ] membership/auth state unaffected
+  - [ ] blocked payload events return expected errors
+  - [ ] accepted signaling events are persisted and sync-visible
 
 ---
 
