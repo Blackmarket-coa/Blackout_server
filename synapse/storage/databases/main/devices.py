@@ -591,8 +591,10 @@ class DeviceWorkerStore(RoomMemberWorkerStore, EndToEndKeyWorkerStore):
         )
         revoked_ts_by_user_device: Dict[Tuple[str, str], int] = {}
         for user_id, user_devices in devices.items():
-            revoked_by_device = await self.get_revoked_device_key_timestamps_for_devices(
-                user_id, user_devices.keys()
+            revoked_by_device = (
+                await self.get_revoked_device_key_timestamps_for_devices(
+                    user_id, user_devices.keys()
+                )
             )
             revoked_ts_by_user_device.update(
                 {

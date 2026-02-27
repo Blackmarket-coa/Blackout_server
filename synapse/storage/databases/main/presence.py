@@ -408,8 +408,8 @@ class PresenceStore(PresenceBackgroundUpdateStore, CacheInvalidationWorkerStore)
         offset = 0
         while True:
             # Follow-up (matrix-org/synapse#17501, owner: storage team): these
-        # columns are nullable in schema but expected non-null in practice;
-        # tighten invariants when safe.
+            # columns are nullable in schema but expected non-null in practice;
+            # tighten invariants when safe.
             #      https://github.com/matrix-org/synapse/issues/16467
             rows = cast(
                 List[Tuple[str, str, int, int, int, Optional[str], Union[int, bool]]],
