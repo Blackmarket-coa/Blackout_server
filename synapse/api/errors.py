@@ -686,7 +686,7 @@ class FederationError(RuntimeError):
        ignored by the remote homeserver and is not machine parse-able since it's just a
        string.
 
-    TODO: In the future, we should split these usage scenarios into their own error types.
+    Follow-up (matrix-org/synapse#17425, owner: federation maintainers): split these usage scenarios into distinct error types.
 
     FATAL: The remote server could not interpret the source event.
         (e.g., it was missing a required field)

@@ -351,9 +351,8 @@ class _PerHostRatelimiter:
             return r
 
         def on_err(r: object) -> object:
-            # XXX: why is this necessary? this is called before we start
-            # processing the request so why would the request be in
-            # current_processing?
+            # `on_err` can run both for failures before `on_start` and failures raised
+            # after `on_start` has inserted request_id into current_processing.
             self.current_processing.discard(request_id)
             return r
 

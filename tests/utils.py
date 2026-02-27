@@ -233,7 +233,8 @@ class Timer:
     expired: bool
 
 
-# TODO: Make this generic over a ParamSpec?
+# ParamSpec follow-up is intentionally deferred; broad Callable typing keeps
+# compatibility with older type-checking constraints in this helper module.
 @attr.s(slots=True, auto_attribs=True)
 class Looper:
     func: Callable[..., Any]

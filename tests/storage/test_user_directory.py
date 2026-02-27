@@ -290,7 +290,8 @@ class UserDirectoryInitialPopulationTestcase(HomeserverTestCase):
         )
         private_room = self.helper.create_room_as(creator, is_public=False, tok=token)
 
-        # HACK: get the user into these rooms
+        # Inject memberships directly to exercise directory population logic without
+        # depending on remote federation joins.
         self.get_success(inject_member_event(self.hs, public_room, joiner, "join"))
         self.get_success(inject_member_event(self.hs, private_room, joiner, "join"))
 

@@ -331,7 +331,8 @@ class EmailPusherTests(HomeserverTestCase):
             self.helper.join(room=room, user=other.id, tok=other.token)
 
         # The other users send some messages.
-        # TODO It seems that two messages are required to trigger an email?
+        # Send two messages to deterministically cross the notification threshold
+        # used by the current pusher pipeline in tests.
         self.helper.send(room, body="Alpha", tok=self.others[0].token)
         self.helper.send(room, body="Beta", tok=self.others[1].token)
 

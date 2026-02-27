@@ -245,10 +245,10 @@ class FakeChannel:
             self._producer.stopProducing()
 
     def pauseProducing(self) -> None:
-        raise NotImplementedError()
+        raise RuntimeError("FakeChannel does not model backpressure pause callbacks")
 
     def resumeProducing(self) -> None:
-        raise NotImplementedError()
+        raise RuntimeError("FakeChannel does not model backpressure resume callbacks")
 
     def requestDone(self, _self: Request) -> None:
         self.result["done"] = True
@@ -490,7 +490,7 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         super().__init__()
 
     def installNameResolver(self, resolver: IHostnameResolver) -> IHostnameResolver:
-        raise NotImplementedError()
+        raise RuntimeError("ThreadedMemoryReactorClock.installNameResolver is not needed in tests")
 
     def listenUDP(
         self,
@@ -518,10 +518,10 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
     def callInThread(
         self, callable: Callable[..., Any], *args: object, **kwargs: object
     ) -> None:
-        raise NotImplementedError()
+        raise RuntimeError("ThreadedMemoryReactorClock.callInThread is not implemented in tests")
 
     def suggestThreadPoolSize(self, size: int) -> None:
-        raise NotImplementedError()
+        raise RuntimeError("ThreadedMemoryReactorClock.suggestThreadPoolSize is not implemented in tests")
 
     def getThreadPool(self) -> "threadpool.ThreadPool":
         # Cast to match super-class.

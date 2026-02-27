@@ -718,8 +718,8 @@ class RegistrationTestCase(unittest.HomeserverTestCase):
         """Creates a new user if the user does not exist,
         else revokes all previous access tokens and generates a new one.
 
-        XXX: this used to be in the main codebase, but was only used by this file,
-        so got moved here. TODO: get rid of it, probably
+        Historical note: this helper lived in production code, but is now test-local
+        because only this suite uses it.
 
         Args:
             localpart : The local part of the user ID to register. If None,

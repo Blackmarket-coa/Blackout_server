@@ -33,7 +33,7 @@ def build_jinja_env(
 
     The returned environment defines the following filters:
         - format_ts: formats timestamps as strings in the server's local timezone
-             (XXX: why is that useful??)
+             (used by notifications/HTML templates rendered with server-local times)
         - mxc_to_http: converts mxc: uris to http URIs. Args are:
              (uri, width, height, resize_method="crop")
 

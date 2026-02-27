@@ -63,7 +63,8 @@ class ApplicationServiceStoreTestCase(unittest.HomeserverTestCase):
         )
 
     def tearDown(self) -> None:
-        # TODO: suboptimal that we need to create files for tests!
+        # These fixtures create temporary files because the appservice loader expects
+        # filesystem-backed YAML inputs.
         for f in self.as_yaml_files:
             try:
                 os.remove(f)

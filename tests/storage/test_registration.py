@@ -36,7 +36,8 @@ class RegistrationStoreTestCase(HomeserverTestCase):
 
         self.assertEqual(
             UserInfo(
-                # TODO(paul): Surely this field should be 'user_id', not 'name'
+                # Field name is 'user_id' in UserInfo; keep this assertion aligned with
+                # current storage API output shape.
                 user_id=UserID.from_string(self.user_id),
                 is_admin=False,
                 is_guest=False,

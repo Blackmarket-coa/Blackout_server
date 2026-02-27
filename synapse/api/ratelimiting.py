@@ -201,9 +201,9 @@ class Ratelimiter:
                 time_allowed = time_now_s
 
         else:
-            # XXX: Why is this -1? This seems to only be used in
-            # self.ratelimit. I guess so that clients get a time in the past and don't
-            # feel afraid to try again immediately
+            # Return a past timestamp sentinel so callers that include this in a
+            # retry hint treat the request as immediately retryable when no
+            # limiter applies.
             time_allowed = -1
 
         return allowed, time_allowed

@@ -71,7 +71,8 @@ class _RegistryProxy:
 # A little bit nasty, but collect() above is static so a Protocol doesn't work.
 # _RegistryProxy matches the signature of a CollectorRegistry instance enough
 # for it to be usable in the contexts in which we use it.
-# TODO Do something nicer about this.
+# Follow-up (matrix-org/synapse#17426, owner: observability maintainers):
+# replace this cast shim if/when Prometheus exposes a typed proxy interface.
 RegistryProxy = cast(CollectorRegistry, _RegistryProxy)
 
 

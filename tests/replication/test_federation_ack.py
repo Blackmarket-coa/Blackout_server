@@ -47,7 +47,8 @@ class FederationAckTestCase(HomeserverTestCase):
         the RCH up to a mock connection (so that we can observe the command being sent)
         and then poke in an RDATA row.
 
-        XXX: it might be nice to do this by pretending to be a synapse master worker
+        Follow-up design note (matrix-org/synapse#10951): it would be cleaner to do
+        this by pretending to be a synapse master worker
         (or a redis server), and having the worker connect to us via a mocked-up TCP
         transport, rather than assuming that the implementation has a
         ReplicationCommandHandler.
