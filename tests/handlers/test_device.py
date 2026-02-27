@@ -325,6 +325,53 @@ class DeviceTestCase(unittest.HomeserverTestCase):
             )
             self.reactor.advance(1000)
 
+
+    def test_on_federation_query_user_devices_includes_revoked_deleted_device(self) -> None:
+        local_user = "@boris:" + self.hs.hostname
+        device_id = "abc"
+
+        self.get_success(
+            self.handler.check_device_registered(
+                user_id=local_user,
+                device_id=device_id,
+                initial_device_display_name="display",
+            )
+        )
+
+        e2e_keys_handler = self.hs.get_e2e_keys_handler()
+        device_key: JsonDict = {
+            "user_id": local_user,
+            "device_id": device_id,
+            "algorithms": [
+                "m.olm.curve25519-aes-sha2",
+                RoomEncryptionAlgorithms.MEGOLM_V1_AES_SHA2,
+            ],
+            "keys": {
+                "ed25519:abc": "base64+ed25519+key",
+                "curve25519:abc": "base64+curve25519+key",
+            },
+            "signatures": {local_user: {"ed25519:abc": "base64+signature"}},
+        }
+        self.get_success(
+            e2e_keys_handler.upload_keys_for_user(
+                local_user, device_id, {"device_keys": device_key}
+            )
+        )
+
+        self.get_success(self.store.delete_e2e_keys_by_device(local_user, device_id))
+
+        res = self.get_success(
+            self.handler.on_federation_query_user_devices(local_user)
+        )
+        revoked_device = next(
+            d for d in res["devices"] if d["device_id"] == device_id
+        )
+        self.assertTrue(revoked_device["deleted"])
+        self.assertTrue(revoked_device["org.matrix.msc_blackout_device_revoked"])
+        self.assertIsInstance(
+            revoked_device["org.matrix.msc_blackout_device_revoked_ts"], int
+        )
+
     @override_config({"experimental_features": {"msc3984_appservice_key_query": True}})
     def test_on_federation_query_user_devices_appservice(self) -> None:
         """Test that querying of appservices for keys overrides responses from the database."""

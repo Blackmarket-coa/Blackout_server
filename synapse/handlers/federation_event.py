@@ -91,10 +91,8 @@ from synapse.util.async_helpers import Linearizer, concurrently_execute
 from synapse.util.iterutils import batch_iter, partition, sorted_topologically_batched
 from synapse.util.retryutils import NotRetryingDestination
 from synapse.util.stringutils import shortstr
-from synapse.util.blackout import (
-    extract_sender_key_identifiers_from_signal_content,
-    validate_blackout_signal_content,
-)
+from synapse.events.validator import validate_blackout_signal_content
+from synapse.util.blackout import extract_sender_key_identifiers_from_signal_content
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer

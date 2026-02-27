@@ -334,6 +334,10 @@ Suggested alerts and thresholds:
 
 - Blackout federation reject rate warning at >1% / 15m; critical at >5% / 15m.
 - Blackout signal TTL purge lag warning at >15m; critical at >60m.
+- Room fan-out mesh viability policy:
+  - Target: <=50 active peers per room.
+  - Warning: 51-75 active peers (start temporary relay assignment).
+  - Critical: >75 active peers (require hierarchical mesh/super-peers).
 
 - High rate of `unsupported_timeline_type` rejections indicates misconfigured clients
   still sending normal Matrix timeline events.
@@ -361,3 +365,14 @@ Suggested alerts:
 - Federation reject ratio >2% for 5m (warning), >5% for 15m (critical).
 - Purge lag age >10m (warning), >30m (critical).
 - Sudden increases in revoked-key rejections or invalid redundancy metadata.
+
+Reference blackout threshold profile (recommended):
+
+- Federation reject ratio warning: `>1% over 15m`.
+- Federation reject ratio critical: `>5% over 15m`.
+- Signal purge lag warning: `>15m`.
+- Signal purge lag critical: `>60m`.
+
+When room fan-out enters warning/critical bands, pair alerting with room-policy
+actions and publish relay placement through
+`message_metadata.topology_hints` in signaling events.

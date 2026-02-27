@@ -95,19 +95,48 @@ Recommended baseline for constrained/mobile-hosted homeservers:
 - `blackout.enabled: true`
 - `blackout.signal_event_ttl: "48h"`
 - `enable_search: false` and `enable_media_repo: false` (forced under blackout)
+- `blackout.skip_push_actions_for_signal: true`
+- `use_presence: false`
+- `cleanup_extremities_with_dummy_events: false`
+- `dummy_events_threshold: 20`
 - Keep worker/background topology conservative; avoid optional heavy workers.
+
+Example profile snippet:
+
+```yaml
+blackout:
+  enabled: true
+  signal_event_ttl: "48h"
+  skip_push_actions_for_signal: true
+
+enable_search: false
+enable_media_repo: false
+
+use_presence: false
+cleanup_extremities_with_dummy_events: false
+dummy_events_threshold: 20
+```
 
 Capacity baseline and caveats:
 
 - Target ~200–500 registered users and ~20–50 concurrently active peers.
 - Expect battery, thermal, and network churn; plan automated restart/health checks.
 - Monitor WAL/database growth and run regular backups with restore drills.
+- Treat phone-hosted nodes as best-effort edges; keep one stable always-on peer for continuity.
+
+Reliability caveats (phone hosting):
+
+- **Battery/network churn:** mobile radios and OS background limits can interrupt long-lived federation and relay flows.
+- **WAL growth:** SQLite WAL can grow quickly during unstable connectivity and retry bursts; monitor and checkpoint during maintenance windows.
+- **Backup cadence:** use frequent incremental backups (for example every 4-6h) plus daily verified restore checks.
 
 ## Scalability thresholds and relay policy
 
 Suggested operating guardrails for blackout mesh signaling:
 
 - Room fan-out target: 20–50 active peers; introduce temporary relays above 50.
+- Room fan-out warning band: 51–75 active peers (move to staged relay assignments).
+- Room fan-out critical: >75 active peers (enforce hierarchical mesh / super-peer routing).
 - Warning threshold: federation blackout reject rate >1% over 15m.
 - Critical threshold: federation blackout reject rate >5% over 15m.
 - Warning threshold: signal purge lag >15m.
@@ -118,6 +147,27 @@ Temporary relay/super-peer selection guidance:
 - Prefer stable, always-on nodes with low packet loss and sufficient uplink.
 - Publish relay topology hints in `message_metadata.topology_hints`.
 - Roll back relay assignment if reject rates or ICE failures increase for 2 consecutive windows.
+
+Room policy template for temporary relay assignment:
+
+1. Elect 2-3 temporary relays from peers with best uptime, battery/power stability,
+   and observed packet-loss profile.
+2. Publish relay IDs in `message_metadata.topology_hints` for all room members.
+3. Keep relay assignment until fan-out and reject metrics stay below warning thresholds
+   for at least two consecutive 15m windows.
+4. Demote relays gradually (one relay per window) to avoid topology oscillation.
+
+Topology hints payload example:
+
+```json
+{
+  "message_metadata": {
+    "message_id": "<opaque-id>",
+    "sender_key_id": "ed25519:<device-id>",
+    "topology_hints": ["relay:peer-a", "relay:peer-b"]
+  }
+}
+```
 
 ### Triage playbook for rising federation rejection rates
 

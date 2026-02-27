@@ -62,6 +62,8 @@ logger = logging.getLogger(__name__)
 DELETE_DEVICE_MSGS_TASK_NAME = "delete_device_messages"
 MAX_DEVICE_DISPLAY_NAME_LEN = 100
 DELETE_STALE_DEVICES_INTERVAL_MS = 24 * 60 * 60 * 1000
+BLACKOUT_DEVICE_REVOKED_FIELD = "org.matrix.msc_blackout_device_revoked"
+BLACKOUT_DEVICE_REVOKED_TS_FIELD = "org.matrix.msc_blackout_device_revoked_ts"
 
 
 class DeviceWorkerHandler:
@@ -1087,6 +1089,52 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
             desc="_maybe_retry_device_resync",
         )
 
+
+    def _extract_device_key_map_from_device_update(
+        self, device: JsonMapping
+    ) -> Dict[str, object]:
+        keys = device.get("keys")
+        if not isinstance(keys, dict):
+            return {}
+
+        key_map = keys.get("keys")
+        if not isinstance(key_map, dict):
+            return {}
+
+        return {str(key_id): key_value for key_id, key_value in key_map.items()}
+
+    async def _store_remote_device_revocation_if_needed(
+        self, user_id: str, device_id: str, device: JsonMapping
+    ) -> Optional[int]:
+        if device.get(BLACKOUT_DEVICE_REVOKED_FIELD) is not True:
+            return None
+
+        revoked_ts = device.get(BLACKOUT_DEVICE_REVOKED_TS_FIELD)
+        if not isinstance(revoked_ts, int):
+            logger.warning(
+                "Ignoring malformed remote device revocation marker for %s/%s: missing revoked_ts",
+                user_id,
+                device_id,
+            )
+            return None
+
+        key_map = self._extract_device_key_map_from_device_update(device)
+        if not key_map:
+            cached_devices = await self.store.get_cached_devices_for_user(user_id)
+            cached_device = cached_devices.get(device_id, {})
+            if isinstance(cached_device, dict):
+                key_map = self._extract_device_key_map_from_device_update(cached_device)
+
+        if key_map:
+            await self.store.upsert_device_key_revocations(
+                user_id,
+                device_id,
+                revoked_ts,
+                key_map,
+            )
+
+        return revoked_ts
+
     @trace
     async def incoming_device_list_update(
         self, origin: str, edu_content: JsonDict
@@ -1210,14 +1258,39 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
             else:
                 # Simply update the single device, since we know that is the only
                 # change (because of the single prev_id matching the current cache)
+                updated_device_ids = []
                 for device_id, stream_id, _, content in pending_updates:
+                    revoked_ts = await self._store_remote_device_revocation_if_needed(
+                        user_id, device_id, content
+                    )
+                    existing_revoked_ts = (
+                        await self.store.get_revoked_device_key_timestamp_for_device(
+                            user_id, device_id
+                        )
+                    )
+
+                    if (
+                        existing_revoked_ts is not None
+                        and revoked_ts is None
+                        and not content.get("deleted")
+                    ):
+                        logger.info(
+                            "Rejecting remote device update for revoked device key metadata: user_id=%s device_id=%s stream_id=%s",
+                            user_id,
+                            device_id,
+                            stream_id,
+                        )
+                        continue
+
                     await self.store.update_remote_device_list_cache_entry(
                         user_id, device_id, content, stream_id
                     )
+                    updated_device_ids.append(device_id)
 
-                await self.device_handler.notify_device_update(
-                    user_id, [device_id for device_id, _, _, _ in pending_updates]
-                )
+                if updated_device_ids:
+                    await self.device_handler.notify_device_update(
+                        user_id, updated_device_ids
+                    )
 
                 self._seen_updates.setdefault(user_id, set()).update(
                     stream_id for _, stream_id, _, _ in pending_updates
@@ -1451,13 +1524,35 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
                 devices = []
                 ignore_devices = True
 
+        filtered_devices = []
         for device in devices:
+            device_id = device["device_id"]
+            revoked_ts = await self._store_remote_device_revocation_if_needed(
+                user_id, device_id, device
+            )
+            existing_revoked_ts = (
+                await self.store.get_revoked_device_key_timestamp_for_device(
+                    user_id, device_id
+                )
+            )
+            if existing_revoked_ts is not None and revoked_ts is None:
+                logger.info(
+                    "Rejecting remote resync device metadata for revoked device key: user_id=%s device_id=%s stream_id=%s",
+                    user_id,
+                    device_id,
+                    stream_id,
+                )
+                continue
+
             logger.debug(
                 "Handling resync update %r/%r, ID: %r",
                 user_id,
-                device["device_id"],
+                device_id,
                 stream_id,
             )
+            filtered_devices.append(device)
+
+        devices = filtered_devices
 
         if not ignore_devices:
             await self.store.update_remote_device_list_cache(
