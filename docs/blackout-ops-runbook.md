@@ -57,6 +57,21 @@ Actions:
   `sdp_answer`, `message_metadata`, `chunk_announcements`).
 - Check upstream peers for outdated schema.
 
+### Redundancy mismatch / withholding suspicion
+
+Likely cause: announced chunk replication factor is not reflected in observed
+replica hints, relay under-replication, or intentional withholding.
+
+Actions:
+- Inspect `synapse_blackout_signal_redundancy_mismatch_total` and
+  `synapse_blackout_federation_signal_redundancy_mismatch_total` for sustained growth.
+- Alert when mismatch count is non-zero for 2 consecutive windows; escalate if
+  sustained for >=30m.
+- Compare declared replication-factor distribution from
+  `*_declared_replication_factor_total` with room topology/relay capacity.
+- Reassign temporary relays and verify `message_metadata.topology_hints` are
+  updated across active senders.
+
 ### High revoked-device-key rejections
 
 Likely cause: compromised device, stale sender metadata, or malicious replay.

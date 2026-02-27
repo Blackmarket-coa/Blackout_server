@@ -1236,6 +1236,75 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
                 )
             )
 
+    def test_federation_ingress_strips_inline_payload_when_offline_markers_present(self) -> None:
+        remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
+
+        pdu = make_event_from_dict(
+            self.add_hashes_and_signatures_from_other_server(
+                {
+                    "type": "m.blackout.signal",
+                    "room_id": "!room:test",
+                    "sender": remote_user_id,
+                    "origin_server_ts": 1,
+                    "depth": 1,
+                    "prev_events": [],
+                    "auth_events": [],
+                    "content": {
+                        "message_metadata": {
+                            "message_id": "msg-1",
+                            "sender_key_id": "ed25519:remote-device",
+                        },
+                        "offline_retrieval": {
+                            "manifest_id": "manifest-1",
+                            "external_fetch_required": True,
+                        },
+                        "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                    },
+                }
+            ),
+            room_version=RoomVersions.V10,
+        )
+
+        self.get_success(
+            self.hs.get_federation_event_handler().on_receive_pdu(
+                self.OTHER_SERVER_NAME, pdu
+            )
+        )
+
+        self.assertNotIn("sdp_offer", pdu.content)
+
+    def test_federation_ingress_rejects_inline_payload_without_offline_markers(self) -> None:
+        remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
+
+        pdu = make_event_from_dict(
+            self.add_hashes_and_signatures_from_other_server(
+                {
+                    "type": "m.blackout.signal",
+                    "room_id": "!room:test",
+                    "sender": remote_user_id,
+                    "origin_server_ts": 1,
+                    "depth": 1,
+                    "prev_events": [],
+                    "auth_events": [],
+                    "content": {
+                        "message_metadata": {
+                            "message_id": "msg-1",
+                            "sender_key_id": "ed25519:remote-device",
+                        },
+                        "sdp_answer": {"type": "answer", "sdp": "v=0"},
+                    },
+                }
+            ),
+            room_version=RoomVersions.V10,
+        )
+
+        with self.assertRaisesRegex(FederationError, "offline_retrieval"):
+            self.get_success(
+                self.hs.get_federation_event_handler().on_receive_pdu(
+                    self.OTHER_SERVER_NAME, pdu
+                )
+            )
+
 
     def test_federation_ingress_rejects_invalid_chunk_merkle(self) -> None:
         remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"

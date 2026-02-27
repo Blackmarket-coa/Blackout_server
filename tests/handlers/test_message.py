@@ -592,6 +592,15 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
             "synapse_blackout_signal_redundancy_metadata_invalid_total"
         )
         baseline = before if before is not None else 0.0
+        mismatch_before = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_redundancy_mismatch_total"
+        )
+        mismatch_baseline = mismatch_before if mismatch_before is not None else 0.0
+        rf_before = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_declared_replication_factor_total",
+            labels={"replication_factor": "3"},
+        )
+        rf_baseline = rf_before if rf_before is not None else 0.0
 
         self.get_success(
             self.handler.create_and_send_nonmember_event(
@@ -625,6 +634,21 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         assert after is not None
         self.assertGreaterEqual(after, baseline + 1.0)
 
+        mismatch_after = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_redundancy_mismatch_total"
+        )
+        self.assertIsNotNone(mismatch_after)
+        assert mismatch_after is not None
+        self.assertGreaterEqual(mismatch_after, mismatch_baseline + 1.0)
+
+        rf_after = REGISTRY.get_sample_value(
+            "synapse_blackout_signal_declared_replication_factor_total",
+            labels={"replication_factor": "3"},
+        )
+        self.assertIsNotNone(rf_after)
+        assert rf_after is not None
+        self.assertGreaterEqual(rf_after, rf_baseline + 1.0)
+
     def test_blackout_signal_accepts_offline_retrieval_and_redundancy_metadata(self) -> None:
         event, _ = self.get_success(
             self.handler.create_and_send_nonmember_event(
@@ -643,6 +667,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                             "manifest_id": "manifest-1",
                             "external_fetch_required": True,
                         },
+                        "sdp_offer": {"type": "offer", "sdp": "v=0"},
                         "chunk_announcements": [
                             {
                                 "chunk_id": "chunk-1",
@@ -659,6 +684,59 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(event.content["offline_retrieval"]["manifest_id"], "manifest-1")
         self.assertEqual(event.content["chunk_announcements"][0]["replication_factor"], 2)
+        self.assertNotIn("sdp_offer", event.content)
+
+    def test_blackout_signal_rejects_inline_payload_without_offline_retrieval(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
+
+    def test_blackout_signal_rejects_inline_payload_without_external_fetch(self) -> None:
+        with self.assertRaises(SynapseError) as exc:
+            self.get_success(
+                self.handler.create_and_send_nonmember_event(
+                    self.requester,
+                    {
+                        "type": EventTypes.BlackoutSignal,
+                        "room_id": self.room_id,
+                        "sender": self.user_id,
+                        "content": {
+                            "message_metadata": {
+                                "message_id": "msg-1",
+                                "sender_key_id": "ed25519:dev-1",
+                            },
+                            "offline_retrieval": {
+                                "manifest_id": "manifest-1",
+                                "external_fetch_required": False,
+                            },
+                            "ice_candidates": [
+                                {
+                                    "candidate": "candidate:1 1 UDP 2122260223 10.0.0.1 5000 typ host"
+                                }
+                            ],
+                        },
+                    },
+                )
+            )
+
+        self.assertEqual(exc.exception.code, 400)
 
     def test_blackout_signal_rejects_unknown_fields(self) -> None:
         with self.assertRaises(SynapseError) as exc:

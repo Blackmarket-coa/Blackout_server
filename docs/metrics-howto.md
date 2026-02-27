@@ -327,8 +327,12 @@ For blackout signaling-only deployments, monitor these counters:
 - `synapse_blackout_signal_events_purged_total`
 - `synapse_blackout_signal_redundancy_metadata_missing_total`
 - `synapse_blackout_signal_redundancy_metadata_invalid_total`
+- `synapse_blackout_signal_redundancy_mismatch_total`
+- `synapse_blackout_signal_declared_replication_factor_total{replication_factor=...}`
 - `synapse_blackout_federation_signal_redundancy_metadata_missing_total`
 - `synapse_blackout_federation_signal_redundancy_metadata_invalid_total`
+- `synapse_blackout_federation_signal_redundancy_mismatch_total`
+- `synapse_blackout_federation_signal_declared_replication_factor_total{replication_factor=...}`
 
 Suggested alerts and thresholds:
 
@@ -346,6 +350,7 @@ Suggested alerts and thresholds:
 - Sustained growth of `invalid_signal_content` rejections indicates protocol drift or
   malformed/abusive peers.
 - Flatline of `synapse_blackout_signal_events_purged_total` with growing signal traffic indicates expiry/purge backlog.
+- Growth in `*_redundancy_mismatch_total` indicates declared replication is not being observed and may signal withholding/relay failure.
 
 ## Blackout-mode dashboards and alerts
 
@@ -358,13 +363,16 @@ Track these blackout metrics in dedicated panels:
 - `synapse_blackout_federation_signal_revoked_key_rejections_total`
 - `synapse_blackout_signal_redundancy_metadata_missing_total`
 - `synapse_blackout_signal_redundancy_metadata_invalid_total`
+- `synapse_blackout_signal_redundancy_mismatch_total`
 - `synapse_blackout_federation_signal_redundancy_metadata_invalid_total`
+- `synapse_blackout_federation_signal_redundancy_mismatch_total`
 - `synapse_blackout_signal_events_purged_total`
 
 Suggested alerts:
 - Federation reject ratio >2% for 5m (warning), >5% for 15m (critical).
 - Purge lag age >10m (warning), >30m (critical).
 - Sudden increases in revoked-key rejections or invalid redundancy metadata.
+- Redundancy mismatch count >0 for 2 consecutive windows (warning), sustained increase for 30m (critical).
 
 Reference blackout threshold profile (recommended):
 

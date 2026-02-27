@@ -77,7 +77,10 @@ from synapse.util.async_helpers import Linearizer, gather_results
 from synapse.util.caches.expiringcache import ExpiringCache
 from synapse.util.metrics import measure_func
 from synapse.visibility import get_effective_room_visibility_from_state
-from synapse.util.blackout import extract_sender_key_identifiers_from_signal_content
+from synapse.util.blackout import (
+    extract_sender_key_identifiers_from_signal_content,
+    strip_inline_payload_from_signal_content,
+)
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
@@ -104,6 +107,15 @@ blackout_signal_redundancy_metadata_missing_counter = Counter(
 blackout_signal_redundancy_metadata_invalid_counter = Counter(
     "synapse_blackout_signal_redundancy_metadata_invalid_total",
     "Blackout signal chunk announcements accepted with invalid redundancy metadata",
+)
+blackout_signal_redundancy_mismatch_counter = Counter(
+    "synapse_blackout_signal_redundancy_mismatch_total",
+    "Blackout signal chunk announcements where declared replication factor exceeded observed replica hints",
+)
+blackout_signal_declared_replication_factor_counter = Counter(
+    "synapse_blackout_signal_declared_replication_factor_total",
+    "Declared replication factors observed in blackout signal chunk announcements",
+    ["replication_factor"],
 )
 
 
@@ -596,6 +608,12 @@ class EventCreationHandler:
             blackout_signal_redundancy_metadata_missing_counter.inc()
         if result.invalid_redundancy_metadata:
             blackout_signal_redundancy_metadata_invalid_counter.inc()
+        if result.redundancy_mismatch_detected:
+            blackout_signal_redundancy_mismatch_counter.inc()
+        for replication_factor in result.declared_replication_factors:
+            blackout_signal_declared_replication_factor_counter.labels(
+                replication_factor=str(replication_factor)
+            ).inc()
 
     async def _enforce_blackout_signal_device_revocation(
         self, sender: str, content: JsonDict
@@ -647,6 +665,7 @@ class EventCreationHandler:
         if event_type == EventTypes.BlackoutSignal:
             content = event_dict.setdefault("content", {})
             self._validate_blackout_signal_content(content)
+            strip_inline_payload_from_signal_content(content)
             await self._enforce_blackout_signal_device_revocation(
                 event_dict["sender"], content
             )
