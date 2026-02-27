@@ -95,13 +95,40 @@ Recommended baseline for constrained/mobile-hosted homeservers:
 - `blackout.enabled: true`
 - `blackout.signal_event_ttl: "48h"`
 - `enable_search: false` and `enable_media_repo: false` (forced under blackout)
+- `blackout.skip_push_actions_for_signal: true`
+- `use_presence: false`
+- `cleanup_extremities_with_dummy_events: false`
+- `dummy_events_threshold: 20`
 - Keep worker/background topology conservative; avoid optional heavy workers.
+
+Example profile snippet:
+
+```yaml
+blackout:
+  enabled: true
+  signal_event_ttl: "48h"
+  skip_push_actions_for_signal: true
+
+enable_search: false
+enable_media_repo: false
+
+use_presence: false
+cleanup_extremities_with_dummy_events: false
+dummy_events_threshold: 20
+```
 
 Capacity baseline and caveats:
 
 - Target ~200–500 registered users and ~20–50 concurrently active peers.
 - Expect battery, thermal, and network churn; plan automated restart/health checks.
 - Monitor WAL/database growth and run regular backups with restore drills.
+- Treat phone-hosted nodes as best-effort edges; keep one stable always-on peer for continuity.
+
+Reliability caveats (phone hosting):
+
+- **Battery/network churn:** mobile radios and OS background limits can interrupt long-lived federation and relay flows.
+- **WAL growth:** SQLite WAL can grow quickly during unstable connectivity and retry bursts; monitor and checkpoint during maintenance windows.
+- **Backup cadence:** use frequent incremental backups (for example every 4-6h) plus daily verified restore checks.
 
 ## Scalability thresholds and relay policy
 

@@ -199,6 +199,7 @@ Blackout sizing guidance:
 - Keep relay UDP port range narrow and explicitly firewall it.
 - Monitor TURN relay saturation, packet loss, and auth failures before increasing peer caps.
 - For phone-hosted server experiments, expect volatility from battery/network churn and prefer fixed-power TURN hosts.
+- Keep Synapse in low-resource blackout profile (`blackout.enabled`, search/media disabled, conservative background settings).
 
 
 ## Phone-hosted blackout notes
@@ -208,3 +209,4 @@ When experimenting with phone-hosted blackout servers:
 - Keep TURN on stable infrastructure if possible; avoid relying on mobile background longevity.
 - Start with ~20–50 active peers and scale only after monitoring relay saturation and reject rates.
 - Expect intermittent connectivity and use shorter monitoring windows plus automated recovery.
+- Monitor local DB WAL growth under poor connectivity and set a frequent backup cadence (incremental every 4-6h, daily restore verification).
