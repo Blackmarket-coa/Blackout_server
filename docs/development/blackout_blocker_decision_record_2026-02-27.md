@@ -24,5 +24,5 @@ Facilitator: Architecture Council
 
 ## Follow-ups
 
-- Publish compatibility matrix for legacy clients.
-- Add ADR references for TURN deployment trade-offs and retention compliance rationale.
+- ✅ Published compatibility matrix for legacy clients: `docs/development/blackout_client_compatibility_matrix.md`.
+- ✅ Published TURN policy and retention compliance artifacts: `docs/development/blackout_turn_default_policy.md`, `docs/development/blackout_retention_compliance_note.md`.
