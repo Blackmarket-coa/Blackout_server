@@ -268,9 +268,14 @@ Classification legend:
 
 ### 13.1 Required-now (with ticket mapping, owner, target sprint)
 
+Execution artifacts created in this pass:
+- `docs/signaling_only_persistence_policy.md` (BLK-101)
+- `docs/marker_budget_policy.md` (BLK-118)
+- `docs/development/blackout_weekly_tracker_update_template.md` (BLK-119, BLK-120)
+
 | Ticket | Unchecked tracker bullets covered | Owner | Target sprint | Next action |
 |---|---|---|---|---|
-| BLK-101 | 1.1 persistence policy (what is persisted / not persisted) | Backend Lead | Sprint 1 | Draft `docs/signaling_only_persistence_policy.md`, circulate for sign-off, and link from this tracker. |
+| BLK-101 | 1.1 persistence policy (what is persisted / not persisted) | Backend Lead | Sprint 1 | ✅ Drafted `docs/signaling_only_persistence_policy.md`; pending sign-off and implementation linkage. |
 | BLK-102 | 1.2 write-path persistence gate + migration toggle (`blackout_signaling_only_mode`) | Storage/API Engineer | Sprint 1 | Implement gate behind config flag and add migration guardrails. |
 | BLK-103 | 1.3 disable media/index/history retrieval surfaces | Platform Engineer | Sprint 1 | Add feature flags to disable endpoints/jobs and return explicit disabled errors. |
 | BLK-104 | 1.4 integration + migration validation tests | QA/Backend Engineer | Sprint 2 | Add integration suite for membership continuity and payload rejection behavior. |
@@ -300,9 +305,9 @@ Required-now ticket mapping for compliance gate:
 
 | Ticket | Unchecked tracker bullets covered | Owner | Target sprint | Next action |
 |---|---|---|---|---|
-| BLK-118 | Marker budget enforcement policy (canonical inventory exclusions only) | Release Manager | Sprint 1 | Publish `marker_budget_policy.md` and link canonical exclusion list used by tracker reports. |
-| BLK-119 | Weekly marker delta reporting in tracker updates | Program Manager | Sprint 1 | Add weekly `marker delta` row to tracker update template with trend status (up/flat/down). |
-| BLK-120 | Top-hotspot owner assignment for marker debt | Tech Lead | Sprint 1 | Assign DRI for top hotspot every week and track mitigation actions to closure. |
+| BLK-118 | Marker budget enforcement policy (canonical inventory exclusions only) | Release Manager | Sprint 1 | ✅ Published `docs/marker_budget_policy.md` with canonical exclusion list and reporting requirements. |
+| BLK-119 | Weekly marker delta reporting in tracker updates | Program Manager | Sprint 1 | ✅ Added weekly tracker template: `docs/development/blackout_weekly_tracker_update_template.md`. |
+| BLK-120 | Top-hotspot owner assignment for marker debt | Tech Lead | Sprint 1 | ✅ Added top-hotspot DRI section to `docs/development/blackout_weekly_tracker_update_template.md`. |
 
 ### 13.2 Required-later (explicit next action)
 
@@ -331,7 +336,7 @@ Required-now ticket mapping for compliance gate:
 
 | Scope class | Open item count | Source |
 |---|---:|---|
-| Required-now | 20 | Tickets `BLK-101`..`BLK-120` in Sections 13.1 + 13.1a |
+| Required-now | 20 (4 documentation artifacts delivered; implementation tickets still open) | Tickets `BLK-101`..`BLK-120` in Sections 13.1 + 13.1a |
 | Required-later | 6 | Rows in Section 13.2 |
 | Not-in-scope | 4 | Rows in Section 13.3 |
 
