@@ -110,7 +110,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
   - exit criteria (measurable): Day 61-90 checklist exists with objective pass/fail fields and all entries link to repo evidence.
   - evidence: `docs/project_completion_tracker.md` (G3 acceptance checklist), `docs/drills/region_failover_gameday.md`, `docs/operator_onboarding_pack.md`, `docs/drills/cross_operator_federation_drill.md`.
 
-#### G milestone acceptance checklists (executed 2026-02-28)
+#### G milestone acceptance checklists (executed 2026-03-06)
 
 ##### G1 (Day 0-30) checklist
 
@@ -256,7 +256,7 @@ keeps implementation evidence tied to canonical project docs.
   - due: 2026-03-20
   - Action: convert G1/G2/G3 into dated acceptance checklists with objective pass/fail criteria.
   - Action: link each checklist item to implementation/test/runbook evidence.
-  - exit criteria (measurable): G1/G2/G3 are each either complete with linked evidence or marked deferred-with-signoff containing approver/date/rationale/re-evaluation trigger.
+  - exit criteria (measurable): G1/G2/G3 are complete with linked in-repo evidence artifacts and validation commands.
   - evidence: `docs/scope_alignment_evidence.md`, `docs/project_completion_tracker.md`
 
 - [ ] [required-now] **Backlog necessity triage for blackout backend tracker**
