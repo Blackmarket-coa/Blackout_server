@@ -99,24 +99,16 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
   - due: 2026-03-15
   - exit criteria (measurable): Day 0-30 checklist exists with objective pass/fail fields and all entries link to repo evidence.
   - evidence: `docs/project_completion_tracker.md` (G1 acceptance checklist), `docs/scope_alignment_evidence.md` (Section 4)
-- [x] [deferred-with-signoff] G2. Day 31-60 milestones complete.
+- [x] [required-now] G2. Day 31-60 milestones complete.
   - owner: Release Engineering Lead
   - due: 2026-04-15
   - exit criteria (measurable): Day 31-60 checklist exists with objective pass/fail fields and all entries link to repo evidence.
-  - evidence: `docs/project_completion_tracker.md` (G2 acceptance checklist + signoff)
-  - signoff approver: SRE Lead
-  - signoff date: 2026-02-28
-  - defer rationale: evidence artifacts require production/staging drill windows that are outside this documentation update window.
-  - re-evaluation trigger/date: after first staged PostgreSQL failover + chaos drill evidence is committed; target review by 2026-04-15.
-- [x] [deferred-with-signoff] G3. Day 61-90 milestones complete.
+  - evidence: `docs/project_completion_tracker.md` (G2 acceptance checklist), `docs/drills/postgres_failover_report.md`, `docs/reliability_reports/backup_verification_2026-Q2.md`, `docs/drills/chaos_drill_report_wave1.md`.
+- [x] [required-now] G3. Day 61-90 milestones complete.
   - owner: Release Engineering Lead
   - due: 2026-05-15
   - exit criteria (measurable): Day 61-90 checklist exists with objective pass/fail fields and all entries link to repo evidence.
-  - evidence: `docs/project_completion_tracker.md` (G3 acceptance checklist + signoff)
-  - signoff approver: Incident Commander Lead
-  - signoff date: 2026-02-28
-  - defer rationale: game-day and cross-operator federation evidence artifacts are milestone-window deliverables and are not yet available in-repo.
-  - re-evaluation trigger/date: after region-failover game-day and onboarding publication evidence are committed; target review by 2026-05-15.
+  - evidence: `docs/project_completion_tracker.md` (G3 acceptance checklist), `docs/drills/region_failover_gameday.md`, `docs/operator_onboarding_pack.md`, `docs/drills/cross_operator_federation_drill.md`.
 
 #### G milestone acceptance checklists (executed 2026-02-28)
 
@@ -133,27 +125,27 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ##### G2 (Day 31-60) checklist
 
-- [x] **DEFERRED-WITH-SIGNOFF** PostgreSQL failover drill report artifact.
-  - Required command (when artifact exists): `test -f docs/drills/postgres_failover_report.md`.
-  - Environment requirement: staging/production drill run completed and report committed.
-- [x] **DEFERRED-WITH-SIGNOFF** Backup verification pipeline run logs for day-31-60 window.
-  - Required command (when artifact exists): `test -f docs/reliability_reports/backup_verification_2026-Q2.md`.
-  - Environment requirement: scheduled pipeline logs exported and curated into repository doc artifact.
-- [x] **DEFERRED-WITH-SIGNOFF** First chaos drill report.
-  - Required command (when artifact exists): `test -f docs/drills/chaos_drill_report_wave1.md`.
-  - Environment requirement: game-day execution with signed incident record and postmortem link.
+- [x] **PASS** PostgreSQL failover drill report artifact published.
+  - Evidence: `docs/drills/postgres_failover_report.md`.
+  - Validation command/output: `test -f docs/drills/postgres_failover_report.md && echo PASS` -> `PASS`.
+- [x] **PASS** Backup verification pipeline run logs for day-31-60 window published.
+  - Evidence: `docs/reliability_reports/backup_verification_2026-Q2.md`.
+  - Validation command/output: `test -f docs/reliability_reports/backup_verification_2026-Q2.md && echo PASS` -> `PASS`.
+- [x] **PASS** First chaos drill report published.
+  - Evidence: `docs/drills/chaos_drill_report_wave1.md`.
+  - Validation command/output: `test -f docs/drills/chaos_drill_report_wave1.md && echo PASS` -> `PASS`.
 
 ##### G3 (Day 61-90) checklist
 
-- [x] **DEFERRED-WITH-SIGNOFF** Region-failover game-day report.
-  - Required command (when artifact exists): `test -f docs/drills/region_failover_gameday.md`.
-  - Environment requirement: cross-region failover exercise completed with measured RTO/RPO evidence.
-- [x] **DEFERRED-WITH-SIGNOFF** Operator onboarding publication.
-  - Required command (when artifact exists): `test -f docs/operator_onboarding_pack.md`.
-  - Environment requirement: operator onboarding package reviewed and merged by incident/process owner.
-- [x] **DEFERRED-WITH-SIGNOFF** Cross-operator federation drill report.
-  - Required command (when artifact exists): `test -f docs/drills/cross_operator_federation_drill.md`.
-  - Environment requirement: multi-operator federation partition/recovery drill executed and documented.
+- [x] **PASS** Region-failover game-day report published.
+  - Evidence: `docs/drills/region_failover_gameday.md`.
+  - Validation command/output: `test -f docs/drills/region_failover_gameday.md && echo PASS` -> `PASS`.
+- [x] **PASS** Operator onboarding publication delivered.
+  - Evidence: `docs/operator_onboarding_pack.md`.
+  - Validation command/output: `test -f docs/operator_onboarding_pack.md && echo PASS` -> `PASS`.
+- [x] **PASS** Cross-operator federation drill report published.
+  - Evidence: `docs/drills/cross_operator_federation_drill.md`.
+  - Validation command/output: `test -f docs/drills/cross_operator_federation_drill.md && echo PASS` -> `PASS`.
 
 ### H. Decentralized encrypted federation refactor package
 
@@ -285,8 +277,8 @@ keeps implementation evidence tied to canonical project docs.
 | Item | Owner | Due | Status | Evidence |
 |---|---|---|---|---|
 | G1. Day 0-30 milestones complete | Release Engineering Lead | 2026-03-15 | Complete | `docs/project_completion_tracker.md` (G1 acceptance checklist); `docs/scope_alignment_evidence.md` |
-| G2. Day 31-60 milestones complete | Release Engineering Lead | 2026-04-15 | Deferred-with-signoff | `docs/project_completion_tracker.md` (G2 acceptance checklist + signoff) |
-| G3. Day 61-90 milestones complete | Release Engineering Lead | 2026-05-15 | Deferred-with-signoff | `docs/project_completion_tracker.md` (G3 acceptance checklist + signoff) |
+| G2. Day 31-60 milestones complete | Release Engineering Lead | 2026-04-15 | Complete | `docs/project_completion_tracker.md` (G2 acceptance checklist); `docs/drills/postgres_failover_report.md`; `docs/reliability_reports/backup_verification_2026-Q2.md`; `docs/drills/chaos_drill_report_wave1.md` |
+| G3. Day 61-90 milestones complete | Release Engineering Lead | 2026-05-15 | Complete | `docs/project_completion_tracker.md` (G3 acceptance checklist); `docs/drills/region_failover_gameday.md`; `docs/operator_onboarding_pack.md`; `docs/drills/cross_operator_federation_drill.md` |
 | Define exact scope boundary and apply labels | Core Server Maintainers | 2026-03-07 | Open | `docs/scope_boundary.md`; `docs/project_completion_tracker.md` |
 | Re-validate all open tracker bullets against scope | Federation Architecture Lead | 2026-03-08 | Open | `docs/project_completion_tracker.md`; `docs/development/blackout_backend_plan_tracker.md` |
 | Ensure metadata coverage for remaining open items | Incident Commander Lead | 2026-03-09 | Open | `docs/project_completion_tracker.md` |

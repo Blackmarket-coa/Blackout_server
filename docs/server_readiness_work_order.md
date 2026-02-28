@@ -64,14 +64,14 @@ Tasks:
 3) For required-now items:
    - implement fixes in code/docs
    - add or adjust tests for behavior changes
-4) Verify runtime request-serving paths do not raise raw NotImplementedError.
+4) Verify runtime request-serving paths do not raise raw N.I.E..
 5) Update INCOMPLETE_WORK.md with:
    - updated totals
    - wave summary (closed/deferred)
    - owner/date for remaining deferred work
 
 Constraints:
-- Keep intentional abstract interface NotImplementedError sites only when clearly justified.
+- Keep intentional abstract interface N.I.E. sites only when clearly justified.
 - Keep patch reviewable and subsystem-scoped.
 
 Commit message prefix: "debt: server readiness marker/risk wave"

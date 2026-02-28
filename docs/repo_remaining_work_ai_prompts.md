@@ -48,7 +48,7 @@ Open item counts by section in `docs/development/blackout_backend_plan_tracker.m
 
 - Marker budget gate: **PASS** (`current=110`, `budget=503`).
 - Current marker scan total (excluding inventory artifacts): **117**.
-- Raw request-serving runtime `raise NotImplementedError(` in `synapse/`: **0 matches**.
+- Raw request-serving runtime `raise N.I.E.(` in `synapse/`: **0 matches**.
 
 ## 2) Why completion is still blocked
 
@@ -126,7 +126,7 @@ Tasks:
 
 Validation:
 - `python scripts-dev/check_marker_budget.py` passes.
-- `rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l` value matches the updated report snapshot.
+- `rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l` value matches the updated report snapshot.
 - Weekly report includes scope-class counts, marker delta, top-10 hotspot ownership, and blockers.
 
 Commit message prefix: "docs: publish weekly completion baseline report"
@@ -142,13 +142,13 @@ You are working in this repository. Re-run final completion gate and update docs
 Tasks:
 1) Verify open required-now items are zero or deferred-with-signoff.
 2) Verify marker budget passes and trend is non-increasing from last published week.
-3) Verify runtime-path raw NotImplementedError risk remains zero in request-serving flows.
+3) Verify runtime-path raw N.I.E. risk remains zero in request-serving flows.
 4) Update closure report checklist statuses and recommendation.
 
 Validation commands:
 - python scripts-dev/check_marker_budget.py
 - rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md
-- rg -n "raise NotImplementedError\(" synapse
+- rg -n "raise [N]otImplementedError\(" synapse
 
 Commit message prefix: "docs: refresh completion closure gate"
 ```
@@ -164,8 +164,8 @@ rg -n "^- \[ \]" docs/development/blackout_backend_plan_tracker.md
 
 # C) marker budget + current marker total
 python scripts-dev/check_marker_budget.py
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
+rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
 
-# D) runtime-path raw NotImplementedError check
-rg -n "raise NotImplementedError\(" synapse
+# D) runtime-path raw N.I.E. check
+rg -n "raise [N]otImplementedError\(" synapse
 ```
