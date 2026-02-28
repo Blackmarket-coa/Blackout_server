@@ -95,20 +95,20 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 ### G. 30/60/90 rollout alignment
 
 - [ ] [required-now] G1. Day 0-30 milestones complete.
-  - Owner: Release Engineering Lead
-  - Target date: 2026-03-15
-  - Measurable exit criteria: Day 0-30 checklist exists with objective pass/fail fields and all entries link to repo evidence.
-  - Evidence path: `docs/scope_alignment_evidence.md` (G1 checklist section)
+  - owner: Release Engineering Lead
+  - due: 2026-03-15
+  - exit criteria (measurable): Day 0-30 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - evidence: `docs/scope_alignment_evidence.md` (G1 checklist section)
 - [ ] [required-now] G2. Day 31-60 milestones complete.
-  - Owner: Release Engineering Lead
-  - Target date: 2026-04-15
-  - Measurable exit criteria: Day 31-60 checklist exists with objective pass/fail fields and all entries link to repo evidence.
-  - Evidence path: `docs/scope_alignment_evidence.md` (G2 checklist section)
+  - owner: Release Engineering Lead
+  - due: 2026-04-15
+  - exit criteria (measurable): Day 31-60 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - evidence: `docs/scope_alignment_evidence.md` (G2 checklist section)
 - [ ] [required-now] G3. Day 61-90 milestones complete.
-  - Owner: Release Engineering Lead
-  - Target date: 2026-05-15
-  - Measurable exit criteria: Day 61-90 checklist exists with objective pass/fail fields and all entries link to repo evidence.
-  - Evidence path: `docs/scope_alignment_evidence.md` (G3 checklist section)
+  - owner: Release Engineering Lead
+  - due: 2026-05-15
+  - exit criteria (measurable): Day 61-90 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - evidence: `docs/scope_alignment_evidence.md` (G3 checklist section)
 
 
 ### H. Decentralized encrypted federation refactor package
@@ -196,39 +196,39 @@ keeps implementation evidence tied to canonical project docs.
 ### Scope-compliance checklist (must complete)
 
 - [ ] [required-now] Define the exact scope boundary in one place (`in-scope (required-now)`, `required-later`, `not-in-scope`, `deferred-with-signoff`) and link all tracker items to one of those labels.
-  - Owner: Core Server Maintainers
-  - Target date: 2026-03-07
-  - Measurable exit criteria: scope definitions are present in exactly one canonical file and tracker references it as the only scope source.
-  - Evidence path: `docs/scope_boundary.md`, `docs/project_completion_tracker.md`
+  - owner: Core Server Maintainers
+  - due: 2026-03-07
+  - exit criteria (measurable): scope definitions are present in exactly one canonical file and tracker references it as the only scope source.
+  - evidence: `docs/scope_boundary.md`, `docs/project_completion_tracker.md`
 - [ ] [required-now] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
-  - Owner: Federation Architecture Lead
-  - Target date: 2026-03-08
-  - Measurable exit criteria: every open bullet is labeled (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`) and non-required-now items are explicitly classified.
-  - Evidence path: `docs/project_completion_tracker.md`, `docs/development/blackout_backend_plan_tracker.md`
+  - owner: Federation Architecture Lead
+  - due: 2026-03-08
+  - exit criteria (measurable): every open bullet is labeled (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`) and non-required-now items are explicitly classified.
+  - evidence: `docs/project_completion_tracker.md`, `docs/development/blackout_backend_plan_tracker.md`
 - [ ] [required-now] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
-  - Owner: Incident Commander Lead
-  - Target date: 2026-03-09
-  - Measurable exit criteria: each open required-now item contains explicit owner, target date, measurable exit criteria, and evidence path fields.
-  - Evidence path: `docs/project_completion_tracker.md`
+  - owner: Incident Commander Lead
+  - due: 2026-03-09
+  - exit criteria (measurable): each open required-now item contains explicit owner, target date, measurable exit criteria, and evidence path fields.
+  - evidence: `docs/project_completion_tracker.md`
 - [ ] [required-later] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
 
 ### Action plan
 
 - [ ] [required-now] **G1/G2/G3 compliance closure**
-  - Owner: Release Engineering Lead
-  - Target date: 2026-03-20
+  - owner: Release Engineering Lead
+  - due: 2026-03-20
   - Action: convert G1/G2/G3 into dated acceptance checklists with objective pass/fail criteria.
   - Action: link each checklist item to implementation/test/runbook evidence.
-  - Measurable exit criteria: G1/G2/G3 are each either complete with linked evidence or marked deferred-with-signoff containing approver/date/rationale/re-evaluation trigger.
-  - Evidence path: `docs/scope_alignment_evidence.md`, `docs/project_completion_tracker.md`
+  - exit criteria (measurable): G1/G2/G3 are each either complete with linked evidence or marked deferred-with-signoff containing approver/date/rationale/re-evaluation trigger.
+  - evidence: `docs/scope_alignment_evidence.md`, `docs/project_completion_tracker.md`
 
 - [ ] [required-now] **Backlog necessity triage for blackout backend tracker**
-  - Owner: Federation Architecture Lead
-  - Target date: 2026-03-12
+  - owner: Federation Architecture Lead
+  - due: 2026-03-12
   - Action: group unchecked bullets into `required-now`, `required-later`, `not-in-scope`.
   - Action: for `required-now`, create ticket mapping with owner and target sprint.
-  - Measurable exit criteria: all unchecked bullets are classified and every required-now row has owner and target sprint.
-  - Evidence path: `docs/development/blackout_backend_plan_tracker.md`
+  - exit criteria (measurable): all unchecked bullets are classified and every required-now row has owner and target sprint.
+  - evidence: `docs/development/blackout_backend_plan_tracker.md`
 
 - [ ] [required-later] **Marker debt compliance gate**
   - Action: retain marker budget enforcement using canonical inventory exclusions only.
