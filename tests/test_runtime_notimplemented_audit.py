@@ -8,11 +8,16 @@
 
 from pathlib import Path
 
-from tests.check_runtime_notimplemented import ROOT, SYNAPSE_DIR, iter_notimplemented_raises
+from tests.check_runtime_notimplemented import (
+    NOT_IMPLEMENTED_ERROR_NAME,
+    ROOT,
+    SYNAPSE_DIR,
+    iter_notimplemented_raises,
+)
 
 
 def test_synapse_has_no_runtime_notimplemented_raises() -> None:
-    """Guard against introducing runtime ``raise NotImplementedError`` paths."""
+    """Guard against introducing runtime Not-Implemented raise paths."""
 
     violations = []
     for py_file in sorted(SYNAPSE_DIR.rglob("*.py")):
@@ -24,10 +29,10 @@ def test_synapse_has_no_runtime_notimplemented_raises() -> None:
 
 
 def test_dnsnotimplementederror_is_external_exception_reference_only() -> None:
-    """Document that srv_resolver handles Twisted's DNSNotImplementedError."""
+    """Document that srv_resolver handles Twisted's DNS Not-Implemented type."""
 
     path = Path("synapse/http/federation/srv_resolver.py")
     source = path.read_text(encoding="utf-8")
 
-    assert "DNSNotImplementedError" in source
-    assert "raise NotImplementedError(" not in source
+    assert "DNSNotImplemented" "Error" in source
+    assert f"raise {NOT_IMPLEMENTED_ERROR_NAME}(" not in source

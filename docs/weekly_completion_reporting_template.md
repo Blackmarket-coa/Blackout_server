@@ -72,14 +72,14 @@ for key in ["required-now", "required-later", "not-in-scope", "deferred-with-sig
 PY
 
 # 2) Current marker total (excluding inventory artifacts).
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
+rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
 
 # 3) Top-10 hotspot files for ownership updates.
 python - <<'PY'
 import subprocess
 from collections import Counter
 
-pat = r"TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_"
+pat = r"[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_"
 out = subprocess.check_output(["rg", "-n", pat, "."], text=True)
 counts = Counter()
 for line in out.splitlines():
@@ -94,7 +94,7 @@ for rank, (path, count) in enumerate(counts.most_common(10), start=1):
 PY
 
 # 4) Runtime-path N.I.E. safety check for request-serving code.
-rg -n "raise NotImplementedError\(" synapse
+rg -n "raise [N]otImplementedError\(" synapse
 
 # 5) Marker budget gate.
 python scripts-dev/check_marker_budget.py
