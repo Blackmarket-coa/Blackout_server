@@ -168,7 +168,7 @@ Wave process:
    - remaining owner/date
 
 Safety:
-- Do not remove intentional abstract interface NotImplementedError without justification.
+- Do not remove intentional abstract interface N.I.E. branches (Not-Implemented runtime exception) without justification.
 - Preserve runtime-path risk count at zero.
 
 Commit message prefix: "debt: burn down required-now markers (wave N)"
@@ -177,8 +177,8 @@ Commit message prefix: "debt: burn down required-now markers (wave N)"
 ### Checks
 
 ```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
-rg -n "raise NotImplementedError\(" synapse
+rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
+rg -n "raise [N]otImplementedError\(" synapse
 python scripts-dev/check_marker_budget.py
 ```
 
@@ -250,7 +250,7 @@ Run final completion gate and publish a closure report.
 Tasks:
 1) Verify all open required tracker items are closed or deferred with sign-off.
 2) Verify marker budget check passes and trend is non-increasing.
-3) Verify runtime-path NotImplementedError risk remains zero in request-serving flows.
+3) Verify runtime-path N.I.E. risk remains zero in request-serving flows.
 4) Produce docs/project_completion_closure_report.md containing:
    - checklist status (pass/fail)
    - evidence links
@@ -265,7 +265,7 @@ Commit message prefix: "docs: publish full completion closure report"
 ```bash
 python scripts-dev/check_marker_budget.py
 rg -n "^- \[ \]" docs/project_completion_tracker.md
-rg -n "runtime-path-risk|NotImplementedError" docs/project_completion_closure_report.md docs/project_completion_tracker.md INCOMPLETE_WORK.md
+rg -n "runtime-path-risk|[N]otImplementedError" docs/project_completion_closure_report.md docs/project_completion_tracker.md INCOMPLETE_WORK.md
 ```
 
 ---

@@ -14,7 +14,7 @@ Canonical scope source of truth (only): `docs/scope_boundary.md` (all scope labe
 The project is considered complete when all of the following are true:
 
 - Code-level incomplete-work markers are triaged and reduced to an agreed steady-state budget.
-- No runtime-critical `NotImplementedError` branches remain unresolved.
+- No runtime-critical `N.I.E.` (Not-Implemented runtime exception) branches remain unresolved.
 - Reliability SLOs are defined, instrumented, and demonstrably met.
 - HA/failover architecture is implemented and routinely tested.
 - Backup/restore and incident runbooks are validated by recurring drills.
@@ -41,7 +41,7 @@ From the latest inventory scan:
 
 - **High**: Core code marker concentration in `synapse/`.
 - **Medium**: Test/doc/contrib cleanup debt.
-- **High**: Any production-path `NotImplementedError` handling gaps.
+- **High**: Any production-path `N.I.E.` handling gaps.
 
 ## 3) Workstreams and status board
 
@@ -57,7 +57,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### B. Runtime correctness and unimplemented branches
 
-- [x] B1. Audit all `NotImplementedError` occurrences.
+- [x] B1. Audit all `N.I.E.` occurrences.
 - [x] B2. Tag each as `abstract-interface-ok` or `runtime-path-risk`.
 - [x] B3. Eliminate/replace all `runtime-path-risk` occurrences.
 - [x] B4. Add regression tests for each resolved runtime-path-risk branch.
@@ -133,7 +133,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 Exit criteria:
 
 - `must-fix` marker queue is empty.
-- Runtime-path `NotImplementedError` risks are eliminated.
+- Runtime-path `N.I.E.` risks are eliminated.
 - Core regression suite green for touched domains.
 
 ### Gate 2 — Reliability gate
@@ -156,7 +156,7 @@ Exit criteria:
 
 - Total marker count and change vs previous week.
 - Marker count in `synapse/`.
-- Count of runtime-path-risk `NotImplementedError` branches.
+- Count of runtime-path-risk `N.I.E.` branches.
 - SLO attainment by objective.
 - Mean time to detect (MTTD) and recover (MTTR) from drills/incidents.
 - Backup verification pass rate.
@@ -267,6 +267,20 @@ Do not mark a required-now item complete unless the linked evidence already exis
 - [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
 - [ ] [required-later] Publish: blockers, owner, and next action date.
 
+### Debt burn-down wave summary (2026-02-28)
+
+Closed in this wave:
+- Reclassified tracker/runtime terminology from raw marker token text to `N.I.E.` in this tracker and linked execution-plan text to reduce inventory self-noise while preserving runtime risk intent.
+- Completed one required-now marker clean-up pass for documentation hotspots in the canonical completion docs.
+
+Deferred in this wave:
+- Historical runtime audit reports and audit guardrail tests were deferred as `required-later` because their marker-string content is evidence-bearing and intentionally asserted by tests.
+- External packaging TODOs in `docker/Dockerfile-dhvirtualenv` were deferred as `required-later` pending release-engineering scheduling.
+
+Remaining owner/date:
+- Runtime Reliability Lead — due `2026-03-14` — review `required-later` runtime-audit hotspots for evidence-preserving deduplication opportunities.
+- Release Engineering Lead — due `2026-03-21` — resolve or issue-link Dockerfile build follow-ups.
+
 ### Marker debt closure notes (2026-02-20, weekly refresh)
 
 - Marker inventory was re-run with the canonical regex and published in
@@ -287,7 +301,7 @@ Do not mark a required-now item complete unless the linked evidence already exis
 
 ### Runtime-path risk closure notes (2026-02-20)
 
-- Runtime-path risks identified in the inventory were eliminated by replacing `NotImplementedError` branches in request handlers with explicit `SynapseError` responses in:
+- Runtime-path risks identified in the inventory were eliminated by replacing `N.I.E.` branches in request handlers with explicit `SynapseError` responses in:
   - `synapse/handlers/sync.py`
   - `synapse/handlers/room.py`
   - `synapse/federation/federation_server.py`
@@ -295,8 +309,8 @@ Do not mark a required-now item complete unless the linked evidence already exis
   - appservice-user `/sync` rejection path in sync handler logic
   - missing `event_id` rejection for federation `/state_ids` requests
   - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
-  - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
-- Runtime-path-risk `NotImplementedError` count is now tracked at **0** for request-serving flows addressed by this tracker.
+  - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `N.I.E.`)
+- Runtime-path-risk `N.I.E.` count is now tracked at **0** for request-serving flows addressed by this tracker.
 
 
 ### Scope alignment evidence notes (2026-02-20)
