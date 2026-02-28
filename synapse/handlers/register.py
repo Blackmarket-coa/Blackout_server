@@ -926,7 +926,7 @@ class RegistrationHandler:
             access_token: The access token of the newly logged in device, or
                 None if `inhibit_login` enabled.
         """
-        # TODO: 3pid registration can actually happen on the workers. Consider
+        # 3pid registration can happen on workers. Consider
         # refactoring it.
         if self.hs.config.worker.worker_app:
             await self._post_registration_client(

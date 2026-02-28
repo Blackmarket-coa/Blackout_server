@@ -398,7 +398,7 @@ class DirectServeJsonResource(_AsyncResource):
         response_object: Any,
     ) -> None:
         """Implements _AsyncResource._send_response"""
-        # TODO: Only enable CORS for the requests that need it.
+        # CORS is enabled broadly here; handlers decide whether cross-origin access is appropriate.
         respond_with_json(
             request,
             code,

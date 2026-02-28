@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
+resolve_pg_binary() {
+  local tool="$1"
+
+  if command -v "${tool}" >/dev/null 2>&1; then
+    command -v "${tool}"
+    return 0
+  fi
+
+  local candidate
+  while IFS= read -r candidate; do
+    if [[ -x "${candidate}" ]]; then
+      echo "${candidate}"
+      return 0
+    fi
+  done < <(find /usr/lib/postgresql -maxdepth 3 -type f -name "${tool}" 2>/dev/null | sort -r)
+
+  echo "Required PostgreSQL utility not found: ${tool}" >&2
+  return 1
+}
+
 # Verify the most recent base backup and validate WAL replay prerequisites.
 
 BACKUP_ROOT="${BACKUP_ROOT:-/var/backups/postgres}"
@@ -17,7 +38,7 @@ if [[ -z "${LATEST_BACKUP}" ]]; then
 fi
 
 echo "Verifying backup at ${LATEST_BACKUP}" | tee "${REPORT}"
-pg_verifybackup -m "${LATEST_BACKUP}/data" 2>&1 | tee -a "${REPORT}"
+"$(resolve_pg_binary pg_verifybackup)" -m "${LATEST_BACKUP}/data" 2>&1 | tee -a "${REPORT}"
 
 MANIFEST="${LATEST_BACKUP}/manifest.json"
 if [[ ! -f "${MANIFEST}" ]]; then

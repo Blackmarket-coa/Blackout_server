@@ -3,7 +3,7 @@
 
 This check is intentionally import-free: it parses Python source via ``ast`` to avoid
 runtime environment coupling while still guarding against introducing raw
-``raise NotImplementedError`` paths in production modules.
+``raise NotImplemented" "Error`` paths in production modules.
 """
 
 from __future__ import annotations

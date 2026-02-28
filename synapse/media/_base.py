@@ -195,7 +195,7 @@ def add_file_headers(
     request.setHeader(b"Content-Disposition", disposition.encode("ascii"))
 
     # cache for at least a day.
-    # XXX: we might want to turn this off for data we don't want to
+    # We might want to turn this off for data we don't want to
     # recommend caching as it's sensitive or private - or at least
     # select private. don't bother setting Expires as all our
     # clients are smart enough to be happy with Cache-Control

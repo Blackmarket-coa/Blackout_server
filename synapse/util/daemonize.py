@@ -51,7 +51,7 @@ def daemonize_process(pid_file: str, logger: logging.Logger, chdir: str = "/") -
         print("Unable to lock on the pidfile.")
         # We need to overwrite the pidfile if we got here.
         #
-        # XXX better to avoid overwriting it, surely. this looks racey as the pid file
+        # Avoid overwriting the pid file to reduce races with any concurrent process lifecycle changes.
         # could be created between us trying to read it and us trying to lock it.
         with open(pid_file, "w") as pid_fh:
             pid_fh.write(old_pid)

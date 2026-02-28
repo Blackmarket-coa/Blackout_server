@@ -16,6 +16,7 @@ import logging
 from typing import TYPE_CHECKING, Tuple
 
 from synapse.api.constants import ReceiptTypes
+from synapse.api.errors import Codes, SynapseError
 from synapse.http.server import HttpServer
 from synapse.http.servlet import RestServlet, parse_json_object_from_request
 from synapse.http.site import SynapseRequest
@@ -70,7 +71,16 @@ class ReadMarkerRestServlet(RestServlet):
 
         for receipt_type in self._known_receipt_types:
             event_id = body.get(receipt_type, None)
-            # TODO Add validation to reject non-string event IDs.
+            if event_id is None:
+                continue
+
+            if not isinstance(event_id, str):
+                raise SynapseError(
+                    400,
+                    "Expected %s event id to be a string" % (receipt_type,),
+                    Codes.INVALID_PARAM,
+                )
+
             if not event_id:
                 continue
 

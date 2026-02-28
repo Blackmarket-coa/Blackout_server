@@ -17,7 +17,6 @@ import sys
 from hashlib import blake2b
 
 import synapse
-from synapse.synapse_rust import get_rust_file_digest
 
 
 def check_rust_lib_up_to_date() -> None:
@@ -37,6 +36,14 @@ def check_rust_lib_up_to_date() -> None:
 
     # ... and it looks like the root of a python project.
     if not os.path.exists("pyproject.toml"):
+        return
+
+    try:
+        from synapse.synapse_rust import get_rust_file_digest
+    except ModuleNotFoundError:
+        # Source-tree execution without built rust extensions should not crash
+        # startup checks. Runtime code paths that require rust bindings will
+        # still fail explicitly when imported.
         return
 
     # Get the hash of all Rust source files

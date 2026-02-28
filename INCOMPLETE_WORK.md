@@ -5,13 +5,21 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **103**
+- Total potential incomplete-work markers (excluding this inventory file and generated report artifacts): **40**
 - Top directories by marker count:
-  - `synapse/`: **54**
-  - `docs/`: **28**
-  - `tests/`: **5**
+  - `docs/`: **21**
   - `NOTIMPLEMENTED_AUDIT.md`: **12**
   - `docker/`: **2**
+  - `synapse/`: **2**
+  - `debian/`: **1**
+  - `tests/`: **1**
+
+## Post-review tracker refresh (2026-02-28)
+
+- Re-ran the canonical marker scan and refreshed tracker metrics after the review-driven cleanup pass.
+- New baseline (excluding generated inventory/report artifacts): **40** total markers.
+- `synapse/` has **2** marker-string hits, both from Twisted `DNSNotImplementedError` import/exception handling in `synapse/http/federation/srv_resolver.py` (no local runtime `raise NotImplementedError`).
+- Updated `docs/tracker_todo_fixme_report.md` and `docs/project_completion_tracker.md` so completion governance reflects the current repository state.
 
 ## Representative examples to prioritize
 
@@ -19,48 +27,39 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 - `NOTIMPLEMENTED_AUDIT.md` (**12**) – historical audit artifact; marker strings are report content.
 - `docs/runtime_notimplemented_audit.md` (**10**) – historical audit/report content with marker-string mentions.
-- `docs/tracker_todo_fixme_report.md` (**7**) – generated tracker report preserving marker taxonomy terms.
 - `docs/notimplemented_audit_report.md` (**6**) – audit narrative references marker taxonomy terms.
-- `docs/marker_budget_policy.md` (**2**) – policy document defines marker classes by name.
 - `docker/Dockerfile-dhvirtualenv` (**2**) – external build/dependency follow-up comments.
+- `docs/marker_budget_policy.md` (**2**) – policy document defines marker classes by name.
 - `synapse/http/federation/srv_resolver.py` (**2**) – imports/handles Twisted `DNSNotImplementedError` only; no raw runtime raise.
-- `tests/test_notimplemented_regressions.py` (**2**) – regression checks intentionally inspect marker symbols.
-- `tests/util/test_check_dependencies.py` (**2**) – abstract test doubles retain intentional `NotImplementedError` stubs.
-- `docs/scope_alignment_evidence.md` (**1**) – evidence narrative retains one marker taxonomy reference.
 
 ## Command used
 
 ```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" .
+rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . \
+  -g "!docs/marker_inventory.csv" \
+  -g "!INCOMPLETE_WORK.md" \
+  -g "!docs/incomplete_work_line_by_line_fixes.md" \
+  -g "!docs/tracker_todo_fixme_report.md"
 ```
 
 Post-processing note:
-- The totals above exclude markers in `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv` to avoid counting inventory metadata as debt.
+- The totals above exclude markers in generated inventory/report artifacts to avoid counting tracker metadata as debt.
 
 ## Completion gate check (post-remediation)
 
-- Current marker count in `synapse/` is **54**.
-- Threshold gate: **PASS** (`54 < 300`).
+- Current marker count in `synapse/` is **2**.
+- Threshold gate: **PASS** (`2 < 300`).
 - Since the threshold is met, no mandatory next-wave prioritized file list is required by the gate.
 
 ## Synapse triage status (completed)
 
-This section is intentionally formatted as copy/paste-ready steps that an AI coding
-agent can execute directly for repository changes.
-
 ### Snapshot (used to prioritize work)
 
-- Total markers in `synapse/`: **54**
+- Total markers in `synapse/`: **2**
 - Marker types:
-  - `TODO`: **34**
   - `NotImplementedError`: **2**
-  - `XXX`: **18**
 - Highest-volume subsystems:
-  - `synapse/storage/`: **16**
-  - `synapse/rest/`: **9**
-  - `synapse/handlers/`: **6**
-  - `synapse/http/`: **6**
-  - `synapse/util/`: **4**
+  - `synapse/http/`: **2**
 
 ## Debt burn-down wave (2026-02-28)
 

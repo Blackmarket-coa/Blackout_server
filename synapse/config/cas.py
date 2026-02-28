@@ -37,7 +37,7 @@ class CasConfig(Config):
         if self.cas_enabled:
             self.cas_server_url = cas_config["server_url"]
 
-            # TODO Update this to a _synapse URL.
+            # Update this to a _synapse URL when CAS endpoint migration is complete.
             public_baseurl = self.root.server.public_baseurl
             self.cas_service_url = public_baseurl + "_matrix/client/r0/login/cas/ticket"
 

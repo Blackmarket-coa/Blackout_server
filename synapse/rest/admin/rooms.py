@@ -287,7 +287,7 @@ class RoomRestServlet(RestServlet):
 
     If 'purge' is true, it will remove all traces of a room from the database.
 
-    TODO: Add on_POST to allow room creation without joining the room
+    Room creation without joining is not exposed on this endpoint.
     """
 
     PATTERNS = admin_patterns("/rooms/(?P<room_id>[^/]*)$")

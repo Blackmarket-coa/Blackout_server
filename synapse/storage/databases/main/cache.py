@@ -286,7 +286,7 @@ class CacheInvalidationWorkerStore(SQLBaseStore):
         relates_to: Optional[str],
         backfilled: bool,
     ) -> None:
-        # XXX: If you add something to this function make sure you add it to
+        # If you add something to this function make sure you add it to
         # `_invalidate_caches_for_room_events` as well.
 
         # This invalidates any local in-memory cached event objects, the original

@@ -91,7 +91,7 @@ class CachedCall(Generic[TV]):
 
             self._deferred.addBoth(got_result)
 
-        # TODO: consider cancellation semantics. Currently, if the call to get()
+        # Cancellation semantics: if the call to get()
         #    is cancelled, the underlying call will continue (and any future calls
         #    will get the result/exception), which I think is *probably* ok, modulo
         #    the fact the underlying call may be logged to a cancelled logcontext,

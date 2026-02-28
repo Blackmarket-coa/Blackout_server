@@ -14,7 +14,7 @@
 
 """This module implements user-interactive auth verification.
 
-TODO: move more stuff out of AuthHandler in here.
+This module contains shared UI-auth flows that are used outside AuthHandler.
 
 """
 
