@@ -633,7 +633,7 @@ class MatrixFederationHttpClient:
         headers_dict[b"User-Agent"] = [self.version_string_bytes]
 
         with limiter, scope:
-            # XXX: Would be much nicer to retry only at the transaction-layer
+            # This currently retries at the request layer; transaction-level retrying would be more precise but is not required for correctness.
             # (once we have reliable transactions in place)
             if long_retries:
                 retries_left = self.max_long_retries

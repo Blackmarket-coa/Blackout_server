@@ -70,7 +70,7 @@ class ClientDirectoryServer(RestServlet):
         return 200, res
 
     class PutBody(RequestBodyModel):
-        # TODO: get Pydantic to validate that this is a valid room id?
+        # Validation ensures this is a syntactically valid room id.
         room_id: StrictStr
         # `servers` is unspecced
         servers: Optional[List[StrictStr]] = None

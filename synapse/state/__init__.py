@@ -842,7 +842,7 @@ def _make_state_cache_entry(
             # got an exact match.
             return _StateCacheEntry(state=None, state_group=sg)
 
-    # TODO: We want to create a state group for this set of events, to
+    # We want to create a state group for this set of events, to
     # increase cache hits, but we need to make sure that it doesn't
     # end up as a prev_group without being added to the database
 

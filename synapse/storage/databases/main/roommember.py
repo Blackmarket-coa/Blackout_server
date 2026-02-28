@@ -1116,7 +1116,7 @@ class RoomMemberWorkerStore(EventsWorkerStore, CacheInvalidationWorkerStore):
         )
         return dict(rows)
 
-    # TODO This returns a mutable object, which is generally confusing when using a cache.
+    # This returns a mutable object; callers must treat cached results as read-only.
     @cached(max_entries=10000)  # type: ignore[synapse-@cached-mutable]
     def _get_joined_hosts_cache(self, room_id: str) -> "_JoinedHostsCache":
         return _JoinedHostsCache()

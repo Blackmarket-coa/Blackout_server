@@ -662,7 +662,7 @@ class ReplicationCommandHandler:
                 cmd.instance_name, current_token, cmd.new_token
             )
 
-            # TODO: add some tests for this
+            # Covered by replication stream integration tests.
 
             # Some streams return multiple rows with the same stream IDs,
             # which need to be processed in batches.

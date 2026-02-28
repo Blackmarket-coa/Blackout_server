@@ -336,7 +336,7 @@ class BaseReplicationStreamProtocol(LineOnlyReceiver):
         if len(self.pending_commands) > self.max_line_buffer:
             # The other side is failing to keep up and out buffers are becoming
             # full, so lets close the connection.
-            # XXX: should we squawk more loudly?
+            # Consider whether this should be logged more loudly.
             logger.error("[%s] Remote failed to keep up", self.id())
             self.send_command(ErrorCommand("Failed to keep up"), do_buffer=False)
             self.close()

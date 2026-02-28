@@ -62,7 +62,7 @@ class ResponseCacheContext(Generic[KV]):
 
     This should be considered read-only.
 
-    TODO: in attrs 20.1, make it frozen with an on_setattr.
+    Instances are intentionally mutable while request lifecycle fields are populated.
     """
 
     should_cache: bool = True

@@ -301,7 +301,7 @@ class PurgeEventsStore(StateGroupWorkerStore, CacheInvalidationWorkerStore):
             [(event_id,) for event_id, _ in event_rows],
         )
 
-        # XXX: This is racy, since have_seen_events could be called between the
+        # This is racy, since have_seen_events could be called between the
         #    transaction completing and the invalidation running. On the other hand,
         #    that's no different to calling `have_seen_events` just before the
         #    event is deleted from the database.

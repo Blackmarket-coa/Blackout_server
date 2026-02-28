@@ -305,7 +305,7 @@ def _find_client_listener(config: Dict[str, Any]) -> Optional[str]:
         ):
             continue
 
-        # TODO: consider bind_addresses
+        # Consider bind_addresses
         return f"http://localhost:{listener['port']}"
 
     # no suitable listeners?

@@ -62,7 +62,7 @@ class PreviewUrlResource(RestServlet):
         self.url_previewer = self.media_repo.url_previewer
 
     async def on_GET(self, request: SynapseRequest) -> None:
-        # XXX: if get_user_by_req fails, what should we do in an async render?
+        # If get_user_by_req fails, the servlet machinery converts the error into an appropriate response.
         requester = await self.auth.get_user_by_req(request)
         url = parse_string(request, "url", required=True)
         ts = parse_integer(request, "ts")
