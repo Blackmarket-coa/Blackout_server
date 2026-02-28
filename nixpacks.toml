@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["bash", "coreutils", "python311"]
+nixPkgs = ["bash", "coreutils", "python311", "cargo", "rustc"]
 
 [variables]
 PYTHONUNBUFFERED = "1"
