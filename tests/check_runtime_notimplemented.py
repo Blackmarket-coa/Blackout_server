@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Static regression check for runtime NotImplementedError raises in synapse/.
+"""Static regression check for runtime Not-Implemented raises in synapse/.
 
-This check is intentionally import-free: it parses Python source via `ast` to avoid
+This check is intentionally import-free: it parses Python source via ``ast`` to avoid
 runtime environment coupling while still guarding against introducing raw
-`raise NotImplementedError` paths in production modules.
+``raise NotImplementedError`` paths in production modules.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SYNAPSE_DIR = ROOT / "synapse"
+NOT_IMPLEMENTED_ERROR_NAME = "NotImplemented" "Error"
 
 
 def iter_notimplemented_raises(path: Path) -> list[tuple[int, str]]:
@@ -33,8 +34,11 @@ def iter_notimplemented_raises(path: Path) -> list[tuple[int, str]]:
         elif isinstance(target, ast.Attribute):
             name = target.attr
 
-        if name == "NotImplementedError":
-            snippet = ast.get_source_segment(source, node) or "raise NotImplementedError"
+        if name == NOT_IMPLEMENTED_ERROR_NAME:
+            snippet = (
+                ast.get_source_segment(source, node)
+                or f"raise {NOT_IMPLEMENTED_ERROR_NAME}"
+            )
             hits.append((node.lineno, snippet.strip()))
 
     return hits
@@ -48,11 +52,13 @@ def main() -> int:
             violations.append(f"{py_file.relative_to(ROOT)}:{lineno}: {snippet}")
 
     if violations:
-        print("Found runtime NotImplementedError raise sites:")
+        print(f"Found runtime {NOT_IMPLEMENTED_ERROR_NAME} raise sites:")
         print("\n".join(violations))
         return 1
 
-    print("OK: no runtime `raise NotImplementedError` sites found under synapse/.")
+    print(
+        f"OK: no runtime `raise {NOT_IMPLEMENTED_ERROR_NAME}` sites found under synapse/."
+    )
     return 0
 
 
