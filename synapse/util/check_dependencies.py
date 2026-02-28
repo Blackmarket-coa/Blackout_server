@@ -51,10 +51,20 @@ class DependencyException(Exception):
 
 
 DEV_EXTRAS = {"lint", "mypy", "test", "dev"}
-ALL_EXTRAS = metadata.metadata(DISTRIBUTION_NAME).get_all("Provides-Extra")
-assert ALL_EXTRAS is not None
+
+try:
+    _distribution_metadata = metadata.metadata(DISTRIBUTION_NAME)
+    _all_extras = _distribution_metadata.get_all("Provides-Extra")
+    assert _all_extras is not None
+    ALL_EXTRAS = _all_extras
+    VERSION = metadata.version(DISTRIBUTION_NAME)
+    _DISTRIBUTION_METADATA_AVAILABLE = True
+except metadata.PackageNotFoundError:
+    ALL_EXTRAS = []
+    VERSION = "source"
+    _DISTRIBUTION_METADATA_AVAILABLE = False
+
 RUNTIME_EXTRAS = set(ALL_EXTRAS) - DEV_EXTRAS
-VERSION = metadata.version(DISTRIBUTION_NAME)
 
 
 def _is_dev_dependency(req: Requirement) -> bool:
@@ -85,7 +95,17 @@ class Dependency(NamedTuple):
 
 def _generic_dependencies() -> Iterable[Dependency]:
     """Yield pairs (requirement, must_be_installed)."""
-    requirements = metadata.requires(DISTRIBUTION_NAME)
+    try:
+        requirements = metadata.requires(DISTRIBUTION_NAME)
+    except metadata.PackageNotFoundError:
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            "Skipping dependency metadata validation because package metadata for '%s' "
+            "is unavailable (source-tree execution).",
+            DISTRIBUTION_NAME,
+        )
+        return
+
     assert requirements is not None
     for raw_requirement in requirements:
         req = Requirement(raw_requirement)
@@ -101,7 +121,17 @@ def _generic_dependencies() -> Iterable[Dependency]:
 
 def _dependencies_for_extra(extra: str) -> Iterable[Dependency]:
     """Yield additional dependencies needed for a given `extra`."""
-    requirements = metadata.requires(DISTRIBUTION_NAME)
+    try:
+        requirements = metadata.requires(DISTRIBUTION_NAME)
+    except metadata.PackageNotFoundError:
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            "Skipping dependency metadata validation because package metadata for '%s' "
+            "is unavailable (source-tree execution).",
+            DISTRIBUTION_NAME,
+        )
+        return
+
     assert requirements is not None
     for raw_requirement in requirements:
         req = Requirement(raw_requirement)

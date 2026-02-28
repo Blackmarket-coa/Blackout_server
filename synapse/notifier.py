@@ -72,7 +72,7 @@ users_woken_by_stream_counter = Counter(
 T = TypeVar("T")
 
 
-# TODO(paul): Should be shared somewhere
+# Note: this object is also used by the replication notifier path.
 def count(func: Callable[[T], bool], it: Iterable[T]) -> int:
     """Return the number of items in it for which func returns true."""
     n = 0

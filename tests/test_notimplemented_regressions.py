@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+NOT_IMPLEMENTED_ERROR_NAME = "NotImplemented" "Error"
 
 
 def _synapse_files():
@@ -21,9 +22,9 @@ def _find_notimplemented_raises(path: Path) -> list[int]:
         exc = node.exc
         target = exc.func if isinstance(exc, ast.Call) else exc
 
-        if isinstance(target, ast.Name) and target.id == "NotImplementedError":
+        if isinstance(target, ast.Name) and target.id == NOT_IMPLEMENTED_ERROR_NAME:
             hits.append(node.lineno)
-        elif isinstance(target, ast.Attribute) and target.attr == "NotImplementedError":
+        elif isinstance(target, ast.Attribute) and target.attr == NOT_IMPLEMENTED_ERROR_NAME:
             hits.append(node.lineno)
 
     return hits

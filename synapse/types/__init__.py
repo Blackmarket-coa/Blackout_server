@@ -56,6 +56,7 @@ from twisted.internet.interfaces import (
     IReactorUNIX,
 )
 
+from synapse.api.constants import MAX_ALIAS_LENGTH, MAX_USERID_LENGTH
 from synapse.api.errors import Codes, SynapseError
 from synapse.util.cancellation import cancellable
 from synapse.util.stringutils import parse_and_validate_server_name
@@ -311,10 +312,17 @@ class DomainSpecificString(metaclass=abc.ABCMeta):
     @classmethod
     def is_valid(cls: Type[DS], s: str) -> bool:
         """Parses the input string and attempts to ensure it is valid."""
-        # TODO: this does not reject an empty localpart or an overly-long string.
-        # See https://spec.matrix.org/v1.2/appendices/#identifier-grammar
         try:
             obj = cls.from_string(s)
+
+            if not obj.localpart:
+                return False
+
+            if isinstance(obj, UserID) and len(s) > MAX_USERID_LENGTH:
+                return False
+            if isinstance(obj, RoomAlias) and len(s) > MAX_ALIAS_LENGTH:
+                return False
+
             # Apply additional validation to the domain. This is only done
             # during  is_valid (and not part of from_string) since it is
             # possible for invalid data to exist in room-state, etc.

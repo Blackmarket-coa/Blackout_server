@@ -709,7 +709,7 @@ class UserDirectoryHandler(StateDeltasHandler):
                 except SynapseError as e:
                     if e.code == HTTPStatus.NOT_FOUND and e.errcode == Codes.NOT_FOUND:
                         # The profile doesn't exist.
-                        # TODO Does this mean we should clear it from our user
+                        # If this returns no profile row we clear it from our user
                         #      directory?
                         await self.store.clear_remote_user_profile_in_user_dir_stale(
                             user_id

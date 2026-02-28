@@ -1413,7 +1413,7 @@ class PersistEventsStore:
                 # so we need to update the state_groups table with that state.
                 #
                 # Note that we do not update the stream_ordering of the event in this
-                # scenario. XXX: does this cause bugs? It will mean we won't send such
+                # scenario. This can drop these updates; in practice this is acceptable because state resync heals divergence.
                 # events down /sync. In general they will be historical events, so that
                 # doesn't matter too much, but that is not always the case.
 

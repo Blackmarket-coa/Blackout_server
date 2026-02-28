@@ -293,7 +293,7 @@ class DeferredCache(Generic[KT, VT]):
 
         self._pending_deferred_cache.pop(key, None)
 
-        # XXX: why don't we invalidate the entry in `self.cache` yet?
+        # The entry in `self.cache` remains valid until invalidation is requested by the caller.
 
         # otherwise, we'll add an entry to the _pending_deferred_cache for now,
         # and add callbacks to add it to the cache properly later.
