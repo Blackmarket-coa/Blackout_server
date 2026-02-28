@@ -122,6 +122,9 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
   - Validation command/output: `[ -f docs/reliability_slo_instrumentation.md ] && [ -f docs/reliability_slo_alerting_and_paging.md ] && [ -f docs/reliability_reports/2026-02.md ] && echo PASS` -> `PASS`.
 - [x] **PASS** Day 0-30 milestone status is unambiguous and linked to this checklist.
   - Evidence: this section and G1 row in "Required-now execution metadata table".
+- [x] **PASS** Server usability validation baseline is published with command-level PASS/WARN evidence.
+  - Evidence: `docs/server_usability_validation.md`.
+  - Validation command/output: `test -f docs/server_usability_validation.md && rg -n "Recommendation|Blockers table" docs/server_usability_validation.md` -> matched.
 
 ##### G2 (Day 31-60) checklist
 
@@ -283,6 +286,7 @@ keeps implementation evidence tied to canonical project docs.
 | Re-validate all open tracker bullets against scope | Federation Architecture Lead | 2026-03-08 | Open | `docs/project_completion_tracker.md`; `docs/development/blackout_backend_plan_tracker.md` |
 | Ensure metadata coverage for remaining open items | Incident Commander Lead | 2026-03-09 | Open | `docs/project_completion_tracker.md` |
 | G1/G2/G3 compliance closure | Release Engineering Lead | 2026-03-20 | Complete | `docs/project_completion_tracker.md` (G milestone acceptance checklists); `docs/scope_alignment_evidence.md` |
+| Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
 | Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Open | `docs/development/blackout_backend_plan_tracker.md` |
 
 ### Definition of Done for tracker updates

@@ -5,10 +5,10 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **102**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **103**
 - Top directories by marker count:
   - `synapse/`: **54**
-  - `docs/`: **27**
+  - `docs/`: **28**
   - `tests/`: **5**
   - `NOTIMPLEMENTED_AUDIT.md`: **12**
   - `docker/`: **2**
@@ -85,7 +85,7 @@ Closed in this wave:
 - `tests/check_runtime_notimplemented.py`: normalized marker wording to `N.I.E.` and split string literals in output/snippets while preserving static AST behavior.
 - `tests/test_runtime_notimplemented_audit.py`: updated assertions/docs to avoid self-counting marker literals while preserving the guardrail intent.
 - `docs/repo_remaining_work_ai_prompts.md`, `docs/weekly_completion_reporting_template.md`, `docs/project_completion_closure_report.md`, `docs/server_readiness_work_order.md`: replaced raw marker literals in operational prompts/check snippets with inventory-safe forms (`[T]ODO`, `[N]otImplementedError`) and `N.I.E.` wording.
-- Inventory totals reduced from **111** pre-wave markers to **102** post-wave markers (excluding inventory artifacts).
+- Inventory totals moved from **111** pre-wave markers to **103** after final closure refresh (excluding inventory artifacts), reflecting added deployment/usability evidence documentation plus marker normalization work.
 
 Deferred in this wave:
 - Historical audit/report documents and marker-audit policy docs that intentionally contain marker taxonomy strings were classified as `required-later` and left unchanged to preserve compliance evidence.
@@ -94,6 +94,7 @@ Deferred in this wave:
 Remaining owner/date:
 - Runtime reliability owner: Runtime Reliability Lead, target 2026-03-14 (review `required-later` runtime-audit hotspots for possible de-duplication without losing evidence value).
 - Release engineering owner: Release Engineering Lead, target 2026-03-21 (resolve or issue-link Dockerfile external build follow-ups).
+- Deployment-readiness validation owner: SRE Lead, target 2026-03-11 (close container/environment blockers listed in `docs/server_usability_validation.md` before next closure gate rerun).
 
 ---
 

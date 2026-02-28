@@ -1,6 +1,6 @@
 # Project completion closure report
 
-_Date: 2026-02-28_
+_Date: 2026-03-06_
 
 This report executes the final completion gate checks defined in
 `docs/full_completion_execution_plan.md` and records pass/fail status,
@@ -10,37 +10,38 @@ evidence, residual deferred items, and final recommendation.
 
 | Gate check | Status | Evidence |
 |---|---|---|
-| All open required tracker items are closed or deferred-with-signoff. | **FAIL** | `docs/project_completion_tracker.md` still contains open `[required-now]` items at lines 242, 247, 252, and 269. |
-| Marker budget check passes. | **PASS** | `python scripts-dev/check_marker_budget.py` -> `Marker budget check passed: current=107, budget=503.` |
-| Marker trend is non-increasing. | **FAIL** | Current scan total (excluding inventory artifacts) is `114`, while latest published inventory total is `111` in `INCOMPLETE_WORK.md`. |
-| Runtime-path `N.I.E.` risk remains zero in request-serving flows. | **PASS** | `rg -n "raise [N]otImplementedError\(" synapse` returned no matches; only Twisted `DNS Not-Implemented resolver exception` handling remains in `synapse/http/federation/srv_resolver.py`. |
+| All open required tracker items are closed or deferred-with-signoff. | **FAIL** | `rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md` returns 4 open required-now items (scope labeling, re-validation, metadata coverage, backlog necessity triage). |
+| Marker budget check passes. | **PASS** | `python scripts-dev/check_marker_budget.py` -> `Marker budget check passed: current=96, budget=503.` |
+| Marker trend is non-increasing. | **FAIL** | Current scan total (excluding inventory artifacts) is `103`, while prior published inventory snapshot was `102`. |
+| Runtime-path `N.I.E.` risk remains zero in request-serving flows. | **PASS** | `rg -n "raise [N]otImplementedError\(" synapse` returned no matches. |
+| G2/G3 deployment evidence artifacts are present and linked from tracker. | **PASS** | `docs/project_completion_tracker.md` links: `docs/drills/postgres_failover_report.md`, `docs/reliability_reports/backup_verification_2026-Q2.md`, `docs/drills/chaos_drill_report_wave1.md`, `docs/drills/region_failover_gameday.md`, `docs/operator_onboarding_pack.md`, `docs/drills/cross_operator_federation_drill.md`. |
+| Server usability validation report is published with blockers/recommendation. | **PASS** | `docs/server_usability_validation.md` includes command log, blocker table, and recommendation sections. |
 
 ## 2) Evidence links
 
 - Final-gate command source: `docs/full_completion_execution_plan.md` (Phase 6 checks).
-- Required-tracker-item status source: `docs/project_completion_tracker.md`.
-- Marker budget and trend baselines: `scripts-dev/check_marker_budget.py`, `INCOMPLETE_WORK.md`.
-- Runtime exception safety evidence: `synapse/http/federation/srv_resolver.py` and raw Not-Implemented raise-pattern scan output.
+- Tracker status source: `docs/project_completion_tracker.md`.
+- Marker inventory baseline: `INCOMPLETE_WORK.md`.
+- Marker budget check tool: `scripts-dev/check_marker_budget.py`.
+- Runtime exception safety evidence: `tests/check_runtime_notimplemented.py`, `synapse/http/federation/srv_resolver.py`.
+- Deployment evidence artifacts:
+  - `docs/drills/postgres_failover_report.md`
+  - `docs/reliability_reports/backup_verification_2026-Q2.md`
+  - `docs/drills/chaos_drill_report_wave1.md`
+  - `docs/drills/region_failover_gameday.md`
+  - `docs/operator_onboarding_pack.md`
+  - `docs/drills/cross_operator_federation_drill.md`
+- Usability validation: `docs/server_usability_validation.md`.
 
 ## 3) Residual deferred items with approvals
 
-From `docs/project_completion_tracker.md`:
-
-1. **G2. Day 31-60 milestones complete** — `deferred-with-signoff`.
-   - Approver: SRE Lead.
-   - Signoff date: 2026-02-28.
-   - Rationale: requires staging/production drill windows and artifacts not yet committed.
-   - Re-evaluation trigger/date: after staged PostgreSQL failover + chaos drill evidence; target review by 2026-04-15.
-
-2. **G3. Day 61-90 milestones complete** — `deferred-with-signoff`.
-   - Approver: Incident Commander Lead.
-   - Signoff date: 2026-02-28.
-   - Rationale: game-day and cross-operator federation deliverables are not yet available in-repo.
-   - Re-evaluation trigger/date: after region-failover game-day and onboarding publication evidence; target review by 2026-05-15.
+Current state:
+- No tracker milestones are currently marked `deferred-with-signoff`.
+- Existing open items are `required-now` and must be completed (or explicitly converted to deferred-with-signoff with approver/date/rationale/re-evaluation metadata) before closure can pass.
 
 ## 4) Residual open required items (blocking completion)
 
-The following required-now tracker items remain open and are not yet deferred-with-signoff:
+From `docs/project_completion_tracker.md`:
 
 - Define exact scope boundary linkage across tracker items.
 - Re-validate all open tracker bullets against scope classification.
@@ -53,7 +54,10 @@ These items prevent closure of the final completion gate.
 
 **Recommendation: NOT COMPLETE.**
 
+recommendation: not complete
+
 Rationale:
-- Completion cannot be declared while open required-now items remain unresolved without signoff defer.
-- Marker budget passes, but marker trend is currently increasing versus the latest published inventory baseline.
+- Completion cannot be declared while open required-now items remain unresolved.
+- Marker budget passes, but marker trend increased by 1 since the previous published inventory snapshot.
 - Runtime-path raw `N.I.E.` risk in request-serving flows remains at zero.
+- G2/G3 operational evidence artifacts and server usability report are now present, but closure still depends on required-now governance/scope tasks.
