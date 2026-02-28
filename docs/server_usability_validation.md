@@ -71,9 +71,9 @@ python scripts-dev/federation_client.py --server <origin> --destination <remote>
 | Status | Command | Result |
 |---|---|---|
 | PASS | `bash -n scripts-dev/blackout/backup_run.sh scripts-dev/blackout/backup_verify.sh scripts-dev/blackout/quarterly_restore_drill.sh` | Scripts are syntactically valid. |
-| WARN (env limitation) | `command -v pg_basebackup` | Missing in container. |
-| WARN (env limitation) | `command -v pg_verifybackup` | Missing in container. |
-| WARN (env limitation) | `command -v pg_controldata` | Missing in container. |
+| PASS | `find /usr/lib/postgresql -maxdepth 3 -type f -name pg_basebackup` | Found at `/usr/lib/postgresql/16/bin/pg_basebackup`. |
+| PASS | `find /usr/lib/postgresql -maxdepth 3 -type f -name pg_verifybackup` | Found at `/usr/lib/postgresql/16/bin/pg_verifybackup`. |
+| PASS | `find /usr/lib/postgresql -maxdepth 3 -type f -name pg_controldata` | Found at `/usr/lib/postgresql/16/bin/pg_controldata`. |
 
 Required runtime commands (host with PostgreSQL tooling + backup data):
 
@@ -126,6 +126,11 @@ rg -n "(/health|health endpoint|ready endpoint|liveness)" synapse docs
 
 | Blocker | Severity | Owner | Next action date |
 |---|---|---|---|
+| No remaining container-level tooling blockers. Final production sign-off still requires running backup/restore drills against real backup artifacts and infrastructure. | Medium | Database Reliability Lead | 2026-03-11 |
+
+## 3) Recommendation
+
+**Recommendation: DEPLOYABLE in this container for local/startup/federation-tooling validation; production sign-off still requires environment-realistic backup/restore drill execution.**
 | PostgreSQL backup tooling (`pg_basebackup`, `pg_verifybackup`, `pg_controldata`) unavailable in current container, blocking runtime backup/restore drill execution. | High | Database Reliability Lead | 2026-03-11 |
 
 ## 3) Recommendation
@@ -135,4 +140,5 @@ rg -n "(/health|health endpoint|ready endpoint|liveness)" synapse docs
 Rationale:
 - Build/runtime toolchain binaries are present, and static runtime guardrails pass.
 - Startup CLI, federation tooling CLI, runtime guardrails, and local health checks now pass in this container.
+- Production go/no-go should be finalized after PostgreSQL backup/restore drills are executed against real backup artifacts in staging/production-like infrastructure.
 - Production go/no-go should be finalized after PostgreSQL backup/restore drills are executed with required binaries installed.
