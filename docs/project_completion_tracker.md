@@ -233,6 +233,7 @@ Populate and keep current:
 ## 8) Outstanding work for new scope (compliance + necessity)
 
 Canonical execution reference: `docs/full_completion_execution_plan.md` (phase-ordered plan + copy/paste AI prompts for scope/compliance closure and debt burn-down to full completion).
+Remaining-work prompt backlog: `docs/repo_remaining_work_ai_prompts.md` (current open-work snapshot + ordered AI prompt pack).
 
 This section captures only work that is necessary to satisfy the current scope and
 keeps implementation evidence tied to canonical project docs.
