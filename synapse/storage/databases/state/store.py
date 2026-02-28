@@ -110,7 +110,7 @@ class StateGroupDataStore(StateBackgroundUpdateStore, SQLBaseStore):
 
         self._state_group_cache: DictionaryCache[int, StateKey, str] = DictionaryCache(
             "*stateGroupCache*",
-            # TODO: this hasn't been tuned yet
+            # This has not been heavily tuned yet
             50000,
         )
         self._state_group_members_cache: DictionaryCache[

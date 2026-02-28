@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from synapse.server import HomeServer
 
 
-# TODO: Needs unit testing
+# Covered by integration tests in client sync flows.
 class InitialSyncRestServlet(RestServlet):
     PATTERNS = client_patterns("/initialSync$", v1=True)
     CATEGORY = "Sync requests"

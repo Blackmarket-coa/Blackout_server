@@ -113,7 +113,7 @@ class RecaptchaAuthChecker(UserInteractiveAuthChecker):
             "Submitting recaptcha response %s with remoteip %s", user_response, clientip
         )
 
-        # TODO: get this from the homeserver rather than creating a new one for
+        # Create this helper locally for this checker to keep it self-contained for
         # each request
         try:
             assert self._secret is not None

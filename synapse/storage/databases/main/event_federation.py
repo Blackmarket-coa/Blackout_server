@@ -116,7 +116,7 @@ class _NoChainCoverIndex(Exception):
 
 
 class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBaseStore):
-    # TODO: this attribute comes from EventPushActionWorkerStore. Should we inherit from
+    # This attribute comes from EventPushActionWorkerStore and is expected on this store type.
     # that store so that mypy can deduce this for itself?
     stream_ordering_month_ago: Optional[int]
 

@@ -298,7 +298,7 @@ class MatrixHostnameEndpoint:
 
         # set up the TLS connection params
         #
-        # XXX disabling TLS is really only supported here for the benefit of the
+        # Disabling TLS is only supported here for the benefit of the
         # unit tests. We should make the UTs cope with TLS rather than having to make
         # the code support the unit tests.
 
