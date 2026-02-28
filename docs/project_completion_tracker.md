@@ -7,6 +7,8 @@ This tracker combines:
 
 Use it as the single progress page for technical completion.
 
+Canonical scope source of truth (only): `docs/scope_boundary.md` (all scope labels in this tracker defer to that document).
+
 ## 1) Completion definition
 
 The project is considered complete when all of the following are true:
@@ -92,9 +94,9 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### G. 30/60/90 rollout alignment
 
-- [ ] G1. Day 0-30 milestones complete.
-- [ ] G2. Day 31-60 milestones complete.
-- [ ] G3. Day 61-90 milestones complete.
+- [ ] [required-now] G1. Day 0-30 milestones complete.
+- [ ] [required-now] G2. Day 31-60 milestones complete.
+- [ ] [required-now] G3. Day 61-90 milestones complete.
 
 
 ### H. Decentralized encrypted federation refactor package
@@ -181,33 +183,33 @@ keeps implementation evidence tied to canonical project docs.
 
 ### Scope-compliance checklist (must complete)
 
-- [ ] Define the exact scope boundary in one place (`in-scope`, `out-of-scope`, `deferred`) and link all tracker items to one of those labels.
-- [ ] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
-- [ ] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
-- [ ] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
+- [ ] [required-now] Define the exact scope boundary in one place (`in-scope (required-now)`, `required-later`, `not-in-scope`, `deferred-with-signoff`) and link all tracker items to one of those labels.
+- [ ] [required-now] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
+- [ ] [required-now] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
+- [ ] [required-later] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
 
 ### Action plan
 
-- [ ] **G1/G2/G3 compliance closure**
+- [ ] [required-now] **G1/G2/G3 compliance closure**
   - Action: convert G1/G2/G3 into dated acceptance checklists with objective pass/fail criteria.
   - Action: link each checklist item to implementation/test/runbook evidence.
   - Exit criteria: G1/G2/G3 are either complete with evidence or explicitly deferred with sign-off.
 
-- [ ] **Backlog necessity triage for blackout backend tracker**
+- [ ] [required-now] **Backlog necessity triage for blackout backend tracker**
   - Action: group unchecked bullets into `required-now`, `required-later`, `not-in-scope`.
   - Action: for `required-now`, create ticket mapping with owner and target sprint.
   - Exit criteria: all unchecked bullets are classified and have explicit next action.
 
-- [ ] **Marker debt compliance gate**
+- [ ] [required-later] **Marker debt compliance gate**
   - Action: retain marker budget enforcement using canonical inventory exclusions only.
   - Action: require weekly marker delta and top-hotspot owner assignment in tracker updates.
   - Exit criteria: marker trend is stable/downward and no scope-critical `must-fix` marker is unowned.
 
 ### Weekly reporting minimum
 
-- [ ] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`).
-- [ ] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
-- [ ] Publish: blockers, owner, and next action date.
+- [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
+- [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
+- [ ] [required-later] Publish: blockers, owner, and next action date.
 
 ### Marker debt closure notes (2026-02-20, weekly refresh)
 
