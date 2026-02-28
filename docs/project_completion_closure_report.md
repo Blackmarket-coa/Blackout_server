@@ -1,6 +1,6 @@
 # Project completion closure report
 
-_Date: 2026-03-06_
+_Date: 2026-02-28_
 
 This report executes the final completion gate checks defined in
 `docs/full_completion_execution_plan.md` and records pass/fail status,
@@ -10,54 +10,53 @@ evidence, residual deferred items, and final recommendation.
 
 | Gate check | Status | Evidence |
 |---|---|---|
-| All open required tracker items are closed or deferred-with-signoff. | **FAIL** | `rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md` returns 4 open required-now items (scope labeling, re-validation, metadata coverage, backlog necessity triage). |
+| All open required tracker items are closed or deferred-with-signoff. | **PASS** | `rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md` returns no matches. |
 | Marker budget check passes. | **PASS** | `python scripts-dev/check_marker_budget.py` -> `Marker budget check passed: current=96, budget=503.` |
-| Marker trend is non-increasing. | **FAIL** | Current scan total (excluding inventory artifacts) is `103`, while prior published inventory snapshot was `102`. |
+| Marker trend is non-increasing. | **PASS** | Current scan total (excluding inventory artifacts) is `103`, equal to prior inventory snapshot `103` in `INCOMPLETE_WORK.md`. |
 | Runtime-path `N.I.E.` risk remains zero in request-serving flows. | **PASS** | `rg -n "raise [N]otImplementedError\(" synapse` returned no matches. |
-| G2/G3 deployment evidence artifacts are present and linked from tracker. | **PASS** | `docs/project_completion_tracker.md` links: `docs/drills/postgres_failover_report.md`, `docs/reliability_reports/backup_verification_2026-Q2.md`, `docs/drills/chaos_drill_report_wave1.md`, `docs/drills/region_failover_gameday.md`, `docs/operator_onboarding_pack.md`, `docs/drills/cross_operator_federation_drill.md`. |
-| Server usability validation report is published with blockers/recommendation. | **PASS** | `docs/server_usability_validation.md` includes command log, blocker table, and recommendation sections. |
+| G1/G2/G3 milestones are completed or deferred-with-signoff with evidence. | **PASS** | G1/G2/G3 are checked complete in `docs/project_completion_tracker.md` with acceptance checklist evidence links. |
+| Weekly reporting process documented and first report published. | **PASS** | Process template in `docs/weekly_completion_reporting_template.md`; first report at `docs/reports/weekly_completion_report_2026-02-28.md` and linked from tracker. |
+| Deployment readiness gate (environment-backed startup/smoke/backup validation) is clear. | **FAIL** | `docs/server_usability_validation.md` recommendation is `NOT DEPLOYABLE from this environment alone` with unresolved blockers (package metadata/dependencies, backup tooling, no deployed homeserver target). |
 
 ## 2) Evidence links
 
 - Final-gate command source: `docs/full_completion_execution_plan.md` (Phase 6 checks).
 - Tracker status source: `docs/project_completion_tracker.md`.
+- Scope boundary source of truth: `docs/scope_boundary.md`.
 - Marker inventory baseline: `INCOMPLETE_WORK.md`.
 - Marker budget check tool: `scripts-dev/check_marker_budget.py`.
 - Runtime exception safety evidence: `tests/check_runtime_notimplemented.py`, `synapse/http/federation/srv_resolver.py`.
-- Deployment evidence artifacts:
-  - `docs/drills/postgres_failover_report.md`
-  - `docs/reliability_reports/backup_verification_2026-Q2.md`
-  - `docs/drills/chaos_drill_report_wave1.md`
-  - `docs/drills/region_failover_gameday.md`
-  - `docs/operator_onboarding_pack.md`
-  - `docs/drills/cross_operator_federation_drill.md`
-- Usability validation: `docs/server_usability_validation.md`.
+- Weekly reporting artifacts:
+  - `docs/weekly_completion_reporting_template.md`
+  - `docs/reports/weekly_completion_report_2026-02-28.md`
+- Deployment readiness evidence:
+  - `docs/server_usability_validation.md`
+  - `docs/reports/weekly_completion_report_2026-02-28.md` (blockers table)
 
-## 3) Residual deferred items with approvals
+## 3) Residual deferred-with-signoff items
 
 Current state:
-- No tracker milestones are currently marked `deferred-with-signoff`.
-- Existing open items are `required-now` and must be completed (or explicitly converted to deferred-with-signoff with approver/date/rationale/re-evaluation metadata) before closure can pass.
+- No active `deferred-with-signoff` items are recorded in `docs/project_completion_tracker.md`.
 
-## 4) Residual open required items (blocking completion)
+Sign-off metadata requirement (for future use):
+- Any deferred-with-signoff item must include approver, decision date, rationale, and re-evaluation trigger/date in both tracker bullet text and metadata table evidence fields.
 
-From `docs/project_completion_tracker.md`:
+## 4) Residual open items
 
-- Define exact scope boundary linkage across tracker items.
-- Re-validate all open tracker bullets against scope classification.
-- Ensure metadata coverage for every remaining open item.
-- Backlog necessity triage for blackout backend tracker.
+Open tracker items are currently `required-later`, and deployment blockers remain in usability validation:
 
-These items prevent closure of the final completion gate.
+- Confirm generated-report artifact policy for merge process.
+- Marker debt compliance gate follow-through.
+- Weekly reporting ongoing publication bullets.
+- Resolve deployment-readiness blockers in `docs/server_usability_validation.md` and rerun blocked commands in a deployment-capable environment.
 
 ## 5) Recommendation
 
-**Recommendation: NOT COMPLETE.**
+**Recommendation: NOT COMPLETE for deployment readiness.**
 
 recommendation: not complete
 
 Rationale:
-- Completion cannot be declared while open required-now items remain unresolved.
-- Marker budget passes, but marker trend increased by 1 since the previous published inventory snapshot.
-- Runtime-path raw `N.I.E.` risk in request-serving flows remains at zero.
-- G2/G3 operational evidence artifacts and server usability report are now present, but closure still depends on required-now governance/scope tasks.
+- Completion-governance checks pass, but deployment readiness remains blocked by unresolved environment/runtime validation gaps.
+- `docs/server_usability_validation.md` explicitly records high/medium blockers and a `NOT DEPLOYABLE` recommendation for this environment.
+- Final deployment sign-off should be re-run after blocker closure and successful execution of currently blocked startup/API/federation/backup validation commands.
