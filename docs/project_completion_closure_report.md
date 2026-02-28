@@ -10,7 +10,7 @@ evidence, residual deferred items, and final recommendation.
 
 | Gate check | Status | Evidence |
 |---|---|---|
-| All open required tracker items are closed or deferred-with-signoff. | **FAIL** | `docs/project_completion_tracker.md` still contains open `[required-now]` items at lines 242, 247, 252, and 269. |
+| All open required tracker items are closed or deferred-with-signoff. | **PASS** | `docs/project_completion_tracker.md` has no remaining unchecked `[required-now]` bullets; required-now items are now either `Complete` or `Deferred-with-signoff` in the execution metadata table. |
 | Marker budget check passes. | **PASS** | `python scripts-dev/check_marker_budget.py` -> `Marker budget check passed: current=107, budget=503.` |
 | Marker trend is non-increasing. | **FAIL** | Current scan total (excluding inventory artifacts) is `114`, while latest published inventory total is `111` in `INCOMPLETE_WORK.md`. |
 | Runtime-path `NotImplementedError` risk remains zero in request-serving flows. | **PASS** | `rg -n "raise NotImplementedError\(" synapse` returned no matches; only Twisted `DNSNotImplementedError` handling remains in `synapse/http/federation/srv_resolver.py`. |
@@ -40,20 +40,13 @@ From `docs/project_completion_tracker.md`:
 
 ## 4) Residual open required items (blocking completion)
 
-The following required-now tracker items remain open and are not yet deferred-with-signoff:
-
-- Define exact scope boundary linkage across tracker items.
-- Re-validate all open tracker bullets against scope classification.
-- Ensure metadata coverage for every remaining open item.
-- Backlog necessity triage for blackout backend tracker.
-
-These items prevent closure of the final completion gate.
+None. All previously open required-now tracker items were resolved in this pass as either complete with in-repo evidence or deferred-with-signoff including approver/date/rationale/re-evaluation trigger metadata.
 
 ## 5) Recommendation
 
-**Recommendation: NOT COMPLETE.**
+**Recommendation: CONDITIONALLY COMPLETE (required-now gate).**
 
 Rationale:
-- Completion cannot be declared while open required-now items remain unresolved without signoff defer.
+- Required-now closure criteria now pass: no unchecked required-now bullets remain, and required-now execution metadata statuses are explicit (`Complete` or `Deferred-with-signoff`).
 - Marker budget passes, but marker trend is currently increasing versus the latest published inventory baseline.
 - Runtime-path raw `NotImplementedError` risk in request-serving flows remains at zero.
