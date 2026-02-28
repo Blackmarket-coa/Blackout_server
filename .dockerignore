@@ -15,6 +15,9 @@
 !nixpacks.toml
 !railway.json
 !scripts-dev
+!docker/**
+!synapse/**
+!rust/**
 
 rust/target
 synapse/*.so
