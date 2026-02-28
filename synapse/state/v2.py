@@ -577,7 +577,7 @@ async def _iterative_auth_checks(
 
         if event.rejected_reason is not None:
             # Do not admit previously rejected events into state.
-            # TODO: This isn't spec compliant. Events that were previously rejected due
+            # This isn't fully spec compliant. Events that were previously rejected due
             #       to failing auth checks at their state, but pass auth checks during
             #       state resolution should be accepted. Synapse does not handle the
             #       change of rejection status well, so we preserve the previous

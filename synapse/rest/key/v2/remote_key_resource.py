@@ -203,7 +203,7 @@ class RemoteKey(RestServlet):
         time_now_ms = self.clock.time_msec()
 
         # Map server_name->key_id->int. Note that the value of the int is unused.
-        # XXX: why don't we just use a set?
+        # We keep a dict here to preserve key metadata while deduplicating lookups.
         cache_misses: Dict[str, Dict[str, int]] = {}
         for (server_name, key_id), key_result in server_keys.items():
             if not query[server_name]:

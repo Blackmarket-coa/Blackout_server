@@ -13,8 +13,9 @@
 # limitations under the License.
 
 from typing import TYPE_CHECKING
+from urllib.parse import parse_qsl
 
-from synapse.api.errors import StoreError
+from synapse.api.errors import Codes, StoreError, SynapseError
 from synapse.http.server import DirectServeHtmlResource, respond_with_html_bytes
 from synapse.http.servlet import parse_string
 from synapse.http.site import SynapseRequest
@@ -73,9 +74,22 @@ class UnsubscribeResource(DirectServeHtmlResource):
         List-Unsubscribe & List-Unsubscribe-Post headers.
         """
 
-        # TODO Assert that the body has a single field
+        body = request.content.read()
 
-        # Assert the body has form encoded key/value pair of
-        # List-Unsubscribe=One-Click.
+        try:
+            form_pairs = parse_qsl(
+                body.decode("utf-8"),
+                keep_blank_values=True,
+                strict_parsing=True,
+            )
+        except (UnicodeDecodeError, ValueError) as e:
+            raise SynapseError(400, "Invalid form body", Codes.INVALID_PARAM) from e
+
+        if form_pairs != [("List-Unsubscribe", "One-Click")]:
+            raise SynapseError(
+                400,
+                "Expected body to contain only List-Unsubscribe=One-Click",
+                Codes.INVALID_PARAM,
+            )
 
         await self._async_render_GET(request)

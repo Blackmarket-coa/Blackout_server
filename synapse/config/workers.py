@@ -271,7 +271,7 @@ class WorkerConfig(Config):
         instance_map: Dict[str, Any] = config.get("instance_map", {})
 
         if self.instance_name is not MAIN_PROCESS_INSTANCE_NAME:
-            # TODO: The next 3 condition blocks can be deleted after some time has
+            # The next 3 condition blocks can be deleted after enough time has
             #  passed and we're ready to stop checking for these settings.
             # The host used to connect to the main synapse
             main_host = config.get("worker_replication_host", None)

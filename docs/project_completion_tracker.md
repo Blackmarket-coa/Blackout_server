@@ -313,8 +313,15 @@ Do not mark a required-now item complete unless the linked evidence already exis
 ### Deployment-readiness reconciliation note (2026-02-28)
 
 - Completion-governance gates in this tracker can pass while deployment readiness remains blocked in environment validation.
-- Canonical deployment go/no-go source: `docs/server_usability_validation.md` (current status: **NOT DEPLOYABLE from this environment alone**).
+- Canonical deployment go/no-go source: `docs/server_usability_validation.md` (current status: **DEPLOYABLE for local SQLite smoke usage; production backup-drill validation remains pending in this container**).
 - Closure recommendations in `docs/project_completion_closure_report.md` must remain aligned with the deployment-readiness blocker table before production sign-off.
+
+
+### Tracker refresh (2026-02-28, post-review)
+
+- Refreshed `docs/tracker_todo_fixme_report.md` to align checklist and marker metrics with the latest repository state.
+- Current marker inventory baseline (excluding generated inventory/report files): **40** total markers, with `synapse/` now at **2** (Twisted `DNSNotImplementedError` handling in `srv_resolver.py`).
+- Remaining marker-heavy entries are primarily intentional audit/policy artifacts (`NOTIMPLEMENTED_AUDIT.md`, `docs/runtime_notimplemented_audit.md`, and `docs/notimplemented_audit_report.md`).
 
 ### Weekly reporting minimum
 

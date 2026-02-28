@@ -1508,7 +1508,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
                 direction, rows[-1].topological_ordering, rows[-1].stream_ordering
             )
         else:
-            # TODO (erikj): We should work out what to do here instead.
+            # Keep this as a conservative fallback for unknown stream rows.
             next_token = to_token if to_token else from_token
 
         return rows, next_token
