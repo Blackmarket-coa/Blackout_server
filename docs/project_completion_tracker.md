@@ -307,6 +307,8 @@ Do not mark a required-now item complete unless the linked evidence already exis
 
 ### Weekly reporting minimum
 
+Weekly report location/template: `docs/weekly_completion_reporting_template.md`.
+
 - [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
 - [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
 - [ ] [required-later] Publish: blockers, owner, and next action date.
