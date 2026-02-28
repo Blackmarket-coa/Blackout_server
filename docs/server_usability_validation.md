@@ -131,8 +131,14 @@ rg -n "(/health|health endpoint|ready endpoint|liveness)" synapse docs
 ## 3) Recommendation
 
 **Recommendation: DEPLOYABLE in this container for local/startup/federation-tooling validation; production sign-off still requires environment-realistic backup/restore drill execution.**
+| PostgreSQL backup tooling (`pg_basebackup`, `pg_verifybackup`, `pg_controldata`) unavailable in current container, blocking runtime backup/restore drill execution. | High | Database Reliability Lead | 2026-03-11 |
+
+## 3) Recommendation
+
+**Recommendation: DEPLOYABLE for local SQLite smoke usage; production deployability still blocked by missing PostgreSQL backup tooling validation in this container.**
 
 Rationale:
 - Build/runtime toolchain binaries are present, and static runtime guardrails pass.
 - Startup CLI, federation tooling CLI, runtime guardrails, and local health checks now pass in this container.
 - Production go/no-go should be finalized after PostgreSQL backup/restore drills are executed against real backup artifacts in staging/production-like infrastructure.
+- Production go/no-go should be finalized after PostgreSQL backup/restore drills are executed with required binaries installed.
