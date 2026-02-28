@@ -310,6 +310,12 @@ Do not mark a required-now item complete unless the linked evidence already exis
 - Required-now tracker bullets now include owner, due date, measurable exit criteria, and evidence path fields, with corresponding status rows in the metadata table.
 - Backlog necessity triage for the blackout backend plan is maintained in `docs/development/blackout_backend_plan_tracker.md` Section 13, including required-now ticket mapping and required-later/not-in-scope classification tables.
 
+### Deployment-readiness reconciliation note (2026-02-28)
+
+- Completion-governance gates in this tracker can pass while deployment readiness remains blocked in environment validation.
+- Canonical deployment go/no-go source: `docs/server_usability_validation.md` (current status: **NOT DEPLOYABLE from this environment alone**).
+- Closure recommendations in `docs/project_completion_closure_report.md` must remain aligned with the deployment-readiness blocker table before production sign-off.
+
 ### Weekly reporting minimum
 
 Weekly report location/template: `docs/weekly_completion_reporting_template.md`. First published report: `docs/reports/weekly_completion_report_2026-02-28.md`.
