@@ -5,10 +5,10 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **111**
+- Total potential incomplete-work markers (excluding this inventory file and `docs/marker_inventory.csv`): **127**
 - Top directories by marker count:
   - `synapse/`: **54**
-  - `docs/`: **27**
+  - `docs/`: **43**
   - `tests/`: **14**
   - `NOTIMPLEMENTED_AUDIT.md`: **12**
   - `docker/`: **2**
@@ -19,14 +19,14 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 - `NOTIMPLEMENTED_AUDIT.md` (**12**) – historical audit artifact; marker strings are report content.
 - `docs/runtime_notimplemented_audit.md` (**10**) – historical audit/report content with marker-string mentions.
+- `docs/repo_remaining_work_ai_prompts.md` (**7**) – generated prompt backlog includes marker taxonomy strings for guided execution.
 - `docs/tracker_todo_fixme_report.md` (**7**) – generated tracker report preserving marker taxonomy terms.
-- `tests/check_runtime_notimplemented.py` (**6**) – static guardrail test intentionally searches for runtime marker strings.
 - `docs/notimplemented_audit_report.md` (**6**) – audit narrative references marker taxonomy terms.
+- `tests/check_runtime_notimplemented.py` (**6**) – static guardrail test intentionally searches for runtime marker strings.
 - `tests/test_runtime_notimplemented_audit.py` (**4**) – regression checks intentionally assert marker strings.
-- `docker/Dockerfile-dhvirtualenv` (**2**) – external build/dependency follow-up comments.
-- `tests/util/test_check_dependencies.py` (**2**) – abstract test doubles retain intentional `NotImplementedError` stubs.
-- `tests/test_notimplemented_regressions.py` (**2**) – regression checks intentionally inspect `NotImplementedError` symbols.
-- `docs/marker_budget_policy.md` (**2**) – policy document defines marker classes by name.
+- `docs/project_completion_closure_report.md` (**3**) – closure report includes explicit marker-term evidence statements.
+- `docs/weekly_completion_report_2026-02-28.md` (**3**) – weekly baseline report includes marker-command evidence strings.
+- `docs/weekly_completion_reporting_template.md` (**3**) – reporting template intentionally includes marker taxonomy command patterns.
 
 ## Command used
 
@@ -84,7 +84,7 @@ agent can execute directly for repository changes.
 Closed in this wave:
 - `docs/project_completion_tracker.md`: replaced runtime marker-token references with `N.I.E.` terminology in tracker narrative.
 - `docs/full_completion_execution_plan.md`: changed marker-scan command examples to regex-safe forms (`[T]ODO|[F]IXME|...|[N]otImplementedError`) and aligned wording to `N.I.E.`.
-- Inventory totals reduced from **123** pre-wave markers to **111** post-wave markers (excluding inventory artifacts).
+- Latest refresh snapshot records **127** markers (excluding inventory artifacts), superseding earlier wave totals for current weekly reporting.
 
 Deferred in this wave:
 - Audit/report documents and marker-audit tests that intentionally contain marker strings were classified as `required-later` and left unchanged to preserve compliance evidence and guardrail behavior.

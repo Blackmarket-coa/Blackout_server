@@ -324,6 +324,7 @@ Do not mark a required-now item complete unless the linked evidence already exis
 ### Weekly reporting minimum
 
 Weekly report location/template: `docs/weekly_completion_reporting_template.md`.
+Latest published weekly report: `docs/weekly_completion_report_2026-02-28.md`.
 
 - [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
   - owner: Release Engineering Lead
