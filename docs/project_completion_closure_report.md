@@ -54,6 +54,8 @@ These items prevent closure of the final completion gate.
 
 **Recommendation: NOT COMPLETE.**
 
+recommendation: not complete
+
 Rationale:
 - Completion cannot be declared while open required-now items remain unresolved.
 - Marker budget passes, but marker trend increased by 1 since the previous published inventory snapshot.
