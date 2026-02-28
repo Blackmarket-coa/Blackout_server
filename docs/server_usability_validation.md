@@ -90,6 +90,22 @@ BACKUP_ROOT=/var/backups/postgres DRILL_ROOT=/var/tmp/postgres-restore-drill scr
 | PASS | `python tests/check_runtime_notimplemented.py` | `OK: no runtime raise NotImplementedError sites found under synapse/.` |
 | WARN (env limitation) | `pytest -q blackout_runtime_tests/test_readiness.py blackout_runtime_tests/test_runtime.py` | Collection failed: `ModuleNotFoundError: blackout_runtime` (package/module not installed in current interpreter path). |
 
+### 1.7 Requested validation rerun (2026-03-06 follow-up)
+
+| Status | Command | Result |
+|---|---|---|
+| PASS | `python -V` | `Python 3.10.19` |
+| PASS | `cargo --version` | `cargo 1.92.0` |
+| WARN (env limitation) | `pytest -q tests -k "federation or media or handlers"` | Collection failed across suite (`273 errors`) due to missing installed package metadata: `PackageNotFoundError: blackout-server`. |
+| PASS | `python scripts-dev/check_marker_budget.py` | `Marker budget check passed: current=96, budget=503.` |
+| PASS | `rg -n "health|ready|liveness" synapse docs` | Command executes; output is broad because it matches generic words like `already`/`ready` in non-health contexts. |
+
+Note: For health-endpoint-focused signal with less noise, use:
+
+```bash
+rg -n "(/health|health endpoint|ready endpoint|liveness)" synapse docs
+```
+
 ## 2) Blockers table
 
 | Blocker | Severity | Owner | Next action date |
