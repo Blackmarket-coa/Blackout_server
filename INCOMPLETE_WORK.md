@@ -26,7 +26,7 @@ This file was generated from a quick source scan for common incomplete-work mark
 - `synapse/http/federation/srv_resolver.py` (**2**) – imports/handles Twisted `DNSNotImplementedError` only; no raw runtime raise.
 - `tests/test_notimplemented_regressions.py` (**2**) – regression checks intentionally inspect marker symbols.
 - `tests/util/test_check_dependencies.py` (**2**) – abstract test doubles retain intentional `NotImplementedError` stubs.
-- `debian/build_virtualenv` (**1**) – packaging script carries a long-standing architecture follow-up TODO.
+- `docs/scope_alignment_evidence.md` (**1**) – evidence narrative retains one marker taxonomy reference.
 
 ## Command used
 
@@ -77,7 +77,7 @@ agent can execute directly for repository changes.
 | `synapse/http/federation/srv_resolver.py` | 2 | `not-in-scope` | Handles upstream Twisted `DNSNotImplementedError`; no raw runtime raise sites. |
 | `tests/test_notimplemented_regressions.py` | 2 | `not-in-scope` | Regression assertions intentionally reference marker names. |
 | `tests/util/test_check_dependencies.py` | 2 | `not-in-scope` | Abstract test-double `NotImplementedError` stubs are intentional and safe. |
-| `debian/build_virtualenv` | 1 | `required-later` | Packaging follow-up requires Debian/release-engineering coordination. |
+| `docs/scope_alignment_evidence.md` | 1 | `required-later` | Scope alignment evidence retains one marker taxonomy reference for historical continuity. |
 
 ### Wave summary
 

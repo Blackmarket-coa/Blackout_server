@@ -235,17 +235,17 @@ keeps implementation evidence tied to canonical project docs.
 
 ### Scope-compliance checklist (must complete)
 
-- [ ] [required-now] Define the exact scope boundary in one place (`in-scope (required-now)`, `required-later`, `not-in-scope`, `deferred-with-signoff`) and link all tracker items to one of those labels.
+- [x] [required-now] Define the exact scope boundary in one place (`in-scope (required-now)`, `required-later`, `not-in-scope`, `deferred-with-signoff`) and link all tracker items to one of those labels.
   - owner: Core Server Maintainers
   - due: 2026-03-07
   - exit criteria (measurable): scope definitions are present in exactly one canonical file and tracker references it as the only scope source.
   - evidence: `docs/scope_boundary.md`, `docs/project_completion_tracker.md`
-- [ ] [required-now] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
+- [x] [required-now] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
   - owner: Federation Architecture Lead
   - due: 2026-03-08
   - exit criteria (measurable): every open bullet is labeled (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`) and non-required-now items are explicitly classified.
   - evidence: `docs/project_completion_tracker.md`, `docs/development/blackout_backend_plan_tracker.md`
-- [ ] [required-now] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
+- [x] [required-now] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
   - owner: Incident Commander Lead
   - due: 2026-03-09
   - exit criteria (measurable): each open required-now item contains explicit owner, target date, measurable exit criteria, and evidence path fields.
@@ -262,7 +262,7 @@ keeps implementation evidence tied to canonical project docs.
   - exit criteria (measurable): G1/G2/G3 are complete with linked in-repo evidence artifacts and validation commands.
   - evidence: `docs/scope_alignment_evidence.md`, `docs/project_completion_tracker.md`
 
-- [ ] [required-now] **Backlog necessity triage for blackout backend tracker**
+- [x] [required-now] **Backlog necessity triage for blackout backend tracker**
   - owner: Federation Architecture Lead
   - due: 2026-03-12
   - Action: group unchecked bullets into `required-now`, `required-later`, `not-in-scope`.
@@ -282,12 +282,12 @@ keeps implementation evidence tied to canonical project docs.
 | G1. Day 0-30 milestones complete | Release Engineering Lead | 2026-03-15 | Complete | `docs/project_completion_tracker.md` (G1 acceptance checklist); `docs/scope_alignment_evidence.md` |
 | G2. Day 31-60 milestones complete | Release Engineering Lead | 2026-04-15 | Complete | `docs/project_completion_tracker.md` (G2 acceptance checklist); `docs/drills/postgres_failover_report.md`; `docs/reliability_reports/backup_verification_2026-Q2.md`; `docs/drills/chaos_drill_report_wave1.md` |
 | G3. Day 61-90 milestones complete | Release Engineering Lead | 2026-05-15 | Complete | `docs/project_completion_tracker.md` (G3 acceptance checklist); `docs/drills/region_failover_gameday.md`; `docs/operator_onboarding_pack.md`; `docs/drills/cross_operator_federation_drill.md` |
-| Define exact scope boundary and apply labels | Core Server Maintainers | 2026-03-07 | Open | `docs/scope_boundary.md`; `docs/project_completion_tracker.md` |
-| Re-validate all open tracker bullets against scope | Federation Architecture Lead | 2026-03-08 | Open | `docs/project_completion_tracker.md`; `docs/development/blackout_backend_plan_tracker.md` |
-| Ensure metadata coverage for remaining open items | Incident Commander Lead | 2026-03-09 | Open | `docs/project_completion_tracker.md` |
+| Define exact scope boundary and apply labels | Core Server Maintainers | 2026-03-07 | Complete | `docs/scope_boundary.md`; `docs/project_completion_tracker.md` |
+| Re-validate all open tracker bullets against scope | Federation Architecture Lead | 2026-03-08 | Complete | `docs/project_completion_tracker.md`; `docs/development/blackout_backend_plan_tracker.md` |
+| Ensure metadata coverage for remaining open items | Incident Commander Lead | 2026-03-09 | Complete | `docs/project_completion_tracker.md` |
 | G1/G2/G3 compliance closure | Release Engineering Lead | 2026-03-20 | Complete | `docs/project_completion_tracker.md` (G milestone acceptance checklists); `docs/scope_alignment_evidence.md` |
 | Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
-| Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Open | `docs/development/blackout_backend_plan_tracker.md` |
+| Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Complete | `docs/development/blackout_backend_plan_tracker.md` |
 
 ### Definition of Done for tracker updates
 
@@ -302,9 +302,17 @@ Every open `required-now` tracker item must include all of the following fields 
 
 Do not mark a required-now item complete unless the linked evidence already exists in the repository and is reviewable.
 
+
+### Scope baseline + metadata normalization closure (2026-02-28)
+
+- Canonical scope definitions remain centralized in `docs/scope_boundary.md`, and this tracker references that file as the sole source of scope labels.
+- All currently open tracker bullets are explicitly labeled with one of: `required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`.
+- Required-now tracker bullets now include owner, due date, measurable exit criteria, and evidence path fields, with corresponding status rows in the metadata table.
+- Backlog necessity triage for the blackout backend plan is maintained in `docs/development/blackout_backend_plan_tracker.md` Section 13, including required-now ticket mapping and required-later/not-in-scope classification tables.
+
 ### Weekly reporting minimum
 
-Weekly report location/template: `docs/weekly_completion_reporting_template.md`.
+Weekly report location/template: `docs/weekly_completion_reporting_template.md`. First published report: `docs/reports/weekly_completion_report_2026-02-28.md`.
 
 - [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
 - [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
