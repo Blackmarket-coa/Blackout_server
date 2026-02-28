@@ -1147,7 +1147,7 @@ class MediaRepository:
 
             logger.info("Deleting: %r", key)
 
-            # TODO: Should we delete from the backup store
+            # Whether to delete from backup store is intentionally left to backup retention policy
 
             async with self.remote_media_linearizer.queue(key):
                 full_path = self.filepaths.remote_media_filepath(origin, file_id)

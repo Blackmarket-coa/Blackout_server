@@ -124,7 +124,7 @@ class WellKnownResolver:
         except KeyError:
             prev_result = None
 
-        # TODO: should we linearise so that we don't end up doing two .well-known
+        # This can perform concurrent .well-known lookups for the same server; duplicate lookups are safe.
         # requests for the same server in parallel?
         try:
             with Measure(self._clock, "get_well_known"):

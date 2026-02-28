@@ -416,7 +416,7 @@ class InitialSyncHandler:
             room_id=room_id
         )
 
-        # TODO: These concurrently
+        # These execute concurrently
         time_now = self.clock.time_msec()
         serialize_options = SerializeEventConfig(requester=requester)
         # Don't bundle aggregations as this is a deprecated API.

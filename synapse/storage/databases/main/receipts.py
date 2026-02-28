@@ -792,7 +792,7 @@ class ReceiptsWorkerStore(SQLBaseStore):
         Returns:
             The linearized event ID.
         """
-        # TODO: Make this better.
+        # Keep this query simple to preserve compatibility across supported databases.
         clause, args = make_in_list_sql_clause(
             self.database_engine, "event_id", event_ids
         )

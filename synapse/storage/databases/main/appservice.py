@@ -370,7 +370,7 @@ class ApplicationServiceTransactionWorkerStore(
         event_ids = db_to_json(event_ids_str)
         events = await self.get_events_as_list(event_ids)
 
-        # TODO: to-device messages, one-time key counts, device list summaries and unused
+        # To-device messages, one-time key counts, device list summaries and unused
         #       fallback keys are not yet populated for catch-up transactions.
         #       We likely want to populate those for reliability.
         return AppServiceTransaction(
