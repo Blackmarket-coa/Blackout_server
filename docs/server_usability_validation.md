@@ -136,3 +136,4 @@ Rationale:
 - Build/runtime toolchain binaries are present, and static runtime guardrails pass.
 - Startup CLI, federation tooling CLI, runtime guardrails, and local health checks now pass in this container.
 - Production go/no-go should be finalized after PostgreSQL backup/restore drills are executed against real backup artifacts in staging/production-like infrastructure.
+- Production go/no-go should be finalized after PostgreSQL backup/restore drills are executed with required binaries installed.
