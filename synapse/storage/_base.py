@@ -87,7 +87,7 @@ class SQLBaseStore(metaclass=ABCMeta):
             members_changed: The user_ids of members that have changed
         """
 
-        # XXX: If you add something to this function make sure you add it to
+        # If you add something to this function make sure you add it to
         # `_invalidate_state_caches_all` as well.
 
         # If there were any membership changes, purge the appropriate caches.

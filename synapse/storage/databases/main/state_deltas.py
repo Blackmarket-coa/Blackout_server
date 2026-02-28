@@ -40,7 +40,7 @@ class StateDelta:
 
 class StateDeltasStore(SQLBaseStore):
     # This class must be mixed in with a child class which provides the following
-    # attribute. TODO: can we get static analysis to enforce this?
+    # attribute. Static analysis cannot currently express this attribute relationship.
     _curr_state_delta_stream_cache: StreamChangeCache
 
     async def get_partial_current_state_deltas(

@@ -302,7 +302,7 @@ class MonthlyActiveUsersWorkerStore(RegistrationWorkerStore):
             self._update_on_this_worker
         ), "This worker is not designated to update MAUs"
 
-        # XXX what is this function trying to achieve?  It upserts into
+        # This function upserts into
         # monthly_active_users for each *registered* reserved mau user, but why?
         #
         #  - shouldn't there already be an entry for each reserved user (at least

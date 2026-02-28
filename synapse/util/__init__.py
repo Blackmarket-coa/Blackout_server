@@ -14,7 +14,10 @@
 
 import json
 import logging
+import re
 import typing
+from importlib.metadata import PackageNotFoundError
+from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Optional, Sequence
 
 import attr
@@ -191,9 +194,35 @@ def log_failure(
     return None
 
 
+def _read_poetry_project_version() -> str:
+    """Best-effort fallback for source-tree execution without installed metadata."""
+
+    pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    try:
+        content = pyproject.read_text(encoding="utf-8")
+    except OSError:
+        return "unknown"
+
+    # Keep parsing dependency-free for bootstrap paths.
+    match = re.search(r'^version\s*=\s*"([^"\n]+)"\s*$', content, re.MULTILINE)
+    if match:
+        return match.group(1)
+
+    return "unknown"
+
+
 # Version string with git info. Computed here once so that we don't invoke git multiple
 # times.
-SYNAPSE_VERSION = get_distribution_version_string("blackout-server", __file__)
+try:
+    SYNAPSE_VERSION = get_distribution_version_string("blackout-server", __file__)
+except PackageNotFoundError:
+    fallback_version = _read_poetry_project_version()
+    logger.warning(
+        "Package metadata for 'blackout-server' is unavailable; falling back to source "
+        "version '%s'.",
+        fallback_version,
+    )
+    SYNAPSE_VERSION = fallback_version
 
 
 class ExceptionBundle(Exception):

@@ -106,15 +106,21 @@ Note: For health-endpoint-focused signal with less noise, use:
 rg -n "(/health|health endpoint|ready endpoint|liveness)" synapse docs
 ```
 
+
+### 1.8 Deployability unblocker rerun (2026-03-06, in-repo remediations)
+
+| Status | Command | Result |
+|---|---|---|
+| PASS | `python -m synapse.app.homeserver --help` | Startup CLI now executes in source-tree mode without installed wheel metadata; it falls back to `pyproject.toml` version and skips metadata-only dependency checks. |
+| PASS | `python scripts-dev/federation_client.py --help` | Script now starts without `srvlookup` installed by using optional resolver backends/fallback behavior. |
+
 ## 2) Blockers table
 
 | Blocker | Severity | Owner | Next action date |
 |---|---|---|---|
-| `blackout-server` package metadata missing, preventing app startup/import checks (`PackageNotFoundError`). | High | Release Engineering Lead | 2026-03-10 |
-| `srvlookup` dependency missing, blocking federation smoke script execution. | Medium | Federation Architecture Lead | 2026-03-10 |
 | PostgreSQL backup tooling (`pg_basebackup`, `pg_verifybackup`, `pg_controldata`) unavailable in current container, blocking runtime backup/restore drill execution. | High | Database Reliability Lead | 2026-03-11 |
 | No deployed homeserver instance/config in this environment for end-to-end auth/room API smoke tests. | High | SRE Lead | 2026-03-11 |
-| `blackout_runtime` import path/package not installed for runtime regression subset in this environment. | Medium | Core Server Maintainers | 2026-03-12 |
+| Runtime regression invocation in this container still does not resolve `blackout_runtime` under `pytest` collection defaults; use module-path invocation or install editable package before running that subset. | Medium | Core Server Maintainers | 2026-03-12 |
 
 ## 3) Recommendation
 

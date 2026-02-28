@@ -34,8 +34,15 @@ from twisted.logger import (
 
 from synapse.logging.context import LoggingContextFilter
 from synapse.logging.filter import MetadataFilter
-from synapse.synapse_rust import reset_logging_config
 from synapse.types import JsonDict
+
+try:
+    from synapse.synapse_rust import reset_logging_config
+except ModuleNotFoundError:
+    def reset_logging_config() -> None:
+        """Fallback when optional rust logging bindings are unavailable."""
+
+        return
 
 from ..util import SYNAPSE_VERSION
 from ._base import Config, ConfigError

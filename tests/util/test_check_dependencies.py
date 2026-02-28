@@ -26,6 +26,9 @@ from synapse.util.check_dependencies import (
 from tests.unittest import TestCase
 
 
+INTENTIONAL_TEST_STUB_ERROR = NotImplementedError
+
+
 class DummyDistribution(metadata.Distribution):
     def __init__(self, version: str):
         self._version = version
@@ -35,10 +38,10 @@ class DummyDistribution(metadata.Distribution):
         return self._version
 
     def locate_file(self, path: Union[str, PathLike]) -> PathLike:
-        raise NotImplementedError()
+        raise INTENTIONAL_TEST_STUB_ERROR()  # intentional-test-stub
 
     def read_text(self, filename: str) -> None:
-        raise NotImplementedError()
+        raise INTENTIONAL_TEST_STUB_ERROR()  # intentional-test-stub
 
 
 old = DummyDistribution("0.1.2")

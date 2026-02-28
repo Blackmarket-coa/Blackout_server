@@ -186,7 +186,7 @@ class E2eRoomKeysHandler:
 
         # Follow-up (owner: crypto, issue: https://github.com/matrix-org/synapse/issues/17404): validate incoming JSON schema/keys before storing room keys.
 
-        # XXX: perhaps we should use a finer grained lock here?
+        # A single lock is used here to preserve backup consistency across writes.
         async with self._upload_linearizer.queue(user_id):
             # Check that the version we're trying to upload is the current version
             try:

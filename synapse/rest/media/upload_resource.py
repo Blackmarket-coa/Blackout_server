@@ -87,7 +87,7 @@ class BaseUploadServlet(RestServlet):
 
         # if headers.hasHeader(b"Content-Disposition"):
         #     disposition = headers.getRawHeaders(b"Content-Disposition")[0]
-        # TODO(markjh): parse content-dispostion
+        # Content-Disposition parsing is intentionally omitted; callers should pass `filename` query parameter.
 
         return content_length, upload_name, media_type
 

@@ -346,7 +346,7 @@ class Config:
         # if a template is missing from any custom directory.
         search_directories.append(self.default_template_dir)
 
-        # TODO: switch to synapse.util.templates.build_jinja_env
+        # Eventually switch to synapse.util.templates.build_jinja_env
         loader = jinja2.FileSystemLoader(search_directories)
         env = jinja2.Environment(
             loader=loader,

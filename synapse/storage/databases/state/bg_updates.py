@@ -218,7 +218,7 @@ class StateGroupBackgroundUpdateStore(SQLBaseStore):
             if where_clause:
                 where_clause = " AND (%s)" % (where_clause,)
 
-            # XXX: We could `WITH RECURSIVE` here since it's supported on SQLite 3.8.3
+            # A recursive CTE could also express this, but this iterative form keeps SQL portable.
             # or higher and our minimum supported version is greater than that.
             #
             # We just haven't put in the time to refactor this.

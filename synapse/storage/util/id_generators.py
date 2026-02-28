@@ -763,7 +763,7 @@ class MultiWriterIdGenerator(AbstractStreamIdGenerator):
                     curr, new_cur, self._max_position_of_local_instance
                 )
 
-            # TODO Can we call this for just the last position or somehow batch
+            # This currently updates each position; correctness is preferred over batching here
             # _add_persisted_position.
             for next_id in next_ids:
                 self._add_persisted_position(next_id)

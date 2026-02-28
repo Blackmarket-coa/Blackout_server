@@ -44,8 +44,12 @@ from urllib import parse as urlparse
 import requests
 import signedjson.key
 import signedjson.types
-import srvlookup
 import yaml
+
+try:
+    import srvlookup
+except ModuleNotFoundError:
+    srvlookup = None  # type: ignore[assignment]
 from requests import PreparedRequest, Response
 from requests.adapters import HTTPAdapter
 from urllib3 import HTTPConnectionPool
@@ -96,6 +100,36 @@ def sign_json(
 
     return json_object
 
+
+
+
+def _lookup_srv_record(server_name: str, service: str) -> Optional[Tuple[str, int]]:
+    """Resolve a matrix federation SRV record using available resolver backends."""
+
+    if srvlookup is not None:
+        try:
+            record = srvlookup.lookup(service, "tcp", server_name)[0]
+            return record.host, record.port
+        except Exception:
+            pass
+
+    try:
+        import dns.resolver
+    except ModuleNotFoundError:
+        return None
+
+    query_name = f"_{service}._tcp.{server_name}"
+    try:
+        answer = dns.resolver.resolve(query_name, "SRV")
+    except Exception:
+        return None
+
+    # Prefer lowest priority then highest weight. dnspython response ordering is not
+    # guaranteed to match RFC preference order.
+    sorted_records = sorted(answer, key=lambda rec: (rec.priority, -rec.weight))
+    selected = sorted_records[0]
+    host = str(selected.target).rstrip(".")
+    return host, int(selected.port)
 
 def request(
     method: Optional[str],
@@ -329,27 +363,28 @@ class MatrixConnectionAdapter(HTTPAdapter):
                 raise ValueError("Invalid host:port '%s'" % (server_name,))
             return out[0], port, out[0]
 
-        # Look up SRV for Matrix 1.8 `matrix-fed` service first
-        try:
-            srv = srvlookup.lookup("matrix-fed", "tcp", server_name)[0]
+        # Look up SRV for Matrix 1.8 `matrix-fed` service first.
+        matrix_fed = _lookup_srv_record(server_name, "matrix-fed")
+        if matrix_fed is not None:
+            host, port = matrix_fed
             print(
-                f"SRV lookup on _matrix-fed._tcp.{server_name} gave {srv}",
+                f"SRV lookup on _matrix-fed._tcp.{server_name} gave {host}:{port}",
                 file=sys.stderr,
             )
-            return srv.host, srv.port, server_name
-        except Exception:
-            pass
-        # Fall back to deprecated `matrix` service
-        try:
-            srv = srvlookup.lookup("matrix", "tcp", server_name)[0]
+            return host, port, server_name
+
+        # Fall back to deprecated `matrix` service.
+        matrix_legacy = _lookup_srv_record(server_name, "matrix")
+        if matrix_legacy is not None:
+            host, port = matrix_legacy
             print(
-                f"SRV lookup on _matrix._tcp.{server_name} gave {srv}",
+                f"SRV lookup on _matrix._tcp.{server_name} gave {host}:{port}",
                 file=sys.stderr,
             )
-            return srv.host, srv.port, server_name
-        except Exception:
-            # Fall even further back to just port 8448
-            return server_name, 8448, server_name
+            return host, port, server_name
+
+        # Fall even further back to just port 8448.
+        return server_name, 8448, server_name
 
     @staticmethod
     def _get_well_known(server_name: str) -> Optional[str]:

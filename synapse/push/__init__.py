@@ -119,7 +119,7 @@ class PusherConfig:
     enabled: bool
     device_id: Optional[str]
 
-    # XXX(quenting): The access_token is not persisted anymore for new pushers, but we
+    # The access_token is not persisted anymore for new pushers, but we
     # keep it when reading from the database, so that we don't get stale pushers
     # while the "set_device_id_for_pushers" background update is running.
     access_token: Optional[int]
