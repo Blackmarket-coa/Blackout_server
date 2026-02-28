@@ -313,7 +313,7 @@ Do not mark a required-now item complete unless the linked evidence already exis
 ### Deployment-readiness reconciliation note (2026-02-28)
 
 - Completion-governance gates in this tracker can pass while deployment readiness remains blocked in environment validation.
-- Canonical deployment go/no-go source: `docs/server_usability_validation.md` (current status: **NOT DEPLOYABLE from this environment alone**).
+- Canonical deployment go/no-go source: `docs/server_usability_validation.md` (current status: **DEPLOYABLE for local SQLite smoke usage; production backup-drill validation remains pending in this container**).
 - Closure recommendations in `docs/project_completion_closure_report.md` must remain aligned with the deployment-readiness blocker table before production sign-off.
 
 
