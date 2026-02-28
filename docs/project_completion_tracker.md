@@ -95,8 +95,20 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 ### G. 30/60/90 rollout alignment
 
 - [ ] [required-now] G1. Day 0-30 milestones complete.
+  - Owner: Release Engineering Lead
+  - Target date: 2026-03-15
+  - Measurable exit criteria: Day 0-30 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - Evidence path: `docs/scope_alignment_evidence.md` (G1 checklist section)
 - [ ] [required-now] G2. Day 31-60 milestones complete.
+  - Owner: Release Engineering Lead
+  - Target date: 2026-04-15
+  - Measurable exit criteria: Day 31-60 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - Evidence path: `docs/scope_alignment_evidence.md` (G2 checklist section)
 - [ ] [required-now] G3. Day 61-90 milestones complete.
+  - Owner: Release Engineering Lead
+  - Target date: 2026-05-15
+  - Measurable exit criteria: Day 61-90 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - Evidence path: `docs/scope_alignment_evidence.md` (G3 checklist section)
 
 
 ### H. Decentralized encrypted federation refactor package
@@ -184,26 +196,70 @@ keeps implementation evidence tied to canonical project docs.
 ### Scope-compliance checklist (must complete)
 
 - [ ] [required-now] Define the exact scope boundary in one place (`in-scope (required-now)`, `required-later`, `not-in-scope`, `deferred-with-signoff`) and link all tracker items to one of those labels.
+  - Owner: Core Server Maintainers
+  - Target date: 2026-03-07
+  - Measurable exit criteria: scope definitions are present in exactly one canonical file and tracker references it as the only scope source.
+  - Evidence path: `docs/scope_boundary.md`, `docs/project_completion_tracker.md`
 - [ ] [required-now] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
+  - Owner: Federation Architecture Lead
+  - Target date: 2026-03-08
+  - Measurable exit criteria: every open bullet is labeled (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`) and non-required-now items are explicitly classified.
+  - Evidence path: `docs/project_completion_tracker.md`, `docs/development/blackout_backend_plan_tracker.md`
 - [ ] [required-now] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
+  - Owner: Incident Commander Lead
+  - Target date: 2026-03-09
+  - Measurable exit criteria: each open required-now item contains explicit owner, target date, measurable exit criteria, and evidence path fields.
+  - Evidence path: `docs/project_completion_tracker.md`
 - [ ] [required-later] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
 
 ### Action plan
 
 - [ ] [required-now] **G1/G2/G3 compliance closure**
+  - Owner: Release Engineering Lead
+  - Target date: 2026-03-20
   - Action: convert G1/G2/G3 into dated acceptance checklists with objective pass/fail criteria.
   - Action: link each checklist item to implementation/test/runbook evidence.
-  - Exit criteria: G1/G2/G3 are either complete with evidence or explicitly deferred with sign-off.
+  - Measurable exit criteria: G1/G2/G3 are each either complete with linked evidence or marked deferred-with-signoff containing approver/date/rationale/re-evaluation trigger.
+  - Evidence path: `docs/scope_alignment_evidence.md`, `docs/project_completion_tracker.md`
 
 - [ ] [required-now] **Backlog necessity triage for blackout backend tracker**
+  - Owner: Federation Architecture Lead
+  - Target date: 2026-03-12
   - Action: group unchecked bullets into `required-now`, `required-later`, `not-in-scope`.
   - Action: for `required-now`, create ticket mapping with owner and target sprint.
-  - Exit criteria: all unchecked bullets are classified and have explicit next action.
+  - Measurable exit criteria: all unchecked bullets are classified and every required-now row has owner and target sprint.
+  - Evidence path: `docs/development/blackout_backend_plan_tracker.md`
 
 - [ ] [required-later] **Marker debt compliance gate**
   - Action: retain marker budget enforcement using canonical inventory exclusions only.
   - Action: require weekly marker delta and top-hotspot owner assignment in tracker updates.
   - Exit criteria: marker trend is stable/downward and no scope-critical `must-fix` marker is unowned.
+
+### Required-now execution metadata table
+
+| Item | Owner | Due | Status | Evidence |
+|---|---|---|---|---|
+| G1. Day 0-30 milestones complete | Release Engineering Lead | 2026-03-15 | Open | `docs/scope_alignment_evidence.md` (G1 checklist section) |
+| G2. Day 31-60 milestones complete | Release Engineering Lead | 2026-04-15 | Open | `docs/scope_alignment_evidence.md` (G2 checklist section) |
+| G3. Day 61-90 milestones complete | Release Engineering Lead | 2026-05-15 | Open | `docs/scope_alignment_evidence.md` (G3 checklist section) |
+| Define exact scope boundary and apply labels | Core Server Maintainers | 2026-03-07 | Open | `docs/scope_boundary.md`; `docs/project_completion_tracker.md` |
+| Re-validate all open tracker bullets against scope | Federation Architecture Lead | 2026-03-08 | Open | `docs/project_completion_tracker.md`; `docs/development/blackout_backend_plan_tracker.md` |
+| Ensure metadata coverage for remaining open items | Incident Commander Lead | 2026-03-09 | Open | `docs/project_completion_tracker.md` |
+| G1/G2/G3 compliance closure | Release Engineering Lead | 2026-03-20 | Open | `docs/scope_alignment_evidence.md`; `docs/project_completion_tracker.md` |
+| Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Open | `docs/development/blackout_backend_plan_tracker.md` |
+
+### Definition of Done for tracker updates
+
+Every open `required-now` tracker item must include all of the following fields before merge:
+
+1. Scope label (`[required-now]`).
+2. Owner role (accountable role, not placeholder text).
+3. Target date (`YYYY-MM-DD`).
+4. Measurable exit criteria (objective pass/fail statement).
+5. Evidence path (repo file, dashboard path, script, or test location).
+6. Current status in the metadata table (`Open`, `In progress`, `Blocked`, or `Deferred-with-signoff`).
+
+Do not mark a required-now item complete unless the linked evidence already exists in the repository and is reviewable.
 
 ### Weekly reporting minimum
 
