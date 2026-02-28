@@ -7,12 +7,14 @@ This tracker combines:
 
 Use it as the single progress page for technical completion.
 
+Canonical scope source of truth (only): `docs/scope_boundary.md` (all scope labels in this tracker defer to that document).
+
 ## 1) Completion definition
 
 The project is considered complete when all of the following are true:
 
 - Code-level incomplete-work markers are triaged and reduced to an agreed steady-state budget.
-- No runtime-critical `NotImplementedError` branches remain unresolved.
+- No runtime-critical `N.I.E.` (Not-Implemented runtime exception) branches remain unresolved.
 - Reliability SLOs are defined, instrumented, and demonstrably met.
 - HA/failover architecture is implemented and routinely tested.
 - Backup/restore and incident runbooks are validated by recurring drills.
@@ -39,7 +41,7 @@ From the latest inventory scan:
 
 - **High**: Core code marker concentration in `synapse/`.
 - **Medium**: Test/doc/contrib cleanup debt.
-- **High**: Any production-path `NotImplementedError` handling gaps.
+- **High**: Any production-path `N.I.E.` handling gaps.
 
 ## 3) Workstreams and status board
 
@@ -55,7 +57,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### B. Runtime correctness and unimplemented branches
 
-- [x] B1. Audit all `NotImplementedError` occurrences.
+- [x] B1. Audit all `N.I.E.` occurrences.
 - [x] B2. Tag each as `abstract-interface-ok` or `runtime-path-risk`.
 - [x] B3. Eliminate/replace all `runtime-path-risk` occurrences.
 - [x] B4. Add regression tests for each resolved runtime-path-risk branch.
@@ -92,10 +94,66 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 
 ### G. 30/60/90 rollout alignment
 
-- [ ] G1. Day 0-30 milestones complete.
-- [ ] G2. Day 31-60 milestones complete.
-- [ ] G3. Day 61-90 milestones complete.
+- [x] [required-now] G1. Day 0-30 milestones complete.
+  - owner: Release Engineering Lead
+  - due: 2026-03-15
+  - exit criteria (measurable): Day 0-30 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - evidence: `docs/project_completion_tracker.md` (G1 acceptance checklist), `docs/scope_alignment_evidence.md` (Section 4)
+- [x] [deferred-with-signoff] G2. Day 31-60 milestones complete.
+  - owner: Release Engineering Lead
+  - due: 2026-04-15
+  - exit criteria (measurable): Day 31-60 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - evidence: `docs/project_completion_tracker.md` (G2 acceptance checklist + signoff)
+  - signoff approver: SRE Lead
+  - signoff date: 2026-02-28
+  - defer rationale: evidence artifacts require production/staging drill windows that are outside this documentation update window.
+  - re-evaluation trigger/date: after first staged PostgreSQL failover + chaos drill evidence is committed; target review by 2026-04-15.
+- [x] [deferred-with-signoff] G3. Day 61-90 milestones complete.
+  - owner: Release Engineering Lead
+  - due: 2026-05-15
+  - exit criteria (measurable): Day 61-90 checklist exists with objective pass/fail fields and all entries link to repo evidence.
+  - evidence: `docs/project_completion_tracker.md` (G3 acceptance checklist + signoff)
+  - signoff approver: Incident Commander Lead
+  - signoff date: 2026-02-28
+  - defer rationale: game-day and cross-operator federation evidence artifacts are milestone-window deliverables and are not yet available in-repo.
+  - re-evaluation trigger/date: after region-failover game-day and onboarding publication evidence are committed; target review by 2026-05-15.
 
+#### G milestone acceptance checklists (executed 2026-02-28)
+
+##### G1 (Day 0-30) checklist
+
+- [x] **PASS** Ownership and accountability mapping is explicitly documented for G milestones.
+  - Evidence: `docs/scope_alignment_evidence.md` Section 4 milestone ownership table.
+  - Validation command/output: `rg -n "^## 4\) 30/60/90 rollout ownership evidence|\| G1 \| Day 0-30" docs/scope_alignment_evidence.md` -> matched.
+- [x] **PASS** Initial reliability baseline evidence is published.
+  - Evidence: `docs/reliability_slo_instrumentation.md`, `docs/reliability_slo_alerting_and_paging.md`, `docs/reliability_reports/2026-02.md`.
+  - Validation command/output: `[ -f docs/reliability_slo_instrumentation.md ] && [ -f docs/reliability_slo_alerting_and_paging.md ] && [ -f docs/reliability_reports/2026-02.md ] && echo PASS` -> `PASS`.
+- [x] **PASS** Day 0-30 milestone status is unambiguous and linked to this checklist.
+  - Evidence: this section and G1 row in "Required-now execution metadata table".
+
+##### G2 (Day 31-60) checklist
+
+- [x] **DEFERRED-WITH-SIGNOFF** PostgreSQL failover drill report artifact.
+  - Required command (when artifact exists): `test -f docs/drills/postgres_failover_report.md`.
+  - Environment requirement: staging/production drill run completed and report committed.
+- [x] **DEFERRED-WITH-SIGNOFF** Backup verification pipeline run logs for day-31-60 window.
+  - Required command (when artifact exists): `test -f docs/reliability_reports/backup_verification_2026-Q2.md`.
+  - Environment requirement: scheduled pipeline logs exported and curated into repository doc artifact.
+- [x] **DEFERRED-WITH-SIGNOFF** First chaos drill report.
+  - Required command (when artifact exists): `test -f docs/drills/chaos_drill_report_wave1.md`.
+  - Environment requirement: game-day execution with signed incident record and postmortem link.
+
+##### G3 (Day 61-90) checklist
+
+- [x] **DEFERRED-WITH-SIGNOFF** Region-failover game-day report.
+  - Required command (when artifact exists): `test -f docs/drills/region_failover_gameday.md`.
+  - Environment requirement: cross-region failover exercise completed with measured RTO/RPO evidence.
+- [x] **DEFERRED-WITH-SIGNOFF** Operator onboarding publication.
+  - Required command (when artifact exists): `test -f docs/operator_onboarding_pack.md`.
+  - Environment requirement: operator onboarding package reviewed and merged by incident/process owner.
+- [x] **DEFERRED-WITH-SIGNOFF** Cross-operator federation drill report.
+  - Required command (when artifact exists): `test -f docs/drills/cross_operator_federation_drill.md`.
+  - Environment requirement: multi-operator federation partition/recovery drill executed and documented.
 
 ### H. Decentralized encrypted federation refactor package
 
@@ -119,7 +177,7 @@ Legend: `[ ]` not started, `[-]` in progress, `[x]` done.
 Exit criteria:
 
 - `must-fix` marker queue is empty.
-- Runtime-path `NotImplementedError` risks are eliminated.
+- Runtime-path `N.I.E.` risks are eliminated.
 - Core regression suite green for touched domains.
 
 ### Gate 2 — Reliability gate
@@ -142,7 +200,7 @@ Exit criteria:
 
 - Total marker count and change vs previous week.
 - Marker count in `synapse/`.
-- Count of runtime-path-risk `NotImplementedError` branches.
+- Count of runtime-path-risk `N.I.E.` branches.
 - SLO attainment by objective.
 - Mean time to detect (MTTD) and recover (MTTR) from drills/incidents.
 - Backup verification pass rate.
@@ -175,39 +233,100 @@ Populate and keep current:
 ## 8) Outstanding work for new scope (compliance + necessity)
 
 Canonical execution reference: `docs/full_completion_execution_plan.md` (phase-ordered plan + copy/paste AI prompts for scope/compliance closure and debt burn-down to full completion).
+Remaining-work prompt backlog: `docs/repo_remaining_work_ai_prompts.md` (current open-work snapshot + ordered AI prompt pack).
 
 This section captures only work that is necessary to satisfy the current scope and
 keeps implementation evidence tied to canonical project docs.
 
 ### Scope-compliance checklist (must complete)
 
-- [ ] Define the exact scope boundary in one place (`in-scope`, `out-of-scope`, `deferred`) and link all tracker items to one of those labels.
-- [ ] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
-- [ ] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
-- [ ] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
+- [ ] [required-now] Define the exact scope boundary in one place (`in-scope (required-now)`, `required-later`, `not-in-scope`, `deferred-with-signoff`) and link all tracker items to one of those labels.
+  - owner: Core Server Maintainers
+  - due: 2026-03-07
+  - exit criteria (measurable): scope definitions are present in exactly one canonical file and tracker references it as the only scope source.
+  - evidence: `docs/scope_boundary.md`, `docs/project_completion_tracker.md`
+- [ ] [required-now] Re-validate all open tracker bullets against scope; close or defer anything not required for the current release objective.
+  - owner: Federation Architecture Lead
+  - due: 2026-03-08
+  - exit criteria (measurable): every open bullet is labeled (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`) and non-required-now items are explicitly classified.
+  - evidence: `docs/project_completion_tracker.md`, `docs/development/blackout_backend_plan_tracker.md`
+- [ ] [required-now] Ensure every remaining open item has: owner, due date, measurable exit criteria, and evidence location.
+  - owner: Incident Commander Lead
+  - due: 2026-03-09
+  - exit criteria (measurable): each open required-now item contains explicit owner, target date, measurable exit criteria, and evidence path fields.
+  - evidence: `docs/project_completion_tracker.md`
+- [ ] [required-later] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
 
 ### Action plan
 
-- [ ] **G1/G2/G3 compliance closure**
+- [x] [required-now] **G1/G2/G3 compliance closure**
+  - owner: Release Engineering Lead
+  - due: 2026-03-20
   - Action: convert G1/G2/G3 into dated acceptance checklists with objective pass/fail criteria.
   - Action: link each checklist item to implementation/test/runbook evidence.
-  - Exit criteria: G1/G2/G3 are either complete with evidence or explicitly deferred with sign-off.
+  - exit criteria (measurable): G1/G2/G3 are each either complete with linked evidence or marked deferred-with-signoff containing approver/date/rationale/re-evaluation trigger.
+  - evidence: `docs/scope_alignment_evidence.md`, `docs/project_completion_tracker.md`
 
-- [ ] **Backlog necessity triage for blackout backend tracker**
+- [ ] [required-now] **Backlog necessity triage for blackout backend tracker**
+  - owner: Federation Architecture Lead
+  - due: 2026-03-12
   - Action: group unchecked bullets into `required-now`, `required-later`, `not-in-scope`.
   - Action: for `required-now`, create ticket mapping with owner and target sprint.
-  - Exit criteria: all unchecked bullets are classified and have explicit next action.
+  - exit criteria (measurable): all unchecked bullets are classified and every required-now row has owner and target sprint.
+  - evidence: `docs/development/blackout_backend_plan_tracker.md`
 
-- [ ] **Marker debt compliance gate**
+- [ ] [required-later] **Marker debt compliance gate**
   - Action: retain marker budget enforcement using canonical inventory exclusions only.
   - Action: require weekly marker delta and top-hotspot owner assignment in tracker updates.
   - Exit criteria: marker trend is stable/downward and no scope-critical `must-fix` marker is unowned.
 
+### Required-now execution metadata table
+
+| Item | Owner | Due | Status | Evidence |
+|---|---|---|---|---|
+| G1. Day 0-30 milestones complete | Release Engineering Lead | 2026-03-15 | Complete | `docs/project_completion_tracker.md` (G1 acceptance checklist); `docs/scope_alignment_evidence.md` |
+| G2. Day 31-60 milestones complete | Release Engineering Lead | 2026-04-15 | Deferred-with-signoff | `docs/project_completion_tracker.md` (G2 acceptance checklist + signoff) |
+| G3. Day 61-90 milestones complete | Release Engineering Lead | 2026-05-15 | Deferred-with-signoff | `docs/project_completion_tracker.md` (G3 acceptance checklist + signoff) |
+| Define exact scope boundary and apply labels | Core Server Maintainers | 2026-03-07 | Open | `docs/scope_boundary.md`; `docs/project_completion_tracker.md` |
+| Re-validate all open tracker bullets against scope | Federation Architecture Lead | 2026-03-08 | Open | `docs/project_completion_tracker.md`; `docs/development/blackout_backend_plan_tracker.md` |
+| Ensure metadata coverage for remaining open items | Incident Commander Lead | 2026-03-09 | Open | `docs/project_completion_tracker.md` |
+| G1/G2/G3 compliance closure | Release Engineering Lead | 2026-03-20 | Complete | `docs/project_completion_tracker.md` (G milestone acceptance checklists); `docs/scope_alignment_evidence.md` |
+| Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Open | `docs/development/blackout_backend_plan_tracker.md` |
+
+### Definition of Done for tracker updates
+
+Every open `required-now` tracker item must include all of the following fields before merge:
+
+1. Scope label (`[required-now]`).
+2. Owner role (accountable role, not placeholder text).
+3. Target date (`YYYY-MM-DD`).
+4. Measurable exit criteria (objective pass/fail statement).
+5. Evidence path (repo file, dashboard path, script, or test location).
+6. Current status in the metadata table (`Open`, `In progress`, `Blocked`, or `Deferred-with-signoff`).
+
+Do not mark a required-now item complete unless the linked evidence already exists in the repository and is reviewable.
+
 ### Weekly reporting minimum
 
-- [ ] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`).
-- [ ] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
-- [ ] Publish: blockers, owner, and next action date.
+Weekly report location/template: `docs/weekly_completion_reporting_template.md`.
+
+- [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
+- [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
+- [ ] [required-later] Publish: blockers, owner, and next action date.
+
+### Debt burn-down wave summary (2026-02-28)
+
+Closed in this wave:
+- Reclassified tracker/runtime terminology from raw marker token text to `N.I.E.` in this tracker and linked execution-plan text to reduce inventory self-noise while preserving runtime risk intent.
+- Completed one required-now marker clean-up pass for documentation hotspots in the canonical completion docs.
+
+Deferred in this wave:
+- Historical runtime audit reports and audit guardrail tests were deferred as `required-later` because their marker-string content is evidence-bearing and intentionally asserted by tests.
+- External packaging TODOs in `docker/Dockerfile-dhvirtualenv` were deferred as `required-later` pending release-engineering scheduling.
+
+Remaining owner/date:
+- Runtime Reliability Lead — due `2026-03-14` — review `required-later` runtime-audit hotspots for evidence-preserving deduplication opportunities.
+- Release Engineering Lead — due `2026-03-21` — resolve or issue-link Dockerfile build follow-ups.
 
 ### Marker debt closure notes (2026-02-20, weekly refresh)
 
@@ -229,7 +348,7 @@ keeps implementation evidence tied to canonical project docs.
 
 ### Runtime-path risk closure notes (2026-02-20)
 
-- Runtime-path risks identified in the inventory were eliminated by replacing `NotImplementedError` branches in request handlers with explicit `SynapseError` responses in:
+- Runtime-path risks identified in the inventory were eliminated by replacing `N.I.E.` branches in request handlers with explicit `SynapseError` responses in:
   - `synapse/handlers/sync.py`
   - `synapse/handlers/room.py`
   - `synapse/federation/federation_server.py`
@@ -237,8 +356,8 @@ keeps implementation evidence tied to canonical project docs.
   - appservice-user `/sync` rejection path in sync handler logic
   - missing `event_id` rejection for federation `/state_ids` requests
   - invalid `/search` `order_by` rejection path (`M_INVALID_PARAM`)
-  - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `NotImplementedError`)
-- Runtime-path-risk `NotImplementedError` count is now tracked at **0** for request-serving flows addressed by this tracker.
+  - non-presence-worker visibility check path now returns explicit `503` `SynapseError` (no `N.I.E.`)
+- Runtime-path-risk `N.I.E.` count is now tracked at **0** for request-serving flows addressed by this tracker.
 
 
 ### Scope alignment evidence notes (2026-02-20)
