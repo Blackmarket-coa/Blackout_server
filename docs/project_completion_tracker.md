@@ -230,6 +230,7 @@ Populate and keep current:
 Canonical execution reference: `docs/full_completion_execution_plan.md` (phase-ordered plan + copy/paste AI prompts for scope/compliance closure and debt burn-down to full completion).
 Remaining-work prompt backlog: `docs/repo_remaining_work_ai_prompts.md` (current open-work snapshot + ordered AI prompt pack).
 Upstream parity plan: `docs/upstream_blackout_feature_build_plan.md` (U1-U12 feature inventory + wave execution prompts).
+Upstream parity support matrix: `docs/development/blackout_upstream_feature_matrix.md` (U1-U12 support status: `unsupported`/`partial`/`complete` with owner/due/exit/evidence for non-complete features).
 
 This section captures only work that is necessary to satisfy the current scope and
 keeps implementation evidence tied to canonical project docs.
@@ -260,8 +261,8 @@ keeps implementation evidence tied to canonical project docs.
   - due: 2026-03-29
   - Action: maintain full upstream feature inventory (U1-U12) and per-feature support status in server tracker artifacts.
   - Action: publish wave-based build plan with AI prompt pack and command-level validation steps.
-  - exit criteria (measurable): `docs/upstream_blackout_feature_build_plan.md` exists, is linked from tracker docs, and each feature row has scope + status + server impact notes.
-  - evidence: `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5; U1-U12 inventory with scope/status/server-impact, wave plan, prompt pack, and validation command bundle)
+  - exit criteria (measurable): `docs/upstream_blackout_feature_build_plan.md` and `docs/development/blackout_upstream_feature_matrix.md` exist, are linked from tracker docs, and each U1-U12 row has support status with owner/due/exit/evidence metadata for non-complete states.
+  - evidence: `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5; U1-U12 inventory with scope/status/server-impact, wave plan, prompt pack, and validation command bundle); `docs/development/blackout_upstream_feature_matrix.md`
 
 - [x] [required-now] **G1/G2/G3 compliance closure**
   - owner: Release Engineering Lead
@@ -298,7 +299,7 @@ keeps implementation evidence tied to canonical project docs.
 | Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
 | Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Complete | `docs/development/blackout_backend_plan_tracker.md` |
 
-| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Complete | `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5) |
+| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Complete | `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5); `docs/development/blackout_upstream_feature_matrix.md` |
 
 ### Definition of Done for tracker updates
 
