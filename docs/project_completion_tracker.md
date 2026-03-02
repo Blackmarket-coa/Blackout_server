@@ -255,13 +255,13 @@ keeps implementation evidence tied to canonical project docs.
 
 ### Action plan
 
-- [ ] [required-now] **Upstream Blackout feature parity tracker (U1-U12)**
+- [x] [required-now] **Upstream Blackout feature parity tracker (U1-U12)**
   - owner: Federation Architecture Lead
   - due: 2026-03-29
   - Action: maintain full upstream feature inventory (U1-U12) and per-feature support status in server tracker artifacts.
   - Action: publish wave-based build plan with AI prompt pack and command-level validation steps.
   - exit criteria (measurable): `docs/upstream_blackout_feature_build_plan.md` exists, is linked from tracker docs, and each feature row has scope + status + server impact notes.
-  - evidence: `docs/upstream_blackout_feature_build_plan.md`
+  - evidence: `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5; U1-U12 inventory with scope/status/server-impact, wave plan, prompt pack, and validation command bundle)
 
 - [x] [required-now] **G1/G2/G3 compliance closure**
   - owner: Release Engineering Lead
@@ -298,7 +298,7 @@ keeps implementation evidence tied to canonical project docs.
 | Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
 | Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Complete | `docs/development/blackout_backend_plan_tracker.md` |
 
-| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Open | `docs/upstream_blackout_feature_build_plan.md` |
+| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Complete | `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5) |
 
 ### Definition of Done for tracker updates
 
@@ -329,15 +329,15 @@ Do not mark a required-now item complete unless the linked evidence already exis
 - Closure recommendations in `docs/project_completion_closure_report.md` must remain aligned with the deployment-readiness blocker table before production sign-off.
 
 
-### Tracker refresh (2026-02-28, post-review)
+### Tracker refresh (2026-03-02, post-review)
 
 - Refreshed `docs/tracker_todo_fixme_report.md` to align checklist and marker metrics with the latest repository state.
-- Current marker inventory baseline (excluding generated inventory/report files): **40** total markers, with `synapse/` now at **2** (Twisted `DNSNotImplementedError` handling in `srv_resolver.py`).
+- Current marker inventory baseline (excluding inventory artifacts `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`): **49** total markers, with `synapse/` at **2** (Twisted `DNSNotImplementedError` handling in `srv_resolver.py`).
 - Remaining marker-heavy entries are primarily intentional audit/policy artifacts (`NOTIMPLEMENTED_AUDIT.md`, `docs/runtime_notimplemented_audit.md`, and `docs/notimplemented_audit_report.md`).
 
 ### Weekly reporting minimum
 
-Weekly report location/template: `docs/weekly_completion_reporting_template.md`. First published report: `docs/reports/weekly_completion_report_2026-02-28.md`.
+Weekly report location/template: `docs/weekly_completion_reporting_template.md`. Reports: `docs/reports/weekly_completion_report_2026-02-28.md`, `docs/reports/weekly_completion_report_2026-03-02.md`.
 
 - [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
 - [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.

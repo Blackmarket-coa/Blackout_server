@@ -43,11 +43,10 @@ Sign-off metadata requirement (for future use):
 
 ## 4) Residual open items
 
-Open tracker items are currently `required-later`, and deployment blockers remain in usability validation:
+Open tracker items remain `required-later`, and deployment blockers remain in usability validation:
 
 - Confirm generated-report artifact policy for merge process.
 - Marker debt compliance gate follow-through.
-- Weekly reporting ongoing publication bullets.
 - Resolve deployment-readiness blockers in `docs/server_usability_validation.md` and rerun blocked commands in a deployment-capable environment.
 
 ## 5) Recommendation
