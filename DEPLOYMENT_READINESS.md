@@ -3,28 +3,36 @@
 Date: 2026-03-02
 
 ## Scope
-This report reflects a **lightweight local validation** of the current `work` branch in this repository.
+This report reflects a local validation pass on branch `work` focused on restoring build/tooling health and exercising the CI test matrix entrypoint.
+
+## Tooling Remediation Performed
+
+1. Repaired Poetry runtime dependency mismatch in the environment (`packaging`, `keyring`, `pkginfo`, `urllib3`) so Poetry commands run again.
+2. Updated project dependency constraints to avoid known runtime breakages in this environment:
+   - `pyOpenSSL` raised to `>=25.1.0` for compatibility with modern `cryptography` / OpenSSL bindings.
+   - `prometheus-client` capped to `<0.21` to avoid MRO import failure in `synapse.metrics.InFlightGauge`.
+3. Regenerated lockfile with `poetry lock`.
 
 ## Checks Run
 
-- `git status --short` → clean working tree.
-- `pytest -q tests/test_test_utils.py` → **passed** (3 tests).
-- `pytest -q tests/handlers/test_worker_lock.py` → **passed** (1 test, 1 skipped).
-- `poetry --version` → **failed** in this environment with `No module named 'packaging.licenses'`.
+- `poetry --version` → passed.
+- `poetry check --lock` → passed (with deprecation warnings in project metadata layout).
+- `tox` → started full matrix and reported missing local interpreters for `py37`, `py38`, `py39`.
+- `tox -r -e py310` → executed a broad test sweep and surfaced many failing tests (both FAIL and ERROR).
 
 ## Assessment
 
-Current status: **Not yet deployment-ready with high confidence**.
+Current status: **Not ready for deployment**.
 
 Reasoning:
 
-1. Only a small subset of tests was executed successfully.
-2. The Python packaging/tooling setup appears inconsistent in this environment (`poetry` invocation failure).
-3. No full test run, migration rehearsal, or production-like smoke test was executed in this pass.
+1. CI-equivalent matrix cannot be fully executed in this environment due missing Python interpreters (3.7/3.8/3.9).
+2. The available `py310` run now executes, but reports numerous test failures across federation, handlers, and blackout-related suites.
+3. Until those failures are triaged/fixed and the full matrix passes in CI, production deployment is high risk.
 
-## Recommended Gate Before Production
+## Required Next Gates
 
-1. Restore a healthy build/tooling environment (ensure `poetry` and lockfile workflows run cleanly).
-2. Run the project's full CI test matrix.
-3. Execute a staging deployment smoke test (startup, DB connectivity, federation paths, and background workers).
-4. Confirm observability/rollback readiness (alerts, dashboards, backup/restore rehearsal).
+1. Run full CI in an environment that includes all required Python versions.
+2. Triage and resolve failing `py310` test suites discovered by tox.
+3. Re-run the full matrix until all required jobs are green.
+4. Execute staging smoke tests (startup, DB/migrations, federation flows, workers) before prod cutover.
