@@ -134,6 +134,25 @@ Commit message prefix: "docs: publish weekly completion baseline report"
 
 ---
 
+### Prompt E — Build upstream feature parity matrix (U1-U12)
+
+```text
+You are working in this repository. Build and maintain upstream parity tracking for features defined in docs/upstream_blackout_feature_build_plan.md.
+
+Tasks:
+1) Create/update docs/development/blackout_upstream_feature_matrix.md with U1-U12 support status (unsupported/partial/complete).
+2) Add owner/due/exit/evidence fields for each unsupported or partial feature.
+3) Cross-link the matrix from docs/project_completion_tracker.md.
+
+Validation:
+- rg -n "U1|U12|unsupported|partial|complete" docs/development/blackout_upstream_feature_matrix.md
+- rg -n "blackout_upstream_feature_matrix|upstream_blackout_feature_build_plan" docs/project_completion_tracker.md
+
+Commit message prefix: "tracker: maintain upstream feature parity matrix"
+```
+
+---
+
 ### Prompt D — Final completion gate rerun
 
 ```text
