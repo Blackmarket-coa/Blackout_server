@@ -5,21 +5,21 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and generated report artifacts): **40**
+- Total potential incomplete-work markers (excluding this inventory file and the marker inventory CSV artifact): **49**
 - Top directories by marker count:
-  - `docs/`: **21**
+  - `docs/`: **30**
   - `NOTIMPLEMENTED_AUDIT.md`: **12**
   - `docker/`: **2**
   - `synapse/`: **2**
   - `debian/`: **1**
   - `tests/`: **1**
 
-## Post-review tracker refresh (2026-02-28)
+## Post-review tracker refresh (2026-03-02)
 
 - Re-ran the canonical marker scan and refreshed tracker metrics after the review-driven cleanup pass.
-- New baseline (excluding generated inventory/report artifacts): **40** total markers.
+- New baseline (excluding inventory artifacts `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`): **49** total markers.
 - `synapse/` has **2** marker-string hits, both from Twisted `DNSNotImplementedError` import/exception handling in `synapse/http/federation/srv_resolver.py` (no local runtime `raise NotImplementedError`).
-- Updated `docs/tracker_todo_fixme_report.md` and `docs/project_completion_tracker.md` so completion governance reflects the current repository state.
+- Updated `docs/tracker_todo_fixme_report.md`, `docs/project_completion_tracker.md`, and weekly report artifacts so completion governance reflects the current repository state.
 
 ## Representative examples to prioritize
 
@@ -27,19 +27,19 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 - `NOTIMPLEMENTED_AUDIT.md` (**12**) – historical audit artifact; marker strings are report content.
 - `docs/runtime_notimplemented_audit.md` (**10**) – historical audit/report content with marker-string mentions.
+- `docs/tracker_todo_fixme_report.md` (**8**) – generated reporting artifact with marker taxonomy references.
 - `docs/notimplemented_audit_report.md` (**6**) – audit narrative references marker taxonomy terms.
 - `docker/Dockerfile-dhvirtualenv` (**2**) – external build/dependency follow-up comments.
+- `docs/project_completion_tracker.md` (**2**) – reporting backlog and status text include marker taxonomy literals.
 - `docs/marker_budget_policy.md` (**2**) – policy document defines marker classes by name.
 - `synapse/http/federation/srv_resolver.py` (**2**) – imports/handles Twisted `DNSNotImplementedError` only; no raw runtime raise.
 
 ## Command used
 
 ```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . \
+rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . \
   -g "!docs/marker_inventory.csv" \
-  -g "!INCOMPLETE_WORK.md" \
-  -g "!docs/incomplete_work_line_by_line_fixes.md" \
-  -g "!docs/tracker_todo_fixme_report.md"
+  -g "!INCOMPLETE_WORK.md"
 ```
 
 Post-processing note:
@@ -69,14 +69,14 @@ Post-processing note:
 |---|---:|---|---|
 | `NOTIMPLEMENTED_AUDIT.md` | 12 | `required-later` | Keep historical audit strings; not runtime debt. |
 | `docs/runtime_notimplemented_audit.md` | 10 | `required-later` | Keep as historical audit evidence for compliance reviews. |
-| `docs/tracker_todo_fixme_report.md` | 7 | `not-in-scope` | Generated/reporting artifact; retained for historical comparisons. |
+| `docs/tracker_todo_fixme_report.md` | 8 | `not-in-scope` | Generated/reporting artifact; retained for historical comparisons. |
 | `docs/notimplemented_audit_report.md` | 6 | `required-later` | Audit narrative intentionally retains marker taxonomy words. |
-| `docs/marker_budget_policy.md` | 2 | `required-later` | Policy text intentionally enumerates marker classes. |
 | `docker/Dockerfile-dhvirtualenv` | 2 | `required-later` | External dependency TODOs require packaging/release coordination. |
+| `docs/project_completion_tracker.md` | 2 | `required-later` | Weekly reporting and tracker governance text intentionally references marker classes. |
+| `docs/marker_budget_policy.md` | 2 | `required-later` | Policy text intentionally enumerates marker classes. |
 | `synapse/http/federation/srv_resolver.py` | 2 | `not-in-scope` | Handles upstream Twisted `DNSNotImplementedError`; no raw runtime raise sites. |
-| `tests/test_notimplemented_regressions.py` | 2 | `not-in-scope` | Regression assertions intentionally reference marker names. |
-| `tests/util/test_check_dependencies.py` | 2 | `not-in-scope` | Abstract test-double `NotImplementedError` stubs are intentional and safe. |
-| `docs/scope_alignment_evidence.md` | 1 | `required-later` | Scope alignment evidence retains one marker taxonomy reference for historical continuity. |
+| `debian/build_virtualenv` | 1 | `required-later` | Packaging bootstrap path includes one TODO follow-up. |
+| `tests/util/test_check_dependencies.py` | 1 | `not-in-scope` | Intentional abstract test-double `NotImplementedError` stub is safe. |
 
 ### Wave summary
 
