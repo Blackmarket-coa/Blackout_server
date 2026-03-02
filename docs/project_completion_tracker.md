@@ -229,6 +229,7 @@ Populate and keep current:
 
 Canonical execution reference: `docs/full_completion_execution_plan.md` (phase-ordered plan + copy/paste AI prompts for scope/compliance closure and debt burn-down to full completion).
 Remaining-work prompt backlog: `docs/repo_remaining_work_ai_prompts.md` (current open-work snapshot + ordered AI prompt pack).
+Upstream parity plan: `docs/upstream_blackout_feature_build_plan.md` (U1-U12 feature inventory + wave execution prompts).
 
 This section captures only work that is necessary to satisfy the current scope and
 keeps implementation evidence tied to canonical project docs.
@@ -253,6 +254,14 @@ keeps implementation evidence tied to canonical project docs.
 - [ ] [required-later] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
 
 ### Action plan
+
+- [ ] [required-now] **Upstream Blackout feature parity tracker (U1-U12)**
+  - owner: Federation Architecture Lead
+  - due: 2026-03-29
+  - Action: maintain full upstream feature inventory (U1-U12) and per-feature support status in server tracker artifacts.
+  - Action: publish wave-based build plan with AI prompt pack and command-level validation steps.
+  - exit criteria (measurable): `docs/upstream_blackout_feature_build_plan.md` exists, is linked from tracker docs, and each feature row has scope + status + server impact notes.
+  - evidence: `docs/upstream_blackout_feature_build_plan.md`
 
 - [x] [required-now] **G1/G2/G3 compliance closure**
   - owner: Release Engineering Lead
@@ -288,6 +297,8 @@ keeps implementation evidence tied to canonical project docs.
 | G1/G2/G3 compliance closure | Release Engineering Lead | 2026-03-20 | Complete | `docs/project_completion_tracker.md` (G milestone acceptance checklists); `docs/scope_alignment_evidence.md` |
 | Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
 | Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Complete | `docs/development/blackout_backend_plan_tracker.md` |
+
+| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Open | `docs/upstream_blackout_feature_build_plan.md` |
 
 ### Definition of Done for tracker updates
 
