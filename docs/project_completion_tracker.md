@@ -329,15 +329,15 @@ Do not mark a required-now item complete unless the linked evidence already exis
 - Closure recommendations in `docs/project_completion_closure_report.md` must remain aligned with the deployment-readiness blocker table before production sign-off.
 
 
-### Tracker refresh (2026-02-28, post-review)
+### Tracker refresh (2026-03-02, post-review)
 
 - Refreshed `docs/tracker_todo_fixme_report.md` to align checklist and marker metrics with the latest repository state.
-- Current marker inventory baseline (excluding generated inventory/report files): **40** total markers, with `synapse/` now at **2** (Twisted `DNSNotImplementedError` handling in `srv_resolver.py`).
+- Current marker inventory baseline (excluding inventory artifacts `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`): **49** total markers, with `synapse/` at **2** (Twisted `DNSNotImplementedError` handling in `srv_resolver.py`).
 - Remaining marker-heavy entries are primarily intentional audit/policy artifacts (`NOTIMPLEMENTED_AUDIT.md`, `docs/runtime_notimplemented_audit.md`, and `docs/notimplemented_audit_report.md`).
 
 ### Weekly reporting minimum
 
-Weekly report location/template: `docs/weekly_completion_reporting_template.md`. First published report: `docs/reports/weekly_completion_report_2026-02-28.md`.
+Weekly report location/template: `docs/weekly_completion_reporting_template.md`. Reports: `docs/reports/weekly_completion_report_2026-02-28.md`, `docs/reports/weekly_completion_report_2026-03-02.md`.
 
 - [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
 - [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
