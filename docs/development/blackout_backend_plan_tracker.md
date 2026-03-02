@@ -300,121 +300,114 @@ Project columns:
 ## 13) Backlog necessity triage (unchecked items)
 
 Classification legend:
-- **Required-now**: needed to unblock Phase 1 execution and near-term risk retirement.
-- **Required-later**: important, but sequenced after Phase 1 stabilization.
-- **Not-in-scope (current tracker window)**: strategic target retained for roadmap, not for current execution sprints.
+- **required-now**: needed to unblock Phase 1 execution and near-term risk retirement.
+- **required-later**: important, but sequenced after Phase 1 stabilization.
+- **not-in-scope**: strategic target retained for roadmap, not for current execution sprints.
+- **deferred-with-signoff**: explicitly deferred by approver with date, rationale, and re-evaluation trigger.
 
-### 13.1 Required-now (with ticket mapping, owner, target sprint)
+### 13.1 Open checklist items: scope classification coverage
 
-Execution artifacts created in this pass:
-- `docs/signaling_only_persistence_policy.md` (BLK-101)
-- `docs/marker_budget_policy.md` (BLK-118)
-- `docs/development/blackout_weekly_tracker_update_template.md` (BLK-119, BLK-120)
+All currently open checklist items in Sections 0-12 are classified below.
 
-| Ticket | Unchecked tracker bullets covered | Owner | Target sprint | Next action |
-|---|---|---|---|---|
-| BLK-101 | 1.1 persistence policy (what is persisted / not persisted) | Backend Lead | Sprint 1 | ✅ Drafted `docs/signaling_only_persistence_policy.md`; pending sign-off and implementation linkage. |
-| BLK-102 | 1.2 write-path persistence gate + migration toggle (`blackout_signaling_only_mode`) | Storage/API Engineer | Sprint 1 | Implement gate behind config flag and add migration guardrails. |
-| BLK-103 | 1.3 disable media/index/history retrieval surfaces | Platform Engineer | Sprint 1 | Add feature flags to disable endpoints/jobs and return explicit disabled errors. |
-| BLK-104 | 1.4 integration + migration validation tests | QA/Backend Engineer | Sprint 2 | Add integration suite for membership continuity and payload rejection behavior. |
-| BLK-105 | 2.1 `m.blackout.signal` schema/versioning + payload validation limits | Protocol Engineer | Sprint 1 | Publish schema in docs and add server-side JSON schema validator. |
-| BLK-106 | 2.2 enforcement + explicit error codes for blocked event types | API Engineer | Sprint 1 | Add typed rejection paths for `m.room.message` / `m.room.encrypted`. |
-| BLK-107 | 2.3 client interop notes + conformance tests | Client Liaison + QA | Sprint 2 | Author client fallback guidance and add conformance fixtures for accept/reject matrix. |
-| BLK-108 | 3.1 TURN model decision + secure coturn baseline | Infra Lead | Sprint 1 | Run architecture decision record (ADR) and commit baseline coturn config template. |
-| BLK-109 | 3.2 NAT coordination boundaries + anti-abuse limits | Security Engineer | Sprint 2 | Define and implement signaling rate limits and abuse budget thresholds. |
-| BLK-110 | 4.1 retention configs + TTL semantics | Backend Lead | Sprint 1 | Finalize default TTL semantics (creation vs receipt) and expose config docs. |
-| BLK-111 | 4.2 bounded incremental purge job + API irretrievability checks | Data Lifecycle Engineer | Sprint 2 | Implement purge scheduler with bounded batch sizes and post-purge fetch denial tests. |
-| BLK-112 | 4.3 retention safety tests (including auth-state protection) | QA/Backend Engineer | Sprint 2 | Add regression tests verifying auth-critical state survives purge. |
-| BLK-113 | 5.1 crypto alignment baseline (identity keys, DTLS, AES, hashing, Merkle verification contract) | Security Architect | Sprint 2 | Produce threat-model addendum and protocol acceptance checklist for Phase 1. |
-| BLK-114 | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Mobile Performance Engineer | Sprint 3 | Define benchmark harness and collect first representative mobile baseline. |
-| BLK-115 | 8 Phase 1 deliverables + Phase 1 exit criterion | Program Manager + Backend Lead | Sprint 1-2 | Convert Phase 1 bullets to sprint stories and run end-to-end demo gate. |
-| BLK-116 | 9 alignment seed: `faster_joins`, sync marker clusters, storage/search/media marker clusters, tracker-tagged follow-up markers | Tech Lead | Sprint 1 | Open mapped issues for each marker cluster and attach `blackout:*` labels. |
-| BLK-117 | 10 blocker decisions (hard reject vs drop, compatibility mode, minimum schema, TURN default policy, retention defaults) | Architecture Council | Sprint 1 | ✅ Decision workshop completed; outcomes recorded in `docs/development/blackout_blocker_decision_record_2026-02-27.md`. |
-
-
-### 13.1a Marker debt compliance gate (required-now policy)
-
-Marker governance for tracker updates is enforced as follows:
-- **Retain marker budget enforcement using canonical inventory exclusions only** (no ad-hoc exclusions by team or sprint).
-- **Require weekly marker delta reporting** (`opened`, `closed`, `net`) for the tracked marker inventory.
-- **Require top-hotspot owner assignment** each week for the highest-growth marker cluster.
-
-Required-now ticket mapping for compliance gate:
-
-| Ticket | Unchecked tracker bullets covered | Owner | Target sprint | Next action |
-|---|---|---|---|---|
-| BLK-118 | Marker budget enforcement policy (canonical inventory exclusions only) | Release Manager | Sprint 1 | ✅ Published `docs/marker_budget_policy.md` with canonical exclusion list and reporting requirements. |
-| BLK-119 | Weekly marker delta reporting in tracker updates | Program Manager | Sprint 1 | ✅ Added weekly tracker template: `docs/development/blackout_weekly_tracker_update_template.md`. |
-| BLK-120 | Top-hotspot owner assignment for marker debt | Tech Lead | Sprint 1 | ✅ Added top-hotspot DRI section to `docs/development/blackout_weekly_tracker_update_template.md`. |
-
-### 13.2 Required-later (explicit next action)
-
-| Unchecked tracker bullets covered | Classification | Next action |
-|---|---|---|
-| 5.2 Threat handling backlog (offline retrieval, redundancy enforcement, withholding mitigation, key rotation/revocation, device compromise workflow, expiration auditability) | Required-later | Create Epic `BLK-SEC-THREATS` in Sprint 3 planning with milestone-level acceptance criteria. |
-| 7 Horizontal scalability validation (scheduler/queueing/partition behavior) | Required-later | Schedule load-test design in Sprint 4 after signaling-only path stabilizes. |
-| 7 Vertical scalability strategy (super-peer criteria, hierarchical mesh signaling, avoid full mesh) | Required-later | Run architecture spike in Sprint 4 and publish large-room control-plane RFC. |
-| 8 Phase 2 deliverables + exit criterion (chunking, distributed replication, redundancy tracking) | Required-later | Keep in Program Increment 2 backlog; split into design + implementation epics. |
-| 8 Phase 3 deliverables + exit criterion (file swarm, Merkle validation, streaming) | Required-later | Keep in Program Increment 3 with prototype gate before production commitment. |
-| 8 Phase 4 deliverables + exit criterion (super-peer topology, mobile tuning, bandwidth throttling) | Required-later | Keep in Program Increment 4, contingent on Phase 2/3 throughput outcomes. |
-
-### 13.3 Not-in-scope (current tracker window; explicit next action)
-
-| Unchecked tracker bullets covered | Classification | Next action |
-|---|---|---|
-| 0 Program goals + success criteria (north-star outcomes) | Not-in-scope (execution window) | Track as outcome KPIs reviewed monthly; do not gate Sprint 1-2 delivery on full attainment. |
-| 6 Target envelope values (200-500 users, 20-50 active peers, many small rooms) | Not-in-scope (execution window) | Treat as performance targets for later scale validation after baseline feature completion. |
-| 11 Suggested issue labels/project columns | Not-in-scope (engineering execution) | Project ops to adopt labels/columns during normal backlog hygiene, no blocking dependency. |
-| 12 Strategic outcome checkpoint (identity layer, P2P messaging, distributed storage, minimal liability, phone-hostable node, takedown resilience) | Not-in-scope (current sprints) | Retain as quarterly strategy scorecard tracked at release-train level. |
-
-
-### 13.4 Publish cadence artifacts (weekly tracker update)
-
-#### Open-item count by scope class
-
-| Scope class | Open item count | Source |
+| Scope class | Open items covered | Coverage source |
 |---|---:|---|
-| Required-now | 20 (4 documentation artifacts delivered; implementation tickets still open) | Tickets `BLK-101`..`BLK-120` in Sections 13.1 + 13.1a |
-| Required-later | 6 | Rows in Section 13.2 |
-| Not-in-scope | 4 | Rows in Section 13.3 |
+| required-now | 20 | Ticketized in Section 13.2 (`BLK-101`..`BLK-120`) |
+| required-later | 6 | Section 13.3 table |
+| not-in-scope | 4 | Section 13.4 table |
+| deferred-with-signoff | 0 | Section 13.5 (none this pass) |
 
-#### Marker delta (week-over-week) + top-10 hotspot ownership
+### 13.2 Required-now operational backlog (owner/date/exit/evidence)
 
-| Metric | Previous week | Current week | Delta | Status |
-|---|---:|---:|---:|---|
-| Markers opened | 0 | 0 | 0 | Stable |
-| Markers closed | 0 | 0 | 0 | Stable |
-| Net marker change | 0 | 0 | 0 | Stable/downward gate satisfied |
+| Ticket | Scope class | Open checklist items covered | Wave | Owner | Target sprint/date | Measurable exit criteria | Evidence path |
+|---|---|---|---|---|---|---|---|
+| BLK-101 | required-now | 1.1 persistence policy (what is persisted / not persisted) | Wave 1 | Backend Lead | Sprint 1 / 2026-03-14 | Canonical policy explicitly lists persisted vs non-persisted classes and is approved by Backend + Security leads. | `docs/signaling_only_persistence_policy.md`; approval note in tracker weekly update |
+| BLK-102 | required-now | 1.2 write-path persistence gate + migration toggle (`blackout_signaling_only_mode`) | Wave 1 | Storage/API Engineer | Sprint 1 / 2026-03-18 | Write path rejects/discards non-allowed classes behind config flag with passing unit/integration tests. | implementation in `synapse/`; tests under `tests/`; tracker update artifact |
+| BLK-103 | required-now | 1.3 disable media/index/history retrieval surfaces | Wave 1 | Platform Engineer | Sprint 1 / 2026-03-19 | Media/index/history endpoints are disabled in signaling-only mode and return stable disabled errors. | implementation in `synapse/`; API tests under `tests/`; release notes entry |
+| BLK-104 | required-now | 1.4 integration + migration validation tests | Wave 2 | QA/Backend Engineer | Sprint 2 / 2026-03-26 | Integration suite proves membership continuity, payload rejection policy, and no migration corruption. | `tests/` integration suite + CI run log reference |
+| BLK-105 | required-now | 2.1 `m.blackout.signal` schema/versioning + payload validation limits | Wave 1 | Protocol Engineer | Sprint 1 / 2026-03-17 | Versioned schema defines allowed classes + max payload and validator accepts/rejects deterministically. | schema doc in `docs/development/`; validator/tests in repo |
+| BLK-106 | required-now | 2.2 enforcement + explicit error codes for blocked event types | Wave 1 | API Engineer | Sprint 1 / 2026-03-18 | `m.room.message` and `m.room.encrypted` are hard-blocked with stable, documented error codes. | implementation/tests in `synapse/` + `tests/`; error code doc update |
+| BLK-107 | required-now | 2.3 client interop notes + conformance tests | Wave 2 | Client Liaison + QA | Sprint 2 / 2026-03-27 | Interop document covers fallback behavior and conformance fixtures pass for accept/reject matrix. | `docs/development/blackout_client_compatibility_matrix.md`; conformance tests |
+| BLK-108 | required-now | 3.1 TURN model decision + secure coturn baseline | Wave 1 | Infra Lead | Sprint 1 / 2026-03-15 | ADR finalized and baseline secure coturn config committed with operator instructions. | `docs/development/blackout_turn_default_policy.md`; coturn baseline config in repo |
+| BLK-109 | required-now | 3.2 NAT coordination boundaries + anti-abuse limits | Wave 2 | Security Engineer | Sprint 2 / 2026-03-28 | Signaling rate-limits and abuse thresholds are enforced and alertable. | policy doc + implementation/tests + metrics/alerts config |
+| BLK-110 | required-now | 4.1 retention configs + TTL semantics | Wave 1 | Backend Lead | Sprint 1 / 2026-03-16 | TTL config keys and semantics are documented and configurable in runtime settings. | `docs/development/blackout_retention_compliance_note.md`; config docs/code |
+| BLK-111 | required-now | 4.2 bounded incremental purge job + API irretrievability checks | Wave 2 | Data Lifecycle Engineer | Sprint 2 / 2026-03-29 | Purge job runs bounded batches and purged events are not retrievable through APIs. | purge implementation + integration tests + ops runbook note |
+| BLK-112 | required-now | 4.3 retention safety tests (including auth-state protection) | Wave 2 | QA/Backend Engineer | Sprint 2 / 2026-03-29 | Tests verify purge keeps auth-critical state and removes only eligible signaling artifacts. | `tests/` retention safety suite |
+| BLK-113 | required-now | 5.1 crypto alignment baseline (identity keys, DTLS, AES, hashing, Merkle contract) | Wave 3 | Security Architect | Sprint 3 / 2026-04-05 | Security checklist and threat-model addendum are approved and mapped to testable server contracts. | security addendum in `docs/development/`; checklist evidence |
+| BLK-114 | required-now | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Wave 3 | Mobile Performance Engineer | Sprint 3 / 2026-04-09 | First benchmark run on representative mobile hardware reports all four gate dimensions. | benchmark report in `docs/reports/` + harness scripts |
+| BLK-115 | required-now | 8 Phase 1 deliverables + Phase 1 exit criterion | Wave 3 | Program Manager + Backend Lead | Sprint 3 / 2026-04-10 | Phase 1 demo shows end-to-end peer setup without server message persistence and sign-off recorded. | demo report in `docs/reports/`; tracker gate update |
+| BLK-116 | required-now | 9 marker alignment seed clusters (faster_joins/sync/storage+search+media/follow-up markers) | Wave 1 | Tech Lead | Sprint 1 / 2026-03-20 | Each cluster has a mapped issue with owner, label, and link from tracker. | issue mapping table in tracker update artifact |
+| BLK-117 | required-now | 10 blocker decisions (event behavior, compat mode, min schema, TURN default, retention defaults) | Wave 1 | Architecture Council | Sprint 1 / 2026-03-14 | Decision record exists and each blocker has a final policy outcome linked from tracker. | `docs/development/blackout_blocker_decision_record_2026-02-27.md` |
+| BLK-118 | required-now | Marker budget enforcement policy (canonical inventory exclusions only) | Wave 1 | Release Manager | Sprint 1 / 2026-03-14 | Marker policy doc is published and referenced by weekly update process. | `docs/marker_budget_policy.md` |
+| BLK-119 | required-now | Weekly marker delta reporting in tracker updates | Wave 1 | Program Manager | Sprint 1 / 2026-03-14 | Weekly template includes opened/closed/net marker deltas and is used in current sprint report. | `docs/development/blackout_weekly_tracker_update_template.md` |
+| BLK-120 | required-now | Top-hotspot owner assignment for marker debt | Wave 1 | Tech Lead | Sprint 1 / 2026-03-14 | Weekly report includes top-hotspot DRI assignment for highest-growth cluster. | `docs/development/blackout_weekly_tracker_update_template.md` |
 
-| Rank | Hotspot cluster | Owner (DRI) | WoW marker delta | Update |
-|---:|---|---|---:|---|
-| 1 | `faster_joins` marker cluster | Tech Lead | 0 | Owner confirmed; mitigation plan tracked in BLK-116. |
-| 2 | Sync marker cluster (`compute_state_delta`, summary behavior) | API Engineer | 0 | Owner confirmed; conformance scope in BLK-107. |
-| 3 | Storage/search/media marker cluster | Platform Engineer | 0 | Owner confirmed; disablement work tracked in BLK-103. |
-| 4 | Tracker-tagged follow-up markers | Program Manager | 0 | Owner confirmed; conversion workflow tracked in BLK-116. |
-| 5 | Signaling schema validation markers | Protocol Engineer | 0 | Owner confirmed; validator work in BLK-105. |
-| 6 | Blocked-event enforcement markers | API Engineer | 0 | Owner confirmed; enforcement work in BLK-106. |
-| 7 | Retention purge implementation markers | Data Lifecycle Engineer | 0 | Owner confirmed; purge work in BLK-111. |
-| 8 | Retention safety test markers | QA/Backend Engineer | 0 | Owner confirmed; coverage work in BLK-112. |
-| 9 | TURN/STUN integration markers | Infra Lead | 0 | Owner confirmed; ADR/config work in BLK-108. |
-| 10 | Mobile viability benchmark markers | Mobile Performance Engineer | 0 | Owner confirmed; baseline work in BLK-114. |
+### 13.2a Required-now implementation waves (objective deliverables)
 
-#### Blockers, owner, and next action date
+| Wave | Objective deliverables |
+|---|---|
+| Wave 1 — Policy + enforcement foundation | Finalize blocker decisions/policies, ship signaling-only write-path gate + blocked-event enforcement, disable incompatible surfaces, finalize TTL/TURN defaults, and lock marker-governance cadence (`BLK-101,102,103,105,106,108,110,116,117,118,119,120`). |
+| Wave 2 — Validation + safeguards | Complete integration/conformance testing, anti-abuse controls, purge implementation, and retention safety guardrails (`BLK-104,107,109,111,112`). |
+| Wave 3 — Readiness + viability gates | Close crypto alignment, mobile viability baselines, and Phase 1 end-to-end exit gate (`BLK-113,114,115`). |
 
-| Blocker | Owner | Next action | Next action date |
+### 13.2b Compact wave table (item -> wave -> owner -> due)
+
+| Item (ticket) | Wave | Owner | Due |
 |---|---|---|---|
-| Canonical behavior for blocked events: hard reject vs accept-and-drop | Architecture Council | ✅ Published decision record + ADR/finalization artifact: `docs/development/blackout_blocker_decision_record_2026-02-27.md`. | 2026-02-27 |
-| Backward compatibility mode for existing Matrix clients | Client Liaison + Backend Lead | ✅ Published compatibility matrix + migration recommendation: `docs/development/blackout_client_compatibility_matrix.md`. | 2026-02-27 |
-| Minimum schema required to keep federation semantics healthy | Protocol Engineer | ✅ Published minimum federation-safe schema + test-case set: `docs/development/blackout_federation_schema_minimum.md`. | 2026-02-27 |
-| Whether TURN runs on-device by default or external by policy | Infra Lead | ✅ Published TURN default policy recommendation: `docs/development/blackout_turn_default_policy.md`. | 2026-02-27 |
-| Exact retention defaults (24h, 48h, or 72h) and compliance implications | Backend Lead + Security Architect | ✅ Published retention default + compliance note: `docs/development/blackout_retention_compliance_note.md`. | 2026-02-27 |
+| BLK-101 | Wave 1 | Backend Lead | 2026-03-14 |
+| BLK-102 | Wave 1 | Storage/API Engineer | 2026-03-18 |
+| BLK-103 | Wave 1 | Platform Engineer | 2026-03-19 |
+| BLK-104 | Wave 2 | QA/Backend Engineer | 2026-03-26 |
+| BLK-105 | Wave 1 | Protocol Engineer | 2026-03-17 |
+| BLK-106 | Wave 1 | API Engineer | 2026-03-18 |
+| BLK-107 | Wave 2 | Client Liaison + QA | 2026-03-27 |
+| BLK-108 | Wave 1 | Infra Lead | 2026-03-15 |
+| BLK-109 | Wave 2 | Security Engineer | 2026-03-28 |
+| BLK-110 | Wave 1 | Backend Lead | 2026-03-16 |
+| BLK-111 | Wave 2 | Data Lifecycle Engineer | 2026-03-29 |
+| BLK-112 | Wave 2 | QA/Backend Engineer | 2026-03-29 |
+| BLK-113 | Wave 3 | Security Architect | 2026-04-05 |
+| BLK-114 | Wave 3 | Mobile Performance Engineer | 2026-04-09 |
+| BLK-115 | Wave 3 | Program Manager + Backend Lead | 2026-04-10 |
+| BLK-116 | Wave 1 | Tech Lead | 2026-03-20 |
+| BLK-117 | Wave 1 | Architecture Council | 2026-03-14 |
+| BLK-118 | Wave 1 | Release Manager | 2026-03-14 |
+| BLK-119 | Wave 1 | Program Manager | 2026-03-14 |
+| BLK-120 | Wave 1 | Tech Lead | 2026-03-14 |
 
-### 13.5 Exit-criteria confirmation for this triage pass
+### 13.3 Required-later items (scope class + next action)
 
-- [x] All unchecked bullets in Sections 0-12 are classified into **required-now**, **required-later**, or **not-in-scope**.
-- [x] Every classified group has an explicit next action.
-- [x] Every **required-now** group has ticket mapping, owner, and target sprint.
-- [x] Marker budget enforcement uses canonical inventory exclusions only.
-- [x] Weekly marker delta and top-hotspot owner assignment are required in tracker updates.
-- [x] Marker trend gate: trend is stable/downward and no scope-critical must-fix marker is unowned.
-- [x] Weekly publication includes scope-class open-item counts, marker WoW delta, top-10 hotspot ownership, and blockers with owner/date.
+| Open checklist items covered | Scope class | Next action |
+|---|---|---|
+| 5.2 Threat handling backlog (offline retrieval, redundancy enforcement, withholding mitigation, key rotation/revocation, device compromise workflow, expiration auditability) | required-later | Create Epic `BLK-SEC-THREATS` in Sprint 4 planning with milestone-level acceptance criteria. |
+| 7 Horizontal scalability validation (scheduler/queueing/partition behavior) | required-later | Schedule load-test design after Wave 3 completion. |
+| 7 Vertical scalability strategy (super-peer criteria, hierarchical mesh signaling, avoid full mesh) | required-later | Run architecture spike and publish large-room control-plane RFC in PI-2 planning. |
+| 8 Phase 2 deliverables + exit criterion (chunking, distributed replication, redundancy tracking) | required-later | Keep in Program Increment 2 backlog; split into design + implementation epics. |
+| 8 Phase 3 deliverables + exit criterion (file swarm, Merkle validation, streaming) | required-later | Keep in Program Increment 3 with prototype gate before production commitment. |
+| 8 Phase 4 deliverables + exit criterion (super-peer topology, mobile tuning, bandwidth throttling) | required-later | Keep in Program Increment 4, contingent on Phase 2/3 throughput outcomes. |
+
+### 13.4 Not-in-scope items (current tracker window)
+
+| Open checklist items covered | Scope class | Next action |
+|---|---|---|
+| 0 Program goals + success criteria (north-star outcomes) | not-in-scope | Track as outcome KPIs reviewed monthly; do not gate Waves 1-3 execution on full attainment. |
+| 6 Target envelope values (200-500 users, 20-50 active peers, many small rooms) | not-in-scope | Treat as performance targets for later scale validation after signaling-only baseline completion. |
+| 11 Suggested issue labels/project columns | not-in-scope | Project ops to adopt labels/columns during backlog hygiene, no implementation blocking dependency. |
+| 12 Strategic outcome checkpoint (identity layer, P2P messaging, distributed storage, minimal liability, phone-hostable node, takedown resilience) | not-in-scope | Retain as quarterly strategy scorecard tracked at release-train level. |
+
+### 13.5 Deferred-with-signoff register
+
+No items are currently marked `deferred-with-signoff` in this tracker pass.
+
+If a deferral is needed later, add all required metadata:
+- approver
+- decision date
+- rationale
+- re-evaluation trigger/date
+- evidence path to signed decision record
+
+### 13.6 Exit-criteria confirmation for this triage pass
+
+- [x] Every currently open checklist item has one scope class (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`).
+- [x] Every `required-now` item has owner + target sprint/date + measurable exit criteria + evidence path.
+- [x] Required-now work is grouped into exactly 3 implementation waves with objective deliverables.
+- [x] Compact wave mapping table exists (`item -> wave -> owner -> due`).
