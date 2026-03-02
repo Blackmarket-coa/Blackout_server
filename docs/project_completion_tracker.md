@@ -255,13 +255,13 @@ keeps implementation evidence tied to canonical project docs.
 
 ### Action plan
 
-- [ ] [required-now] **Upstream Blackout feature parity tracker (U1-U12)**
+- [x] [required-now] **Upstream Blackout feature parity tracker (U1-U12)**
   - owner: Federation Architecture Lead
   - due: 2026-03-29
   - Action: maintain full upstream feature inventory (U1-U12) and per-feature support status in server tracker artifacts.
   - Action: publish wave-based build plan with AI prompt pack and command-level validation steps.
   - exit criteria (measurable): `docs/upstream_blackout_feature_build_plan.md` exists, is linked from tracker docs, and each feature row has scope + status + server impact notes.
-  - evidence: `docs/upstream_blackout_feature_build_plan.md`
+  - evidence: `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5; U1-U12 inventory with scope/status/server-impact, wave plan, prompt pack, and validation command bundle)
 
 - [x] [required-now] **G1/G2/G3 compliance closure**
   - owner: Release Engineering Lead
@@ -298,7 +298,7 @@ keeps implementation evidence tied to canonical project docs.
 | Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
 | Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Complete | `docs/development/blackout_backend_plan_tracker.md` |
 
-| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Open | `docs/upstream_blackout_feature_build_plan.md` |
+| Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Complete | `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5) |
 
 ### Definition of Done for tracker updates
 
