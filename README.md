@@ -1,5 +1,14 @@
 # Blackout Server
 
+## TL;DR (non-technical)
+
+Blackout Server is a communication server for Matrix that is optimized for safe, lightweight signaling (like connection setup messages) rather than heavy chat/media usage.
+
+- It is based on Synapse, so it stays Matrix-compatible.
+- It adds stricter safety checks and cleaner operations for Blackout deployments.
+- It is built for reliability in constrained environments (including low-resource and phone-hosted setups).
+- If you only need the essentials: install, enable blackout mode, and follow the runbook/docs linked below.
+
 Blackout Server is a Matrix homeserver distribution built on Synapse and tailored for Blackout's signaling-first architecture. It keeps Synapse compatibility while adding Blackout-specific runtime controls, reliability tracking artifacts, and operator playbooks for constrained deployments (including phone-hosted and low-resource nodes).
 
 For the long-form RST overview, see [`README.rst`](README.rst).
