@@ -217,7 +217,9 @@ try:
     SYNAPSE_VERSION = get_distribution_version_string("blackout-server", __file__)
 except PackageNotFoundError:
     fallback_version = _read_poetry_project_version()
-    logger.warning(
+    # Source-tree execution in containerized/dev environments commonly lacks
+    # installed package metadata; treat this as informational bootstrap context.
+    logger.info(
         "Package metadata for 'blackout-server' is unavailable; falling back to source "
         "version '%s'.",
         fallback_version,

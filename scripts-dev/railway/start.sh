@@ -11,7 +11,7 @@ PORT="${PORT:-8008}"
 mkdir -p "${DATA_DIR}"
 
 if [[ ! -f "${CONFIG_PATH}" ]]; then
-  echo "[railway] generating initial homeserver config at ${CONFIG_PATH}" >&2
+  echo "[railway] generating initial homeserver config at ${CONFIG_PATH}"
   python -m synapse.app.homeserver \
     --generate-config \
     -H "${SERVER_NAME}" \
@@ -55,6 +55,13 @@ listener.setdefault("resources", [{"names": ["client", "federation"], "compress"
 
 config["enable_media_repo"] = config.get("enable_media_repo", False)
 config["log_config"] = log_config
+
+# Railway routes stderr logs as errors. Synapse emits an informational admin warning
+# about using matrix.org as a trusted key server unless this flag is explicitly set.
+# We default it to true for generated Railway configs to avoid noisy false-positive
+# startup errors while keeping normal behaviour for hand-managed configs.
+config.setdefault("suppress_key_server_warning", True)
+
 if public_baseurl:
     config["public_baseurl"] = public_baseurl
 
@@ -62,5 +69,5 @@ with config_path.open("w", encoding="utf-8") as f:
     yaml.safe_dump(config, f, sort_keys=False)
 PY
 
-echo "[railway] starting homeserver on ${PORT} using ${CONFIG_PATH}" >&2
+echo "[railway] starting homeserver on ${PORT} using ${CONFIG_PATH}"
 exec python -m synapse.app.homeserver -c "${CONFIG_PATH}"
