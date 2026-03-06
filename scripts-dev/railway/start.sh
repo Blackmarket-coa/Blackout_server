@@ -11,7 +11,7 @@ PORT="${PORT:-8008}"
 mkdir -p "${DATA_DIR}"
 
 if [[ ! -f "${CONFIG_PATH}" ]]; then
-  echo "[railway] generating initial homeserver config at ${CONFIG_PATH}" >&2
+  echo "[railway] generating initial homeserver config at ${CONFIG_PATH}"
   python -m synapse.app.homeserver \
     --generate-config \
     -H "${SERVER_NAME}" \
@@ -69,5 +69,5 @@ with config_path.open("w", encoding="utf-8") as f:
     yaml.safe_dump(config, f, sort_keys=False)
 PY
 
-echo "[railway] starting homeserver on ${PORT} using ${CONFIG_PATH}" >&2
+echo "[railway] starting homeserver on ${PORT} using ${CONFIG_PATH}"
 exec python -m synapse.app.homeserver -c "${CONFIG_PATH}"
