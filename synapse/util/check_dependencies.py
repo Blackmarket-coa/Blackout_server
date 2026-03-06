@@ -99,7 +99,9 @@ def _generic_dependencies() -> Iterable[Dependency]:
         requirements = metadata.requires(DISTRIBUTION_NAME)
     except metadata.PackageNotFoundError:
         logger = logging.getLogger(__name__)
-        logger.warning(
+        # Missing package metadata is expected when running from a source tree,
+        # so log this as informational context instead of a warning.
+        logger.info(
             "Skipping dependency metadata validation because package metadata for '%s' "
             "is unavailable (source-tree execution).",
             DISTRIBUTION_NAME,
@@ -125,7 +127,9 @@ def _dependencies_for_extra(extra: str) -> Iterable[Dependency]:
         requirements = metadata.requires(DISTRIBUTION_NAME)
     except metadata.PackageNotFoundError:
         logger = logging.getLogger(__name__)
-        logger.warning(
+        # Missing package metadata is expected when running from a source tree,
+        # so log this as informational context instead of a warning.
+        logger.info(
             "Skipping dependency metadata validation because package metadata for '%s' "
             "is unavailable (source-tree execution).",
             DISTRIBUTION_NAME,

@@ -55,6 +55,13 @@ listener.setdefault("resources", [{"names": ["client", "federation"], "compress"
 
 config["enable_media_repo"] = config.get("enable_media_repo", False)
 config["log_config"] = log_config
+
+# Railway routes stderr logs as errors. Synapse emits an informational admin warning
+# about using matrix.org as a trusted key server unless this flag is explicitly set.
+# We default it to true for generated Railway configs to avoid noisy false-positive
+# startup errors while keeping normal behaviour for hand-managed configs.
+config.setdefault("suppress_key_server_warning", True)
+
 if public_baseurl:
     config["public_baseurl"] = public_baseurl
 
