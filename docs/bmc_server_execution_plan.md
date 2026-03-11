@@ -106,3 +106,10 @@ This mounts:
 - `/_synapse/client/blackout/reputation/{node_id}`
 
 and registers the room-creation/event-policy callbacks used for Blackout channel semantics and governance payload enforcement.
+
+
+## Implementation artifacts (current)
+
+- Low-resource appliance preset template: `docs/homeserver.blackbox.yaml`.
+- Railway hardening runbook: `docs/railway_deployment_hardening.md`.
+- Fork/merge discipline log: `PATCHES.md`.
