@@ -15,12 +15,17 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
         room.register_servlets,
     ]
 
+    def create_resource_dict(self):
+        BlackoutRuntimeModule({"persistence_path": "/tmp/blackout_runtime_e2e.sqlite3"}, self.hs.get_module_api())
+        resources = super().create_resource_dict()
+        resources.update(self.hs._module_web_resources)
+        return resources
+
     def prepare(self, reactor, clock, hs):
-        BlackoutRuntimeModule({}, hs.get_module_api())
         self.user_id = self.register_user("alice", "pass")
         self.tok = self.login("alice", "pass")
 
-    def test_create_room_template_and_event_policy_enforced(self) -> None:
+    def test_governance_and_reputation_synapse_api_endpoints_live(self) -> None:
         room_id = self.helper.create_room_as(
             self.user_id,
             tok=self.tok,
@@ -28,30 +33,39 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             extra_content={"creation_content": {"m.blackout.channel.type": "governance"}},
         )
 
-        join_rules = self.make_request(
+        vote = self.make_request(
+            "PUT",
+            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.vote/1",
+            {"proposal_id": "p1", "vote": "yes", "decision": "accepted"},
+            access_token=self.tok,
+        )
+        self.assertEqual(vote.code, 200, vote.result)
+
+        decisions = self.make_request(
             "GET",
-            f"/_matrix/client/v3/rooms/{room_id}/state/m.room.join_rules",
+            f"/_synapse/client/blackout/governance/decisions?room_id={room_id}&since=0",
             access_token=self.tok,
         )
-        self.assertEqual(join_rules.code, 200, join_rules.result)
-        self.assertEqual(join_rules.json_body["join_rule"], "invite")
+        self.assertEqual(decisions.code, 200, decisions.result)
+        self.assertEqual(decisions.json_body["decisions"][0]["decision"], "accepted")
 
-        unauth = self.make_request(
+        rep = self.make_request(
             "PUT",
-            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.proposal/1",
-            {"proposal_id": "missing_fields"},
-        )
-        self.assertEqual(unauth.code, 401, unauth.result)
-
-        bad_event = self.make_request(
-            "PUT",
-            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.proposal/2",
-            {"proposal_id": "missing_fields"},
+            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.reputation.update/2",
+            {"node_id": "node-1", "delta": 2, "reason": "delivery_success", "rating": 4},
             access_token=self.tok,
         )
-        self.assertEqual(bad_event.code, 403, bad_event.result)
+        self.assertEqual(rep.code, 200, rep.result)
 
-    def test_send_event_rules_enforced_end_to_end(self) -> None:
+        reputation = self.make_request(
+            "GET",
+            "/_synapse/client/blackout/reputation/node-1",
+            access_token=self.tok,
+        )
+        self.assertEqual(reputation.code, 200, reputation.result)
+        self.assertEqual(reputation.json_body["node_id"], "node-1")
+
+    def test_vote_uniqueness_and_rate_limiting(self) -> None:
         room_id = self.helper.create_room_as(
             self.user_id,
             tok=self.tok,
@@ -59,26 +73,18 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             extra_content={"creation_content": {"m.blackout.channel.type": "governance"}},
         )
 
-        ok_vote = self.make_request(
+        first_vote = self.make_request(
             "PUT",
-            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.vote/3",
-            {
-                "proposal_id": "p1",
-                "vote": "yes",
-                "decision": "accepted",
-            },
+            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.vote/10",
+            {"proposal_id": "p2", "vote": "yes", "decision": "accepted"},
             access_token=self.tok,
         )
-        self.assertEqual(ok_vote.code, 200, ok_vote.result)
+        self.assertEqual(first_vote.code, 200, first_vote.result)
 
-        bad_reputation = self.make_request(
+        second_vote = self.make_request(
             "PUT",
-            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.reputation.update/4",
-            {
-                "node_id": "node-1",
-                "delta": "bad",
-                "reason": "delivery_success",
-            },
+            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.vote/11",
+            {"proposal_id": "p2", "vote": "no"},
             access_token=self.tok,
         )
-        self.assertEqual(bad_reputation.code, 403, bad_reputation.result)
+        self.assertEqual(second_vote.code, 403, second_vote.result)

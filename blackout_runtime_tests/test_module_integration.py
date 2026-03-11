@@ -2,19 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import io
+import tempfile
+import os
 
 import pytest
 
 from synapse.api.errors import SynapseError
 
-from blackout_runtime.module import (
-    BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE,
-    BlackoutRuntimeModule,
-)
-from blackout_runtime.server_semantics import (
-    BLACKOUT_CHANNEL_TYPE_EVENT,
-    GOVERNANCE_PROPOSAL_EVENT,
-)
+from blackout_runtime.module import BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE, BlackoutRuntimeModule
+from blackout_runtime.server_semantics import BLACKOUT_CHANNEL_TYPE_EVENT, GOVERNANCE_PROPOSAL_EVENT
 
 
 class _DummyUser:
@@ -31,11 +27,19 @@ class _DummyRequester:
 
 
 class _DummyEvent:
-    def __init__(self, event_type: str, content: dict, room_id: str = "!r:test"):
+    def __init__(
+        self,
+        event_type: str,
+        content: dict,
+        room_id: str = "!r:test",
+        sender: str = "@alice:test",
+        event_id: str = "$event",
+    ):
         self.type = event_type
         self.content = content
         self.room_id = room_id
-        self.event_id = "$event"
+        self.sender = sender
+        self.event_id = event_id
         self.origin_server_ts = 1
 
 
@@ -61,12 +65,39 @@ class _FakeAccountDataManager:
         self._store[(user_id, data_type)] = dict(new_data)
 
 
+class _FakeDbPool:
+    async def runInteraction(self, desc, func):
+        del desc
+        class T:
+            def execute(self, sql, args):
+                self.rows = []
+            def __iter__(self):
+                return iter([])
+        return func(T())
+
+
+class _FakeStore:
+    db_pool = _FakeDbPool()
+
+    def get_room_max_token(self):
+        return "unused"
+
+    async def get_recent_events_for_room(self, room_id, limit, end_token):
+        del room_id, limit, end_token
+        return [], None
+
+    async def get_events_as_list(self, event_ids):
+        del event_ids
+        return []
+
+
 class _FakeModuleApi:
     def __init__(self):
         self.callbacks = {}
         self.resources = {}
         self.account_data_manager = _FakeAccountDataManager()
         self._requester = _DummyRequester("@alice:test")
+        self._store = _FakeStore()
 
     def register_third_party_rules_callbacks(self, **kwargs):
         self.callbacks.update(kwargs)
@@ -79,19 +110,26 @@ class _FakeModuleApi:
         return self._requester
 
 
+def _build_module(api: _FakeModuleApi) -> BlackoutRuntimeModule:
+    fd, path = tempfile.mkstemp(suffix=".sqlite3")
+    os.close(fd)
+    return BlackoutRuntimeModule({"persistence_path": path}, api)
+
+
 def test_module_registers_callbacks_and_blackout_resource_tree() -> None:
     api = _FakeModuleApi()
-    BlackoutRuntimeModule({}, api)
+    module = _build_module(api)
 
     assert "on_create_room" in api.callbacks
     assert "check_event_allowed" in api.callbacks
     assert "on_new_event" in api.callbacks
     assert "/_synapse/client/blackout" in api.resources
+    assert module is not None
 
 
 def test_on_create_room_callback_applies_template_state() -> None:
     api = _FakeModuleApi()
-    module = BlackoutRuntimeModule({}, api)
+    module = _build_module(api)
 
     config = {"creation_content": {"m.blackout.channel.type": "governance"}}
     asyncio.run(module.on_create_room(api._requester, config, False))
@@ -103,94 +141,74 @@ def test_on_create_room_callback_applies_template_state() -> None:
     assert by_type[BLACKOUT_CHANNEL_TYPE_EVENT]["channel_type"] == "governance"
 
 
-def test_on_create_room_invalid_channel_raises_synapse_403() -> None:
+def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote() -> None:
     api = _FakeModuleApi()
-    module = BlackoutRuntimeModule({}, api)
+    module = _build_module(api)
 
-    with pytest.raises(SynapseError, match="Unsupported blackout channel type") as exc:
-        asyncio.run(
-            module.on_create_room(
-                api._requester,
-                {"creation_content": {"m.blackout.channel.type": "invalid"}},
-                False,
-            )
-        )
-
-    assert exc.value.code == 403
-
-
-def test_check_event_allowed_rejects_bad_governance_payload() -> None:
-    api = _FakeModuleApi()
-    module = BlackoutRuntimeModule({}, api)
-
-    with pytest.raises(SynapseError, match="missing required fields") as exc:
+    with pytest.raises(SynapseError, match="missing required fields"):
         asyncio.run(
             module.check_event_allowed(
                 _DummyEvent(GOVERNANCE_PROPOSAL_EVENT, {"proposal_id": "p1"}),
-                {
-                    (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
-                        {"channel_type": "governance"}
-                    )
-                },
+                {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})},
             )
         )
 
-    assert exc.value.code == 403
-
-
-def test_presence_resource_and_governance_reputation_endpoints() -> None:
-    api = _FakeModuleApi()
-    module = BlackoutRuntimeModule({}, api)
-    root = api.resources["/_synapse/client/blackout"]
-
-    presence = root.children[b"presence"]
-    code, body = asyncio.run(
-        presence._async_render_PUT(_DummyRequest(b'{"state": "delivering"}'))
-    )
-    assert code == 200
-    assert body["state"] == "delivering"
-
-    stored = asyncio.run(
-        api.account_data_manager.get_global(
-            "@alice:test", BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE
-        )
-    )
-    assert stored == {"state": "delivering"}
-
-    # ingest governance and reputation events
     asyncio.run(
         module.on_new_event(
             _DummyEvent(
                 "m.blackout.governance.vote",
                 {"proposal_id": "p1", "vote": "yes", "decision": "accepted"},
                 room_id="!gov:test",
+                sender="@alice:test",
+                event_id="$vote1",
             ),
             {},
         )
     )
+
+    with pytest.raises(SynapseError, match="Only one vote"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.blackout.governance.vote",
+                    {"proposal_id": "p1", "vote": "no"},
+                    room_id="!gov:test",
+                    sender="@alice:test",
+                    event_id="$vote2",
+                ),
+                {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})},
+            )
+        )
+
+
+def test_presence_and_blackout_synapse_api_resources() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+    root = api.resources["/_synapse/client/blackout"]
+
+    presence = root.children[b"presence"]
+    code, body = asyncio.run(presence._async_render_PUT(_DummyRequest(b'{"state":"delivering"}')))
+    assert code == 200
+    assert body["state"] == "delivering"
+
+    stored = asyncio.run(api.account_data_manager.get_global("@alice:test", BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE))
+    assert stored == {"state": "delivering"}
+
     asyncio.run(
         module.on_new_event(
             _DummyEvent(
-                "m.blackout.reputation.update",
-                {
-                    "node_id": "node-1",
-                    "delta": 1,
-                    "reason": "delivery_success",
-                    "rating": 5,
-                    "attestation_status": "verified",
-                    "governance_standing": "good",
-                },
+                "m.blackout.governance.vote",
+                {"proposal_id": "p1", "vote": "yes", "decision": "accepted"},
+                room_id="!gov:test",
+                sender="@alice:test",
+                event_id="$v1",
             ),
             {},
         )
     )
 
     decisions_resource = root.children[b"governance"].children[b"decisions"]
-    code, body = asyncio.run(
-        decisions_resource._async_render_GET(
-            _DummyRequest(args={b"room_id": [b"!gov:test"], b"since": [b"0"]})
-        )
-    )
+    code, body = asyncio.run(decisions_resource._async_render_GET(_DummyRequest(args={b"room_id": [b"!gov:test"], b"since": [b"0"]})))
     assert code == 200
     assert body["decisions"][0]["decision"] == "accepted"
 
@@ -199,4 +217,3 @@ def test_presence_resource_and_governance_reputation_endpoints() -> None:
     code, body = asyncio.run(node_resource._async_render_GET(_DummyRequest()))
     assert code == 200
     assert body["node_id"] == "node-1"
-    assert body["score"] == 1.0

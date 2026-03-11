@@ -20,6 +20,18 @@ This repository tracks upstream Synapse while carrying Blackout-specific extensi
   - `git rev-list --left-right --count upstream/develop...HEAD` -> `1 310`
 - Interpretation: this branch currently has 310 local commits not in `upstream/develop`, while upstream has 1 commit not present locally from the fetched head snapshot.
 
+
+## Full upstream merge rehearsal
+
+- Performed non-shallow upstream fetch:
+  - `git fetch upstream develop`
+- Rehearsed merge on temporary branch:
+  - `git checkout -b merge-rehearsal-upstream`
+  - `git merge --no-commit --no-ff upstream/develop` (failed: unrelated histories)
+  - `git merge --no-commit --no-ff --allow-unrelated-histories upstream/develop` (rehearsal)
+- Result: extensive `add/add` conflicts across the tree indicate this repository history currently diverges as unrelated from `element-hq/synapse`.
+- Action: prefer a dedicated one-time history-reconciliation effort (or fresh fork baseline) before regular monthly merges can be reliably automated.
+
 ## Current non-upstreamed patch surface
 
 Primary Blackout surface:
