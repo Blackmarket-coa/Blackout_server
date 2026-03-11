@@ -89,6 +89,7 @@ class BlackoutServerSemantics:
             initial_state,
             event_type="m.room.power_levels",
             content=dict(template.power_levels),
+            merge_content=True,
         )
         self._upsert_initial_state(
             initial_state,
@@ -133,10 +134,16 @@ class BlackoutServerSemantics:
         *,
         event_type: str,
         content: Mapping[str, object],
+        merge_content: bool = False,
     ) -> None:
         for event in initial_state:
             if event.get("type") == event_type and event.get("state_key", "") == "":
-                event["content"] = dict(content)
+                if merge_content and isinstance(event.get("content"), Mapping):
+                    merged = dict(event["content"])
+                    merged.update(content)
+                    event["content"] = merged
+                else:
+                    event["content"] = dict(content)
                 return
 
         initial_state.append(

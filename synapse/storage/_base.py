@@ -180,7 +180,11 @@ class SQLBaseStore(metaclass=ABCMeta):
         else:
             # Prefer any local-only invalidation method. Invalidating any non-local
             # cache must be be done before this.
-            invalidate_method = getattr(cache, "invalidate_local", cache.invalidate)
+            invalidate_method = getattr(cache, "invalidate_local", None)
+            if invalidate_method is None:
+                invalidate_method = getattr(cache, "invalidate", None)
+            if invalidate_method is None:
+                return False
             invalidate_method(tuple(key))
 
         return True

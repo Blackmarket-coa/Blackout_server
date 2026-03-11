@@ -89,3 +89,20 @@ Exit criteria:
 - Use `INCOMPLETE_WORK.md` and `NOTIMPLEMENTED_AUDIT.md` for debt inventory snapshots.
 - Track this plan in milestone order (`P0` → `P1` → `P2`) with explicit owners and target dates.
 - Require green runtime and integration checks prior to promoting deployment status.
+
+## Synapse module enablement snippet
+
+Use the `modules` section in your homeserver config to enable Blackout runtime behavior consistently across environments:
+
+```yaml
+modules:
+  - module: blackout_runtime.module.BlackoutRuntimeModule
+    config: {}
+```
+
+This mounts:
+- `/_synapse/client/blackout/presence`
+- `/_synapse/client/blackout/governance/decisions`
+- `/_synapse/client/blackout/reputation/{node_id}`
+
+and registers the room-creation/event-policy callbacks used for Blackout channel semantics and governance payload enforcement.

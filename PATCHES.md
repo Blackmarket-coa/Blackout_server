@@ -12,10 +12,25 @@ This repository tracks upstream Synapse while carrying Blackout-specific extensi
 3. Keep Blackout features isolated to `blackout_runtime/` and `blackout_runtime_tests/` wherever possible.
 4. Document any unavoidable edits outside those directories in this file before merge/rebase.
 
+## First upstream sync pass
+
+- Completed initial upstream remote setup and fetch against `element-hq/synapse`:
+  - `git remote add upstream https://github.com/element-hq/synapse.git`
+  - `git fetch upstream develop --depth=1`
+  - `git rev-list --left-right --count upstream/develop...HEAD` -> `1 310`
+- Interpretation: this branch currently has 310 local commits not in `upstream/develop`, while upstream has 1 commit not present locally from the fetched head snapshot.
+
 ## Current non-upstreamed patch surface
 
-- `blackout_runtime/`: Blackout module semantics and APIs.
-- `blackout_runtime_tests/`: Blackout runtime + integration tests.
-- Project docs (`DEPLOYMENT_READINESS.md`, `docs/bmc_server_execution_plan.md`): rollout tracking and implementation planning.
+Primary Blackout surface:
+- `blackout_runtime/`: module semantics, API resources, and governance/reputation integration.
+- `blackout_runtime_tests/`: runtime + integration coverage for Blackout behavior.
+- `tests/blackout_runtime/`: end-to-end homeserver API tests for module behavior.
 
-No direct core Synapse source modifications are currently required for the Blackout module callback wiring in this phase.
+Current non-`blackout_runtime` deltas kept intentionally:
+- `synapse/storage/_base.py`: cache invalidation fallback now safely handles non-cache callables (avoids crashing when a looked-up attribute has no `invalidate` method).
+- `docs/bmc_server_execution_plan.md`: deployment/runbook-facing module enablement snippet.
+- `DEPLOYMENT_READINESS.md`: rollout status pointers to execution plan.
+- `PATCHES.md`: upstream merge discipline and fork delta log.
+
+One direct core Synapse source edit is currently tracked in this phase (`synapse/storage/_base.py`) and should be monitored during upstream merges.
