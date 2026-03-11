@@ -36,3 +36,6 @@ Reasoning:
 2. Triage and resolve failing `py310` test suites discovered by tox.
 3. Re-run the full matrix until all required jobs are green.
 4. Execute staging smoke tests (startup, DB/migrations, federation flows, workers) before prod cutover.
+## Strategic follow-up
+
+A dedicated execution backlog for BMC-specific server work is now tracked in `docs/bmc_server_execution_plan.md`. That plan sequences runtime stabilization, upstream sync policy, governance/logistics integration APIs, and blackbox/Railway hardening milestones before deployment sign-off.
