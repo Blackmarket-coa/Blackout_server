@@ -394,3 +394,54 @@ Any change to frozen Phase 0 scope requires written approval from the Security R
 ### Rollout defaults
 - All non-default feature flags remain disabled in production until Phase 1 exit criteria are met.
 - Staging enables `cell_governance_templates`, `dead_drop_room_preset`, and `announcement_room_preset` first; other flags require Security + Operations approval.
+
+## Phase 0 Completion Assessment (Current)
+
+**Assessment date:** 2026-03-14
+
+**Is Phase 0 complete?** **No (not yet).**
+
+Phase 0 design artifacts are now documented in this plan (threat model, abuse model, policy schemas, feature flags), but the execution artifacts required to close Phase 0 are not yet fully delivered in-repo.
+
+### Gate-by-gate status
+- **Threat model + abuse model sign-off:** 🟡 Draft finalized in docs; formal owner sign-off record still required.
+- **Policy schema definitions:** ✅ Documented in this plan.
+- **Feature flags/config toggles:** ✅ Documented in this plan.
+- **CI policy validation scaffold:** 🔴 Not yet implemented in code/CI.
+
+### Required to declare Phase 0 complete
+1. Add a machine-readable policy schema source (JSON/YAML) for the three presets.
+2. Add CI validation job that checks schema integrity and policy constraints.
+3. Record formal sign-off from Policy, Federation, Operations, and Security owners.
+
+## Phase 1 Execution Kickoff Plan (Prepared)
+
+Phase 1 will begin immediately after Phase 0 completion gates above are met. Work can be pre-staged now.
+
+### Sprint A (Week 1): BO-101 + BO-201
+- Implement `blackout_cell_space` template plumbing (BO-101).
+- Implement `blackout_dead_drop_room` preset wiring (BO-201).
+- Add unit tests for template defaults and policy constraint enforcement.
+
+### Sprint B (Week 2): BO-202 + BO-301
+- Implement retention TTL + purge/tombstone scheduling for dead-drop rooms (BO-202).
+- Implement announcement room preset baseline (BO-301).
+- Add tests for purge timing, history visibility, and sender restrictions.
+
+### Sprint C (Week 3): BO-103 + BO-302
+- Implement federation ACL trust-tier templates (BO-103).
+- Implement announcement fanout policy and role gating (BO-302).
+- Add federation compatibility tests in staging topology.
+
+### Sprint D (Week 4): BO-303 + operational hardening
+- Add rollback-safe federation procedures for announcement channels (BO-303).
+- Run quarantine and rollback drills in staging.
+- Publish Phase 1 completion report against exit criteria.
+
+### Phase 1 entry criteria (must all be true)
+- Phase 0 completion gates are closed.
+- 3-node staging federation environment is online and observable.
+- On-call runbooks are available to operators before feature enablement.
+
+### Updated action now
+- Complete remaining Phase 0 gates first, then activate Sprint A backlog immediately.
