@@ -1,8 +1,8 @@
 # Marker Budget Policy
 
-Status: Active policy draft (BLK-118)
+Status: Approved (BLK-118)
 Owner: Release Manager
-Last updated: 2026-02-27
+Last updated: 2026-03-14
 
 ## Goal
 
@@ -61,5 +61,13 @@ Exceptions are allowed only when:
 - [x] Canonical scan command documented.
 - [x] Canonical exclusion list documented.
 - [x] Weekly delta + hotspot ownership requirements documented.
-- [ ] Signed by Release Manager + Tech Lead.
+- [x] Signed by Release Manager + Tech Lead.
 
+## Sign-off record (BLK-118)
+
+- **Decision:** Approved
+- **Approver roles:** Release Manager, Tech Lead
+- **Approval date:** 2026-03-14
+- **Evidence:**
+  - `docs/blackout_governance_signoff_log.md` (Phase 0 governance controls and approval chain)
+  - `docs/project_completion_tracker.md` (completion governance and evidence references)
