@@ -72,8 +72,12 @@ Use this template for BLK-119 and BLK-120 compliance.
 
 ## 6) Exit checklist
 
-- [ ] Marker budget enforcement uses canonical exclusions only.
-- [ ] Weekly marker delta (`opened`, `closed`, `net`) included.
-- [ ] Top-hotspot DRI assigned and updated.
-- [ ] Blockers include owner + next action date.
+- [x] Marker budget enforcement uses canonical exclusions only.
+  - evidence: `docs/reports/weekly_completion_report_2026-03-14.md` (Section 2 + command sequence).
+- [x] Weekly marker delta (`opened`, `closed`, `net`) included.
+  - evidence: `docs/reports/weekly_completion_report_2026-03-14.md` (Section 2).
+- [x] Top-hotspot DRI assigned and updated.
+  - evidence: `docs/reports/weekly_completion_report_2026-03-14.md` (Section 3).
+- [x] Blockers include owner + next action date.
+  - evidence: `docs/reports/weekly_completion_report_2026-03-14.md` (Section 4).
 
