@@ -357,7 +357,7 @@ Do not mark a required-now item complete unless the linked evidence already exis
 
 ### Weekly reporting minimum
 
-Weekly report location/template: `docs/weekly_completion_reporting_template.md`. Reports: `docs/reports/weekly_completion_report_2026-02-28.md`, `docs/reports/weekly_completion_report_2026-03-02.md`, `docs/reports/weekly_completion_report_2026-03-14.md`.
+Weekly report location/template: `docs/weekly_completion_reporting_template.md`. Reports: `docs/reports/weekly_completion_report_2026-02-28.md`, `docs/reports/weekly_completion_report_2026-03-02.md`, `docs/reports/weekly_completion_report_2026-03-14.md`, `docs/reports/weekly_completion_report_2026-03-21.md`.
 
 - [x] [deferred-with-signoff] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
   - owner: Program Manager
