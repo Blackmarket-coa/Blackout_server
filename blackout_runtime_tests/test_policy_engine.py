@@ -35,6 +35,30 @@ def test_phase_1_presets_require_feature_flags() -> None:
     assert announce["sender_roles"] == ["announcer", "moderator"]
 
 
+def test_delayed_announcement_requires_explicit_rollback_and_window() -> None:
+    engine = BlackoutPolicyEngine(
+        {
+            "announcement_room_preset": True,
+            "delayed_broadcast_fanout": True,
+        }
+    )
+
+    with pytest.raises(ValueError, match="min and max"):
+        engine.build_room_preset("blackout_announcement_room", fanout_mode="delayed_window")
+
+    delayed = engine.build_room_preset(
+        "blackout_announcement_room",
+        fanout_mode="delayed_window",
+        delayed_fanout_min_seconds=5,
+        delayed_fanout_max_seconds=10,
+        rollback_procedure_ref="docs/blackout-ops-runbook.md#rollback-procedure",
+    )
+
+    assert delayed["delayed_fanout_min_seconds"] == 5
+    assert delayed["delayed_fanout_max_seconds"] == 10
+    assert delayed["rollback_procedure_ref"]
+
+
 def test_dead_drop_retention_bounds() -> None:
     engine = BlackoutPolicyEngine({"dead_drop_room_preset": True})
     with pytest.raises(ValueError, match="between 1 and 168"):
@@ -64,6 +88,9 @@ def test_trust_tier_acl_templates() -> None:
     restricted = engine.trust_tier_acl("restricted")
     assert restricted["deny"] == ["*"]
 
+    restricted["allow"].append("should-not-mutate-default")
+    assert "should-not-mutate-default" not in engine.trust_tier_acl("restricted")["allow"]
+
 
 def test_experimental_timing_delay_and_rollback_criteria() -> None:
     engine = BlackoutPolicyEngine(
@@ -92,3 +119,18 @@ def test_experimental_timing_delay_and_rollback_criteria() -> None:
 
     assert decision.should_rollback
     assert "rollback" in decision.reason
+
+
+def test_rollback_criteria_requires_runbook_reference() -> None:
+    engine = BlackoutPolicyEngine({"timing_jitter_worker": True})
+
+    with pytest.raises(ValueError, match="runbook"):
+        engine.evaluate_pilot_guardrail(
+            observed_value=1.0,
+            criteria=RollbackCriteria(
+                metric="pilot.p95_delivery_latency_seconds",
+                threshold=1.5,
+                comparator=">",
+                runbook_ref="",
+            ),
+        )

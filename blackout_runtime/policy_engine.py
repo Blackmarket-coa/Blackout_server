@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Dict, Mapping, MutableMapping, Optional, Sequence
+from typing import Dict, Literal, Mapping, MutableMapping, Optional, Sequence
 
 
 DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
@@ -25,7 +25,7 @@ FEDERATION_TRUST_TIER_ACLS: Dict[str, Dict[str, Sequence[str]]] = {
 class RollbackCriteria:
     metric: str
     threshold: float
-    comparator: str
+    comparator: Literal[">", "<"]
     runbook_ref: str
 
 
@@ -50,6 +50,9 @@ class BlackoutPolicyEngine:
         *,
         ttl_hours: Optional[int] = None,
         fanout_mode: str = "immediate",
+        delayed_fanout_min_seconds: Optional[int] = None,
+        delayed_fanout_max_seconds: Optional[int] = None,
+        rollback_procedure_ref: Optional[str] = None,
     ) -> MutableMapping[str, object]:
         if preset_name == "blackout_cell_space":
             self._require("cell_governance_templates")
@@ -82,7 +85,8 @@ class BlackoutPolicyEngine:
                 "delayed_broadcast_fanout"
             ):
                 raise ValueError("delayed fanout requires delayed_broadcast_fanout feature")
-            return {
+
+            config: MutableMapping[str, object] = {
                 "name": preset_name,
                 "visibility": "private",
                 "sender_roles": ["announcer", "moderator"],
@@ -90,6 +94,20 @@ class BlackoutPolicyEngine:
                 "read_receipt_policy": "minimized",
                 "fanout_mode": fanout_mode,
             }
+
+            if fanout_mode == "delayed_window":
+                if delayed_fanout_min_seconds is None or delayed_fanout_max_seconds is None:
+                    raise ValueError("delayed fanout requires min and max seconds")
+                if delayed_fanout_min_seconds < 1 or delayed_fanout_min_seconds > delayed_fanout_max_seconds:
+                    raise ValueError("invalid delayed fanout bounds")
+                if not rollback_procedure_ref:
+                    raise ValueError("delayed fanout requires rollback_procedure_ref")
+
+                config["delayed_fanout_min_seconds"] = delayed_fanout_min_seconds
+                config["delayed_fanout_max_seconds"] = delayed_fanout_max_seconds
+                config["rollback_procedure_ref"] = rollback_procedure_ref
+
+            return config
 
         raise ValueError(f"Unsupported preset: {preset_name}")
 
@@ -102,7 +120,8 @@ class BlackoutPolicyEngine:
     def trust_tier_acl(self, tier: str) -> Dict[str, Sequence[str]]:
         if tier not in FEDERATION_TRUST_TIER_ACLS:
             raise ValueError(f"Unsupported trust tier: {tier}")
-        return dict(FEDERATION_TRUST_TIER_ACLS[tier])
+        acl = FEDERATION_TRUST_TIER_ACLS[tier]
+        return {"allow": list(acl["allow"]), "deny": list(acl["deny"])}
 
     def compute_jitter_delay_ms(self, *, min_seconds: int, max_seconds: int) -> int:
         self._require("timing_jitter_worker")
@@ -122,12 +141,13 @@ class BlackoutPolicyEngine:
         observed_value: float,
         criteria: RollbackCriteria,
     ) -> PilotDecision:
+        if not criteria.runbook_ref:
+            raise ValueError("rollback criteria requires a runbook reference")
+
         if criteria.comparator == ">":
             breached = observed_value > criteria.threshold
-        elif criteria.comparator == "<":
-            breached = observed_value < criteria.threshold
         else:
-            raise ValueError("Unsupported comparator")
+            breached = observed_value < criteria.threshold
 
         if breached:
             return PilotDecision(

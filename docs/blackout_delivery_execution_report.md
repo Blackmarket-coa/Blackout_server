@@ -1,44 +1,43 @@
 # Blackout Server Delivery Execution Report
 
 _Date:_ 2026-03-14  
-_Status:_ **Yellow** (engineering deliverables completed in-repo, human governance/staging sign-off still required)
+_Status:_ **Yellow** (code artifacts progressed; full phase completion still requires staging, governance, and security operations evidence)
 
-## 1) Implementation PR Grouping (by phase and capability track)
+## 1) Implementation PR grouping (by phase and capability track)
 
-- **PR-Phase0-Policy-Foundation** (BO-101 prep, BO-201 prep, BO-501, BO-502)
-  - Policy schemas + examples + CI validation enforcement.
-  - Threat/abuse model, sign-off log, rollback and incident runbook references.
-- **PR-Phase1-Core-Policy-Rollout** (BO-101..BO-303)
-  - `blackout_cell_space`, `blackout_dead_drop_room`, `blackout_announcement_room` preset plumbing.
-  - Retention, sender-role gating, trust-tier ACL templates.
-- **PR-Phase2-Privacy-Pilots** (BO-401..BO-403, BO-602)
-  - Feature-flagged jitter/delayed fanout and pilot rollback guardrails.
-  - Telemetry/SLO hooks and edge federation profile tuning.
-- **PR-Phase3-Hardening-and-Handoff** (BO-601, BO-603 + operational closure)
-  - Failure-injection and staged rollout gate evidence.
-  - Final runbooks, on-call playbook readiness, audit pack.
+- **PR-Phase0-Foundation**
+  - Policy schemas + examples + schema CI validation.
+  - Threat/abuse model content and runbook pointers.
+- **PR-Phase1-Core-Policy-Rollout**
+  - Feature-flagged room preset policy logic (`cell`, `dead-drop`, `announcement`).
+  - Trust-tier ACL templates and sender-role checks.
+- **PR-Phase2-Privacy-Pilots (Experimental / Off by default)**
+  - Timing jitter + delayed fanout helper logic behind feature flags.
+  - Rollback guardrail evaluation with mandatory runbook references.
+- **PR-Phase3-Hardening (Pending)**
+  - Requires staging drills, red-team outputs, and operational handoff evidence.
 
 ## 2) Ticket board update (BO-101..BO-603)
 
 | Ticket | Status | Owner | ETA | Dependencies |
 |---|---|---|---|---|
-| BO-101 | Done | Policy Lead | 2026-03-14 | Phase 0 schemas |
-| BO-102 | Done | Policy Lead | 2026-03-14 | BO-101 |
-| BO-103 | Done | Federation Lead | 2026-03-14 | BO-101 |
-| BO-201 | Done | Policy Lead | 2026-03-14 | Phase 0 schemas |
-| BO-202 | Done | Operations Lead | 2026-03-14 | BO-201 |
-| BO-203 | Done | Security Lead | 2026-03-14 | BO-201 |
-| BO-301 | Done | Policy Lead | 2026-03-14 | BO-101 |
-| BO-302 | Done | Federation Lead | 2026-03-14 | BO-301 |
-| BO-303 | Done | Federation Lead | 2026-03-14 | BO-302 |
-| BO-401 | Done (Experimental) | Security Lead | 2026-03-14 | Phase 1 exit |
-| BO-402 | Done (Experimental) | SRE Lead | 2026-03-14 | BO-401 |
-| BO-403 | In Progress | SRE Lead | 2026-03-21 | BO-401, BO-402 |
-| BO-501 | Done | Security Lead | 2026-03-14 | None |
-| BO-502 | Done | Security Lead | 2026-03-14 | BO-501 |
-| BO-601 | In Progress | Operations Lead | 2026-03-21 | Phase 2 pilot signals |
-| BO-602 | Done (Experimental) | Federation Lead | 2026-03-14 | Phase 2 |
-| BO-603 | In Progress | Federation Lead | 2026-03-21 | BO-601 |
+| BO-101 | In Progress | Policy Lead | TBD | Phase 0 schemas |
+| BO-102 | In Progress | Policy Lead | TBD | BO-101 |
+| BO-103 | In Progress | Federation Lead | TBD | BO-101 |
+| BO-201 | In Progress | Policy Lead | TBD | Phase 0 schemas |
+| BO-202 | In Progress | Operations Lead | TBD | BO-201 |
+| BO-203 | In Progress | Security Lead | TBD | BO-201 |
+| BO-301 | In Progress | Policy Lead | TBD | BO-101 |
+| BO-302 | In Progress | Federation Lead | TBD | BO-301 |
+| BO-303 | In Progress | Federation Lead | TBD | BO-302 |
+| BO-401 | In Progress (Experimental) | Security Lead | TBD | Phase 1 exit |
+| BO-402 | In Progress (Experimental) | SRE Lead | TBD | BO-401 |
+| BO-403 | Not Started | SRE Lead | TBD | BO-401, BO-402 |
+| BO-501 | In Progress | Security Lead | TBD | None |
+| BO-502 | In Progress | Security Lead | TBD | BO-501 |
+| BO-601 | Not Started | Operations Lead | TBD | Phase 2 pilot signals |
+| BO-602 | In Progress (Experimental) | Federation Lead | TBD | Phase 2 |
+| BO-603 | Not Started | Federation Lead | TBD | BO-601 |
 
 ## 3) Testing evidence
 
@@ -48,8 +47,8 @@ _Status:_ **Yellow** (engineering deliverables completed in-repo, human governan
 
 ### Output summary
 - Schema validation passed for all policy schemas and examples.
-- New policy engine unit tests passed (feature flag defaults, preset defaults, retention bounds, role gating, ACL templates, pilot rollback criteria).
-- Existing server semantics tests passed to maintain compatibility.
+- Policy engine tests passed for feature defaults, preset gating, delayed fanout rollback requirements, ACL template copy safety, and pilot guardrail behavior.
+- Existing server semantics tests passed.
 
 ### Failures and mitigations
 - No command failures in this cycle.
@@ -58,56 +57,50 @@ _Status:_ **Yellow** (engineering deliverables completed in-repo, human governan
 
 | Risk ID | Risk | Severity | Owner | Mitigation | Current state |
 |---|---|---|---|---|---|
-| BR-01 | Cross-cell policy leakage due to misconfiguration | High | Policy Lead | Policy-as-code checks + trust-tier ACL templates | Mitigated (monitoring) |
-| BR-02 | Dead-drop retention drift or scheduler failure | High | Operations Lead | TTL bounds + purge audits + runbook rollback | Mitigated (alerts required) |
-| BR-03 | Broadcast sender abuse | Medium | Security Lead | Role gating + moderation override + anomaly alerts | Mitigated |
+| BR-01 | Cross-cell policy leakage due to misconfiguration | High | Policy Lead | Policy-as-code checks + trust-tier ACL templates | Active |
+| BR-02 | Dead-drop retention drift or scheduler failure | High | Operations Lead | TTL bounds + purge audits + runbook rollback | Active |
+| BR-03 | Broadcast sender abuse | Medium | Security Lead | Role gating + moderation override + anomaly alerts | Active |
 | BR-04 | Pilot jitter/fanout latency harms UX | Medium | SRE Lead | Cohort gating + automatic rollback criteria | Active experimental risk |
 | BR-05 | Federation instability on weak links | Medium | Federation Lead | Edge profile tuning + backoff guardrails | Active experimental risk |
-| BR-06 | Steganography expectations creep into server | Low | Security Lead | Explicit no-server-tooling ADR + compliance checklist | Accepted constraint |
+| BR-06 | Steganography expectations creep into server | Low | Security Lead | Explicit no-server-tooling policy + media compliance checks | Accepted constraint |
 
 ## 5) Phase gate reports
 
 ## Phase 0 Gate Report
-- **Status:** Green
+- **Status:** Yellow
 - **Completed this cycle:**
-  - Threat model and abuse model finalized in plan artifacts.
-  - Machine-readable policy schemas and examples validated in CI script.
-  - Feature flags and non-default behavior controls documented and default-disabled.
-  - Governance approval log and rollback/incident runbook references recorded.
-- **Evidence:** schema validation + docs updates (see test commands).
-- **Risks/blocks:** Human signature workflow outside repo still required for formal governance process.
-- **Next 48h plan:** collect owner signatures, attach links to approved governance records.
-- **Go/No-Go:** **Go** to Phase 1 (engineering criteria met; governance admin closeout tracked).
+  - Schema and CI validation artifacts are present and tested.
+  - Threat/abuse model text and runbook pointers are documented.
+- **Evidence:** validator output and docs references.
+- **Risks/blocks:** governance approvals are still pending.
+- **Next 48h plan:** link signed records in `docs/blackout_governance_signoff_log.md`.
+- **Go/No-Go:** **No-Go** until formal owner approvals are attached.
 
 ## Phase 1 Gate Report
-- **Status:** Green
+- **Status:** Yellow
 - **Completed this cycle:**
-  - Core policy presets implemented with feature-flag gating.
-  - Membership visibility boundaries and sender-role controls implemented/tested.
-  - Trust-tier federation ACL templates added.
-  - Dead-drop retention parameter enforcement delivered.
-- **Evidence:** policy engine and semantics tests passed.
-- **Risks/blocks:** federation staging drill evidence collection pending BO-403 dashboard finalization.
-- **Next 48h plan:** run 3-node staging federation compatibility drill and archive metrics snapshots.
-- **Go/No-Go:** **Go** to Phase 2 pilots (opt-in only).
+  - Preset logic and policy checks implemented behind feature flags.
+  - Unit coverage for membership boundaries, sender role checks, and retention bounds.
+- **Evidence:** policy engine and semantics tests.
+- **Risks/blocks:** federation staging compatibility evidence not yet attached.
+- **Next 48h plan:** run 3-node staging checks and archive result links.
+- **Go/No-Go:** **No-Go** until required integration checks complete.
 
 ## Phase 2 Gate Report
 - **Status:** Yellow
 - **Completed this cycle:**
-  - Experimental timing jitter and delayed fanout controls implemented behind flags.
-  - Automated pilot rollback criteria evaluation implemented with runbook references.
-  - Edge-federation tuning track captured as experimental in ticket board.
-- **Evidence:** unit tests for jitter window and rollback breach behavior.
-- **Risks/blocks:** telemetry dashboard publication (BO-403) and prolonged pilot SLO sampling still in progress.
-- **Next 48h plan:** finish dashboard panels and wire SLO alert thresholds for automated rollback hooks.
-- **Go/No-Go:** **Conditional Go** (remain cohort-limited until SLO stability sustained).
+  - Experimental timing/fanout helpers implemented behind opt-in flags.
+  - Rollback criteria now require explicit runbook references.
+- **Evidence:** policy engine unit tests.
+- **Risks/blocks:** BO-403 dashboards and SLO trigger automation still pending.
+- **Next 48h plan:** implement telemetry dashboards and rollback automations.
+- **Go/No-Go:** **No-Go** for broad pilots; cohort-only once SRE criteria are wired.
 
 ## Phase 3 Gate Report
-- **Status:** Yellow
+- **Status:** Red
 - **Completed this cycle:**
-  - Hardening criteria, incident drill requirements, and operational handoff checklist compiled.
-  - Rollback-safe references and guardrails integrated into pilot decision flow.
-- **Evidence:** runbook references integrated in rollback criteria and reporting artifacts.
-- **Risks/blocks:** full red-team and failure-injection evidence still requires staging/operations execution.
-- **Next 48h plan:** execute failure-injection drills and close BO-601/BO-603 with explicit go/no-go notes.
-- **Go/No-Go:** **No-Go for broad production enablement** until pilot SLO and drill evidence closes.
+  - None (hardening activities not yet executed in staging).
+- **Evidence:** N/A.
+- **Risks/blocks:** no drill evidence, no red-team report, no staged rollout sign-off.
+- **Next 48h plan:** schedule failure-injection and incident drill execution.
+- **Go/No-Go:** **No-Go**.
