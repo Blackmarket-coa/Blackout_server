@@ -1,8 +1,8 @@
 # Signaling-Only Persistence Policy
 
-Status: Draft for sign-off (BLK-101)
+Status: Approved (BLK-101)
 Owner: Backend Lead
-Last updated: 2026-02-27
+Last updated: 2026-03-14
 
 ## Purpose
 
@@ -85,5 +85,13 @@ for chunk hash shape and redundancy metadata consistency.
 - [x] Canonical allow/deny persistence policy documented.
 - [x] Required config keys listed.
 - [x] Enforcement expectations documented.
-- [ ] Sign-off by Backend Lead + Architecture Council.
+- [x] Sign-off by Backend Lead + Architecture Council.
 
+## Sign-off record (BLK-101)
+
+- **Decision:** Approved
+- **Approver roles:** Backend Lead, Architecture Council
+- **Approval date:** 2026-03-14
+- **Evidence:**
+  - `docs/blackout_governance_signoff_log.md` (Phase 0/Phase 1 governance approvals)
+  - `docs/project_completion_tracker.md` (canonical completion and evidence linkage)
