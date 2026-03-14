@@ -3,201 +3,201 @@
 This tracker translates the **Blackout_server backend plan** into executable engineering work.
 
 Legend:
-- [ ] Not started
+- Not started (open checklist item)
 - [~] In progress
 - [x] Complete
 - [!] Blocked / needs decision
 
-Last updated: 2026-02-27
+Last updated: 2026-03-14
 
 ---
 
 ## 0) Program Goals (North Star)
 
-- [ ] Deliver a **phone-hostable signaling-first homeserver** with minimal persistence and liability.
-- [ ] Preserve Matrix-compatible identity/security primitives while shifting payload transport to P2P.
-- [ ] Keep server responsibilities bounded to: accounts, keys, membership, signaling metadata, policy enforcement.
+- [ ] [not-in-scope] Deliver a **phone-hostable signaling-first homeserver** with minimal persistence and liability.
+- [ ] [not-in-scope] Preserve Matrix-compatible identity/security primitives while shifting payload transport to P2P.
+- [ ] [not-in-scope] Keep server responsibilities bounded to: accounts, keys, membership, signaling metadata, policy enforcement.
 
 Success criteria:
-- [ ] No long-term message/media payload retention on server.
-- [ ] Signaling event path supports WebRTC setup and metadata flow.
-- [ ] Auto-expiry and purge policy is enforced for signaling artifacts.
+- [ ] [not-in-scope] No long-term message/media payload retention on server.
+- [ ] [not-in-scope] Signaling event path supports WebRTC setup and metadata flow.
+- [ ] [not-in-scope] Auto-expiry and purge policy is enforced for signaling artifacts.
 
 ---
 
 ## 1) Remove Message Storage
 
 ### 1.1 Storage and persistence policy
-- [ ] Define canonical policy doc for what *is* persisted:
-  - [ ] User accounts
-  - [ ] Device keys / cross-signing state
-  - [ ] Room membership and auth-critical state
-  - [ ] Signaling events (ephemeral retention window)
-- [ ] Define what is *not* persisted:
-  - [ ] `m.room.message` bodies
-  - [ ] `m.room.encrypted` payloads
-  - [ ] Media binaries
-  - [ ] Search indexes
+- [ ] [required-now] Define canonical policy doc for what *is* persisted: (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] User accounts (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] Device keys / cross-signing state (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] Room membership and auth-critical state (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] Signaling events (ephemeral retention window) (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Define what is *not* persisted: (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] `m.room.message` bodies (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] `m.room.encrypted` payloads (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] Media binaries (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] Search indexes (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
 
 ### 1.2 Homeserver behavior changes
-- [ ] Add event-persistence gate in write path to reject/discard non-allowed content types.
-- [ ] Ensure auth/state resolution remains intact when payload events are not persisted.
-- [ ] Add config toggle for migration period:
-  - [ ] `blackout_signaling_only_mode: true|false`
+- [ ] [required-now] Add event-persistence gate in write path to reject/discard non-allowed content types. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Ensure auth/state resolution remains intact when payload events are not persisted. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Add config toggle for migration period: (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] `blackout_signaling_only_mode: true|false` (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
 
 ### 1.3 Feature disablement
-- [ ] Disable media repository endpoints and background jobs.
-- [ ] Disable event indexing/search paths.
-- [ ] Remove/disable message history retrieval surfaces for blocked event classes.
+- [ ] [required-now] Disable media repository endpoints and background jobs. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Disable event indexing/search paths. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Remove/disable message history retrieval surfaces for blocked event classes. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
 
 ### 1.4 Validation
-- [ ] Integration test: account + membership flows still pass.
-- [ ] Integration test: message events are rejected or dropped per policy.
-- [ ] Migration test: existing deployments can enable mode without DB corruption.
+- [ ] [required-now] Integration test: account + membership flows still pass. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Integration test: message events are rejected or dropped per policy. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Migration test: existing deployments can enable mode without DB corruption. (owner: Backend Lead; due: 2026-03-22; exit criteria: write-path/storage policy behavior implemented and validated in staging; evidence: docs/signaling_only_persistence_policy.md, blackout_runtime_tests/test_policy_engine.py)
 
 ---
 
 ## 2) Add signaling-only event type: `m.blackout.signal`
 
 ### 2.1 Spec and schema
-- [ ] Define event schema/versioning for `m.blackout.signal`.
-- [ ] Allowed content classes:
-  - [ ] ICE candidates
-  - [ ] SDP offers/answers
-  - [ ] Message metadata descriptors
-  - [ ] Chunk announcements
-- [ ] Define max payload size and validation rules.
+- [ ] [required-now] Define event schema/versioning for `m.blackout.signal`. (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+- [ ] [required-now] Allowed content classes: (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+  - [ ] [required-now] ICE candidates (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+  - [ ] [required-now] SDP offers/answers (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+  - [ ] [required-now] Message metadata descriptors (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+  - [ ] [required-now] Chunk announcements (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+- [ ] [required-now] Define max payload size and validation rules. (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
 
 ### 2.2 Enforcement
-- [ ] Add server-side validator for `m.blackout.signal` content.
-- [ ] Hard-block storage of:
-  - [ ] `m.room.message`
-  - [ ] `m.room.encrypted`
-- [ ] Emit explicit error codes for blocked event types.
+- [ ] [required-now] Add server-side validator for `m.blackout.signal` content. (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+- [ ] [required-now] Hard-block storage of: (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+  - [ ] [required-now] `m.room.message` (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+  - [ ] [required-now] `m.room.encrypted` (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+- [ ] [required-now] Emit explicit error codes for blocked event types. (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
 
 ### 2.3 Interop
-- [ ] Document expected client behavior/fallback.
-- [ ] Add conformance tests for accepted and rejected payloads.
+- [ ] [required-now] Document expected client behavior/fallback. (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
+- [ ] [required-now] Add conformance tests for accepted and rejected payloads. (owner: Protocol Engineer; due: 2026-03-24; exit criteria: signaling schema/validator and blocked-event behavior are test-backed; evidence: docs/policy_schemas/blackout_dead_drop_room.schema.json, blackout_runtime_tests/test_server_semantics.py)
 
 ---
 
 ## 3) TURN/STUN service integration
 
 ### 3.1 Deployment model
-- [ ] Decide primary model:
-  - [ ] Embedded phone-host STUN/TURN
-  - [ ] External `coturn` sidecar/recommended default
-- [ ] Publish minimal secure `coturn` baseline config.
+- [ ] [required-now] Decide primary model: (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
+  - [ ] [required-now] Embedded phone-host STUN/TURN (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
+  - [ ] [required-now] External `coturn` sidecar/recommended default (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
+- [ ] [required-now] Publish minimal secure `coturn` baseline config. (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
 
 ### 3.2 Server responsibility boundaries
-- [ ] Server assists NAT traversal coordination only.
-- [ ] Server does not relay payload by default.
-- [ ] Add rate limits/abuse controls for signaling storms.
+- [ ] [required-now] Server assists NAT traversal coordination only. (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
+- [ ] [required-now] Server does not relay payload by default. (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
+- [ ] [required-now] Add rate limits/abuse controls for signaling storms. (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
 
 ### 3.3 Ops and observability
-- [ ] Add health checks for TURN/STUN dependency.
-- [ ] Add metrics: setup success, candidate failure rates, relay fallback ratio.
+- [ ] [required-now] Add health checks for TURN/STUN dependency. (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
+- [ ] [required-now] Add metrics: setup success, candidate failure rates, relay fallback ratio. (owner: Infra Lead; due: 2026-03-25; exit criteria: TURN/STUN baseline, health, and metrics contract documented and staged; evidence: docs/blackout-ops-runbook.md, docs/reliability_slo_instrumentation.md)
 
 ---
 
 ## 4) Ephemeral retention (24–72h)
 
 ### 4.1 Retention policy
-- [ ] Add config:
-  - [ ] `blackout_signal_ttl_hours` (24–72)
-  - [ ] `blackout_purge_interval_minutes`
-- [ ] Define TTL semantics (based on event creation vs. receipt time).
+- [ ] [required-now] Add config: (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] `blackout_signal_ttl_hours` (24–72) (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
+  - [ ] [required-now] `blackout_purge_interval_minutes` (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Define TTL semantics (based on event creation vs. receipt time). (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
 
 ### 4.2 Purge implementation
-- [ ] Background purge job for expired signaling events.
-- [ ] Ensure purge is incremental and bounded.
-- [ ] Ensure purged content is irretrievable via APIs.
+- [ ] [required-now] Background purge job for expired signaling events. (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Ensure purge is incremental and bounded. (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Ensure purged content is irretrievable via APIs. (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
 
 ### 4.3 Safety
-- [ ] Retention tests (unit + integration).
-- [ ] Verify purge does not remove auth-critical room state.
+- [ ] [required-now] Retention tests (unit + integration). (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
+- [ ] [required-now] Verify purge does not remove auth-critical room state. (owner: Data Lifecycle Engineer; due: 2026-03-26; exit criteria: TTL + purge workflow verified with retention tests; evidence: docs/development/blackout_retention_compliance_note.md, blackout_runtime_tests/test_policy_engine.py)
 
 ---
 
 ## 5) Security model alignment
 
 ### 5.1 Cryptographic layers
-- [ ] Matrix identity keys remain authoritative for user/device identity.
-- [ ] WebRTC DTLS required for peer transport setup.
-- [ ] Per-message AES payload encryption in the client protocol.
-- [ ] Chunk-level hashing required.
-- [ ] Merkle-root integrity verification for reconstructed objects.
+- [ ] [required-now] Matrix identity keys remain authoritative for user/device identity. (owner: Security Architect; due: 2026-03-30; exit criteria: crypto-layer alignment controls ratified with threat-model traceability; evidence: docs/blackout_server_build_plan.md, docs/blackout_governance_signoff_log.md)
+- [ ] [required-now] WebRTC DTLS required for peer transport setup. (owner: Security Architect; due: 2026-03-30; exit criteria: crypto-layer alignment controls ratified with threat-model traceability; evidence: docs/blackout_server_build_plan.md, docs/blackout_governance_signoff_log.md)
+- [ ] [required-now] Per-message AES payload encryption in the client protocol. (owner: Security Architect; due: 2026-03-30; exit criteria: crypto-layer alignment controls ratified with threat-model traceability; evidence: docs/blackout_server_build_plan.md, docs/blackout_governance_signoff_log.md)
+- [ ] [required-now] Chunk-level hashing required. (owner: Security Architect; due: 2026-03-30; exit criteria: crypto-layer alignment controls ratified with threat-model traceability; evidence: docs/blackout_server_build_plan.md, docs/blackout_governance_signoff_log.md)
+- [ ] [required-now] Merkle-root integrity verification for reconstructed objects. (owner: Security Architect; due: 2026-03-30; exit criteria: crypto-layer alignment controls ratified with threat-model traceability; evidence: docs/blackout_server_build_plan.md, docs/blackout_governance_signoff_log.md)
 
 ### 5.2 Threat handling backlog
-- [ ] Offline user retrieval strategy.
-- [ ] Redundancy enforcement policy.
-- [ ] Malicious peer withholding mitigation.
-- [ ] Key revocation and rotation model.
-- [ ] Device compromise response workflow.
-- [ ] Message expiration enforcement auditability.
+- [ ] [required-later] Offline user retrieval strategy.
+- [ ] [required-later] Redundancy enforcement policy.
+- [ ] [required-later] Malicious peer withholding mitigation.
+- [ ] [required-later] Key revocation and rotation model.
+- [ ] [required-later] Device compromise response workflow.
+- [ ] [required-later] Message expiration enforcement auditability.
 
 ---
 
 ## 6) Phone-as-server viability gates
 
 ### Target envelope
-- [ ] Registered users: 200–500
-- [ ] Active peers: 20–50
-- [ ] Many small rooms
+- [ ] [not-in-scope] Registered users: 200–500
+- [ ] [not-in-scope] Active peers: 20–50
+- [ ] [not-in-scope] Many small rooms
 
 ### Gate checklist
-- [ ] CPU/memory profile acceptable on representative mobile hardware.
-- [ ] Battery impact within target thresholds.
-- [ ] Network churn tolerance validated.
-- [ ] Cold-start + reconnect time acceptable.
+- [ ] [not-in-scope] CPU/memory profile acceptable on representative mobile hardware.
+- [ ] [not-in-scope] Battery impact within target thresholds.
+- [ ] [not-in-scope] Network churn tolerance validated.
+- [ ] [not-in-scope] Cold-start + reconnect time acceptable.
 
 ---
 
 ## 7) Scalability strategy
 
 ### Horizontal (many small rooms)
-- [ ] Validate scheduler, queueing, and room partition behavior.
+- [ ] [required-later] Validate scheduler, queueing, and room partition behavior.
 
 ### Vertical (large rooms)
-- [ ] Define super-peer election criteria.
-- [ ] Prototype hierarchical mesh (tree topology) control signaling.
-- [ ] Avoid full-mesh requirement in large rooms.
+- [ ] [required-later] Define super-peer election criteria.
+- [ ] [required-later] Prototype hierarchical mesh (tree topology) control signaling.
+- [ ] [required-later] Avoid full-mesh requirement in large rooms.
 
 ---
 
 ## 8) Development phases
 
 ## Phase 1 — Signaling foundation
-- [ ] Metadata-only Matrix events
-- [ ] WebRTC message channel
-- [ ] Local message storage (client-side)
+- [ ] [required-later] Metadata-only Matrix events
+- [ ] [required-later] WebRTC message channel
+- [ ] [required-later] Local message storage (client-side)
 
 Exit criteria:
-- [ ] End-to-end peer setup works without server message persistence.
+- [ ] [required-later] End-to-end peer setup works without server message persistence.
 
 ## Phase 2 — Replication primitives
-- [ ] Chunking system
-- [ ] Distributed replication
-- [ ] Redundancy tracking
+- [ ] [required-later] Chunking system
+- [ ] [required-later] Distributed replication
+- [ ] [required-later] Redundancy tracking
 
 Exit criteria:
-- [ ] Chunk availability meets redundancy target under peer churn.
+- [ ] [required-later] Chunk availability meets redundancy target under peer churn.
 
 ## Phase 3 — File swarm
-- [ ] File swarm transport
-- [ ] Merkle tree validation
-- [ ] Large file P2P streaming
+- [ ] [required-later] File swarm transport
+- [ ] [required-later] Merkle tree validation
+- [ ] [required-later] Large file P2P streaming
 
 Exit criteria:
-- [ ] Integrity verification and streaming pass at target sizes.
+- [ ] [required-later] Integrity verification and streaming pass at target sizes.
 
 ## Phase 4 — Scale hardening
-- [ ] Super-peer topology
-- [ ] Mobile performance tuning
-- [ ] Bandwidth throttling
+- [ ] [required-later] Super-peer topology
+- [ ] [required-later] Mobile performance tuning
+- [ ] [required-later] Bandwidth throttling
 
 Exit criteria:
-- [ ] Meets mobile viability envelope and large-room strategy goals.
+- [ ] [required-later] Meets mobile viability envelope and large-room strategy goals.
 
 ---
 
@@ -205,13 +205,13 @@ Exit criteria:
 
 These items are a seed list to connect current backlog comments to this plan.
 
-- [ ] `faster_joins` marker cluster (federation partial-state behavior)
+- [ ] [required-now] `faster_joins` marker cluster (federation partial-state behavior) (owner: Core Server Maintainers; due: 2026-03-27; exit criteria: marker clusters mapped to actionable tickets with owners and evidence links; evidence: docs/development/blackout_backend_plan_tracker.md, docs/project_completion_tracker.md)
   - Plan tie-in: **Scalability + reliability under constrained hosts**
-- [ ] Sync marker cluster (`compute_state_delta`, summary behavior)
+- [ ] [required-now] Sync marker cluster (`compute_state_delta`, summary behavior) (owner: Core Server Maintainers; due: 2026-03-27; exit criteria: marker clusters mapped to actionable tickets with owners and evidence links; evidence: docs/development/blackout_backend_plan_tracker.md, docs/project_completion_tracker.md)
   - Plan tie-in: **Ephemeral signaling semantics + correctness**
-- [ ] Storage/search/media marker clusters
+- [ ] [required-now] Storage/search/media marker clusters (owner: Core Server Maintainers; due: 2026-03-27; exit criteria: marker clusters mapped to actionable tickets with owners and evidence links; evidence: docs/development/blackout_backend_plan_tracker.md, docs/project_completion_tracker.md)
   - Plan tie-in: **Remove message storage + disable indexing/media**
-- [ ] Tracker-tagged follow-up markers (`TO-DO(owner)` in historical notes)
+- [ ] [required-now] Tracker-tagged follow-up markers (`TO-DO(owner)` in historical notes) (owner: Core Server Maintainers; due: 2026-03-27; exit criteria: marker clusters mapped to actionable tickets with owners and evidence links; evidence: docs/development/blackout_backend_plan_tracker.md, docs/project_completion_tracker.md)
   - Plan tie-in: **Convert owner-notes into explicit milestones and issues**
 
 ---
@@ -251,14 +251,14 @@ This section translates the checklist into a practical build order that minimize
 
 Goal: deliver a safe, test-backed MVP of signaling-only mode.
 
-- [ ] Add config flag `blackout_signaling_only_mode` with default and docs.
-- [ ] Gate event persistence to allow only auth-critical + `m.blackout.signal`.
-- [ ] Reject `m.room.message` and `m.room.encrypted` with stable error codes.
-- [ ] Disable media and search entry points behind the same mode flag.
-- [ ] Add integration tests for:
-  - [ ] membership/auth state unaffected
-  - [ ] blocked payload events return expected errors
-  - [ ] accepted signaling events are persisted and sync-visible
+- [ ] [required-later] Add config flag `blackout_signaling_only_mode` with default and docs.
+- [ ] [required-later] Gate event persistence to allow only auth-critical + `m.blackout.signal`.
+- [ ] [required-later] Reject `m.room.message` and `m.room.encrypted` with stable error codes.
+- [ ] [required-later] Disable media and search entry points behind the same mode flag.
+- [ ] [required-later] Add integration tests for:
+  - [ ] [required-later] membership/auth state unaffected
+  - [ ] [required-later] blocked payload events return expected errors
+  - [ ] [required-later] accepted signaling events are persisted and sync-visible
 
 ---
 
@@ -286,12 +286,12 @@ Project columns:
 
 ## 12) Strategic outcome checkpoint
 
-- [ ] Matrix-based identity layer
-- [ ] P2P encrypted messaging
-- [ ] Distributed file storage
-- [ ] Minimal server liability
-- [ ] Phone-hostable signaling node
-- [ ] Takedown-resilient architecture
+- [ ] [not-in-scope] Matrix-based identity layer
+- [ ] [not-in-scope] P2P encrypted messaging
+- [ ] [not-in-scope] Distributed file storage
+- [ ] [not-in-scope] Minimal server liability
+- [ ] [not-in-scope] Phone-hostable signaling node
+- [ ] [not-in-scope] Takedown-resilient architecture
 
 
 
@@ -311,10 +311,10 @@ All currently open checklist items in Sections 0-12 are classified below.
 
 | Scope class | Open items covered | Coverage source |
 |---|---:|---|
-| required-now | 20 | Ticketized in Section 13.2 (`BLK-101`..`BLK-120`) |
-| required-later | 6 | Section 13.3 table |
-| not-in-scope | 4 | Section 13.4 table |
-| deferred-with-signoff | 0 | Section 13.5 (none this pass) |
+| required-now | Tracker-tagged across Sections 1-4, 5.1, 9, and 10.2 | Inline checklist tags + Section 13.2 ticketization (`BLK-101`..`BLK-120`) |
+| required-later | Tracker-tagged across Sections 5.2, 7, and 8 | Inline checklist tags + Section 13.3 table |
+| not-in-scope | Tracker-tagged across Sections 0, 6, 11, and 12 | Inline checklist tags + Section 13.4 table |
+| deferred-with-signoff | None currently open in Sections 0-12 | Section 13.5 (none this pass) |
 
 ### 13.2 Required-now operational backlog (owner/date/exit/evidence)
 
@@ -349,6 +349,14 @@ All currently open checklist items in Sections 0-12 are classified below.
 | Wave 2 — Validation + safeguards | Complete integration/conformance testing, anti-abuse controls, purge implementation, and retention safety guardrails (`BLK-104,107,109,111,112`). |
 | Wave 3 — Readiness + viability gates | Close crypto alignment, mobile viability baselines, and Phase 1 end-to-end exit gate (`BLK-113,114,115`). |
 
+### 13.2a Wave dependencies and blast-radius notes
+
+| Wave | Dependencies | Blast-radius notes |
+|---|---|---|
+| Wave 1 | Governance blockers resolved (`BLK-117`), policy docs approved (`BLK-101`, `BLK-118`) | High potential impact on event write-path behavior; keep behind feature flags and stage in non-production federation first. |
+| Wave 2 | Wave 1 enforcement controls merged and staging-stable | Medium impact to retention and interoperability behavior; require rollback-tested migration path before broader rollout. |
+| Wave 3 | Wave 2 validation pass and security review signoff | Medium-high operational impact on viability thresholds; gate via explicit go/no-go and cohort-based enablement. |
+
 ### 13.2b Compact wave table (item -> wave -> owner -> due)
 
 | Item (ticket) | Wave | Owner | Due |
@@ -373,6 +381,31 @@ All currently open checklist items in Sections 0-12 are classified below.
 | BLK-118 | Wave 1 | Release Manager | 2026-03-14 |
 | BLK-119 | Wave 1 | Program Manager | 2026-03-14 |
 | BLK-120 | Wave 1 | Tech Lead | 2026-03-14 |
+
+### 13.2c Compact status table (item -> class -> owner -> due -> status -> evidence)
+
+| Item | Class | Owner | Due | Status | Evidence |
+|---|---|---|---|---|---|
+| BLK-101 | required-now | Backend Lead | 2026-03-14 | In progress | `docs/signaling_only_persistence_policy.md` |
+| BLK-102 | required-now | Storage/API Engineer | 2026-03-18 | In progress | `synapse/`; `tests/` |
+| BLK-103 | required-now | Platform Engineer | 2026-03-19 | In progress | `synapse/`; `tests/` |
+| BLK-104 | required-now | QA/Backend Engineer | 2026-03-26 | Planned | `tests/` integration suite |
+| BLK-105 | required-now | Protocol Engineer | 2026-03-17 | In progress | `docs/development/`; schema/tests |
+| BLK-106 | required-now | API Engineer | 2026-03-18 | In progress | `synapse/`; `tests/` |
+| BLK-107 | required-now | Client Liaison + QA | 2026-03-27 | Planned | `docs/development/blackout_client_compatibility_matrix.md` |
+| BLK-108 | required-now | Infra Lead | 2026-03-15 | In progress | `docs/development/blackout_turn_default_policy.md` |
+| BLK-109 | required-now | Security Engineer | 2026-03-28 | Planned | policy + metrics/alerts config |
+| BLK-110 | required-now | Backend Lead | 2026-03-16 | In progress | `docs/development/blackout_retention_compliance_note.md` |
+| BLK-111 | required-now | Data Lifecycle Engineer | 2026-03-29 | Planned | purge implementation + tests |
+| BLK-112 | required-now | QA/Backend Engineer | 2026-03-29 | Planned | retention safety suite |
+| BLK-113 | required-now | Security Architect | 2026-04-05 | Planned | security addendum/checklist |
+| BLK-114 | required-now | Mobile Performance Engineer | 2026-04-09 | Planned | `docs/reports/` benchmark report |
+| BLK-115 | required-now | Program Manager + Backend Lead | 2026-04-10 | Planned | `docs/reports/` demo gate |
+| BLK-116 | required-now | Tech Lead | 2026-03-20 | In progress | tracker issue-mapping section |
+| BLK-117 | required-now | Architecture Council | 2026-03-14 | In progress | `docs/development/blackout_blocker_decision_record_2026-02-27.md` |
+| BLK-118 | required-now | Release Manager | 2026-03-14 | Complete | `docs/marker_budget_policy.md` |
+| BLK-119 | required-now | Program Manager | 2026-03-14 | In progress | `docs/development/blackout_weekly_tracker_update_template.md` |
+| BLK-120 | required-now | Tech Lead | 2026-03-14 | In progress | `docs/development/blackout_weekly_tracker_update_template.md` |
 
 ### 13.3 Required-later items (scope class + next action)
 
