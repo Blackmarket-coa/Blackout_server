@@ -202,6 +202,19 @@ Use this template for all Sev-1 and Sev-2 incidents, and any incident with custo
 | --- | --- | --- | --- | --- |
 | Example: add rollout canary abort gate for rejection spikes | Release Engineering Lead | P1 | YYYY-MM-DD | ticket://... |
 
+### Closure evidence reference map
+
+Use these concrete references/templates when filling and reviewing postmortems:
+
+| Requirement area | Template/reference in this repo | Example evidence artifact |
+| --- | --- | --- |
+| Impact timeline completeness | `### Postmortem metadata` + `### Timeline (UTC)` sections in this document | `docs/drills/chaos_drill_report_wave1.md` (execution timeline and observed results) |
+| Explicit root cause | `### Root cause and contributing factors` section in this document | `docs/drills/region_failover_gameday.md` (pass/fail criteria and follow-up actions) |
+| Detection improvement tracking | `### Corrective actions` table in this document (detection action row required) | `docs/drills/chaos_drill_report_wave1.md` (synthetic queue-depth alert follow-up) |
+| Prevention/mitigation tracking | `### Corrective actions` table in this document (mitigation action row required) | `docs/drills/cross_operator_federation_drill.md` (partition helper + checklist hardening follow-ups) |
+| Runbook update linkage | `## F2. Required runbooks` and closure checklist runbook-link requirement | `docs/blackout-ops-runbook.md`, `docs/backup_and_dr_operations.md` |
+| Learning distribution | Governance closure rule + weekly reporting linkage in completion docs | `docs/reports/weekly_completion_report_2026-03-14.md` |
+
 ### Required closure checklist
 
 - [x] Impact and timeline are complete and reviewed.
