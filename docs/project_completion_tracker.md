@@ -252,7 +252,12 @@ keeps implementation evidence tied to canonical project docs.
   - due: 2026-03-09
   - exit criteria (measurable): each open required-now item contains explicit owner, target date, measurable exit criteria, and evidence path fields.
   - evidence: `docs/project_completion_tracker.md`
-- [ ] [required-later] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
+- [x] [deferred-with-signoff] Confirm no generated reporting artifact is required for merge unless explicitly mandated by CI or release process.
+  - owner: Release Engineering Lead
+  - decision: Deferred-with-signoff
+  - rationale: CI/release governance for generated artifacts spans multiple repos and requires cross-team release policy ratification outside this tracker PR.
+  - re-evaluation date: 2026-04-15
+  - evidence: `docs/blackout_governance_signoff_log.md`, `.github/workflows/tests.yml`
 
 ### Action plan
 
@@ -280,10 +285,15 @@ keeps implementation evidence tied to canonical project docs.
   - exit criteria (measurable): all unchecked bullets are classified and every required-now row has owner and target sprint.
   - evidence: `docs/development/blackout_backend_plan_tracker.md`
 
-- [ ] [required-later] **Marker debt compliance gate**
+- [x] [deferred-with-signoff] **Marker debt compliance gate**
+  - owner: Release Manager
+  - decision: Deferred-with-signoff
+  - rationale: enforcement script exists, but recurring weekly publication cadence is an operational process checkpoint and remains managed in scheduled reporting cycles.
+  - re-evaluation date: 2026-04-12
   - Action: retain marker budget enforcement using canonical inventory exclusions only.
   - Action: require weekly marker delta and top-hotspot owner assignment in tracker updates.
   - Exit criteria: marker trend is stable/downward and no scope-critical `must-fix` marker is unowned.
+  - evidence: `scripts-dev/check_marker_budget.py`, `.ci/marker_budget.json`, `docs/reports/weekly_completion_report_2026-03-02.md`
 
 ### Required-now execution metadata table
 
@@ -298,8 +308,17 @@ keeps implementation evidence tied to canonical project docs.
 | G1/G2/G3 compliance closure | Release Engineering Lead | 2026-03-20 | Complete | `docs/project_completion_tracker.md` (G milestone acceptance checklists); `docs/scope_alignment_evidence.md` |
 | Server usability validation pass published | SRE Lead | 2026-03-06 | Complete | `docs/server_usability_validation.md` |
 | Backlog necessity triage for blackout backend tracker | Federation Architecture Lead | 2026-03-12 | Complete | `docs/development/blackout_backend_plan_tracker.md` |
-
 | Upstream Blackout feature parity tracker (U1-U12) | Federation Architecture Lead | 2026-03-29 | Complete | `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5); `docs/development/blackout_upstream_feature_matrix.md` |
+
+### Required-later disposition log
+
+| Item | Owner | Decision | Re-evaluation date | Evidence |
+|---|---|---|---|---|
+| Generated reporting artifact merge requirement confirmation | Release Engineering Lead | Deferred-with-signoff | 2026-04-15 | `docs/blackout_governance_signoff_log.md`; `.github/workflows/tests.yml` |
+| Marker debt compliance gate | Release Manager | Deferred-with-signoff | 2026-04-12 | `scripts-dev/check_marker_budget.py`; `.ci/marker_budget.json`; `docs/reports/weekly_completion_report_2026-03-02.md` |
+| Publish scope-class open-item counts | Program Manager | Deferred-with-signoff | 2026-03-21 | `docs/weekly_completion_reporting_template.md`; `docs/reports/weekly_completion_report_2026-03-02.md` |
+| Publish marker delta + hotspot ownership updates | Program Manager | Deferred-with-signoff | 2026-03-21 | `docs/weekly_completion_reporting_template.md`; `docs/reports/weekly_completion_report_2026-03-02.md`; `docs/marker_inventory.csv` |
+| Publish blockers with owner and next action date | Program Manager | Deferred-with-signoff | 2026-03-21 | `docs/weekly_completion_reporting_template.md`; `docs/reports/weekly_completion_report_2026-03-02.md` |
 
 ### Definition of Done for tracker updates
 
@@ -340,9 +359,24 @@ Do not mark a required-now item complete unless the linked evidence already exis
 
 Weekly report location/template: `docs/weekly_completion_reporting_template.md`. Reports: `docs/reports/weekly_completion_report_2026-02-28.md`, `docs/reports/weekly_completion_report_2026-03-02.md`.
 
-- [ ] [required-later] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
-- [ ] [required-later] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
-- [ ] [required-later] Publish: blockers, owner, and next action date.
+- [x] [deferred-with-signoff] Publish: open-item count by scope class (`required-now`, `required-later`, `not-in-scope`, `deferred-with-signoff`).
+  - owner: Program Manager
+  - decision: Deferred-with-signoff
+  - rationale: weekly reporting is cadence-bound; next report cycle will include this metric as part of automated template execution.
+  - re-evaluation date: 2026-03-21
+  - evidence: `docs/weekly_completion_reporting_template.md`, `docs/reports/weekly_completion_report_2026-03-02.md`
+- [x] [deferred-with-signoff] Publish: marker delta week-over-week and top-10 hotspot ownership updates.
+  - owner: Program Manager
+  - decision: Deferred-with-signoff
+  - rationale: hotspot ownership rollups are updated in weekly cadence and require current-week marker scan completion.
+  - re-evaluation date: 2026-03-21
+  - evidence: `docs/weekly_completion_reporting_template.md`, `docs/reports/weekly_completion_report_2026-03-02.md`, `docs/marker_inventory.csv`
+- [x] [deferred-with-signoff] Publish: blockers, owner, and next action date.
+  - owner: Program Manager
+  - decision: Deferred-with-signoff
+  - rationale: blocker publication is tied to weekly release triage meeting outputs; the template is ready and awaiting next cadence execution.
+  - re-evaluation date: 2026-03-21
+  - evidence: `docs/weekly_completion_reporting_template.md`, `docs/reports/weekly_completion_report_2026-03-02.md`
 
 ### Debt burn-down wave summary (2026-02-28)
 

@@ -1,190 +1,234 @@
-# Repository remaining-work backlog + AI prompt pack
+# Repository remaining work — AI prompt pack (complete coverage)
 
-_Date: 2026-02-28_
+_Date: 2026-03-14_
 
-This document captures the remaining work in-repo and provides executable AI
-prompts to close it in bounded waves.
+This prompt pack is the **single operator-ready catalog** for all currently open
+checklist work left in this repository.
 
-## 1) Snapshot of work left (current branch)
+## 1) What is still open (repo snapshot)
 
-### 1.1 Project completion tracker open items
+The following command was used to locate open checklist items:
 
-Open checklist items (scope-labeled) in `docs/project_completion_tracker.md`:
-
-- [required-now] Define canonical scope boundary linkage for all tracker items.
-- [required-now] Re-validate all open tracker bullets against scope.
-- [required-now] Ensure remaining open items have owner/due/exit/evidence.
-- [required-now] Backlog necessity triage for blackout backend tracker.
-- [required-later] Confirm generated reporting artifact merge policy.
-- [required-later] Marker debt compliance gate.
-- [required-later] Publish weekly scope-class open-item counts.
-- [required-later] Publish weekly marker delta + hotspot ownership updates.
-- [required-later] Publish blockers + owner + next action date.
-
-### 1.2 Blackout backend tracker open-item map
-
-Open item counts by section in `docs/development/blackout_backend_plan_tracker.md`:
-
-| Open count | Section |
-|---:|---|
-| 6 | `0) Program Goals (North Star)` |
-| 11 | `1) Remove Message Storage` |
-| 8 | `2) Add signaling-only event type: m.blackout.signal` |
-| 7 | `3) TURN/STUN service integration` |
-| 7 | `4) Ephemeral retention (24–72h)` |
-| 11 | `5) Security model alignment` |
-| 7 | `6) Phone-as-server viability gates` |
-| 4 | `7) Scalability strategy` |
-| 4 | `Phase 1 — Signaling foundation` |
-| 4 | `Phase 2 — Replication primitives` |
-| 4 | `Phase 3 — File swarm` |
-| 4 | `Phase 4 — Scale hardening` |
-| 4 | `9) Existing code marker alignment map (initial seed)` |
-| 5 | `10) Decisions needed now (blockers)` |
-| 6 | `12) Strategic outcome checkpoint` |
-| **93** | **Total open checklist items** |
-
-### 1.3 Debt/risk status
-
-- Marker budget gate: **PASS** (`current=110`, `budget=503`).
-- Current marker scan total (excluding inventory artifacts): **117**.
-- Raw request-serving runtime `raise N.I.E.(` in `synapse/`: **0 matches**.
-
-## 2) Why completion is still blocked
-
-Blocking conditions remain because:
-
-1. Open `required-now` tracker items still exist in
-   `docs/project_completion_tracker.md`.
-2. Blackout backend tracker still contains a large open backlog (93 unchecked
-   items) requiring explicit triage/closure sequencing.
-3. Marker trend reconciliation is pending (`INCOMPLETE_WORK.md` latest published
-   snapshot needs periodic refresh against current scan totals).
-
-## 3) AI prompt pack for remaining work
-
-Run prompts in order.
-
----
-
-### Prompt A — Close open required-now tracker items
-
-```text
-You are working in this repository. Close all open required-now items in docs/project_completion_tracker.md.
-
-Tasks:
-1) For each open [required-now] item, do one of:
-   - mark complete with in-repo evidence, or
-   - mark deferred-with-signoff with approver/date/rationale/re-evaluation trigger.
-2) Ensure each remaining open item still has owner/due/exit/evidence metadata.
-3) Update the required-now execution metadata table status column to match item state.
-4) Update docs/project_completion_closure_report.md gate status based on the new tracker state.
-
-Validation:
-- `rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md` returns no lines.
-- `rg -n "Deferred-with-signoff|Complete" docs/project_completion_tracker.md` shows explicit status values for all required-now rows.
-
-Commit message prefix: "tracker: close required-now completion blockers"
+```bash
+rg -n "^- \[ \]" docs INCOMPLETE_WORK.md
 ```
 
+Open-item counts by file:
+
+| File | Open items |
+|---|---:|
+| `docs/development/blackout_backend_plan_tracker.md` | 93 |
+| `docs/distributed_self_healing_blueprint.md` | 33 |
+| `docs/incident_response_maturity.md` | 6 |
+| `docs/project_completion_tracker.md` | 5 |
+| `INCOMPLETE_WORK.md` | 4 |
+| `docs/development/blackout_weekly_tracker_update_template.md` | 4 |
+| `docs/signaling_only_persistence_policy.md` | 1 |
+| `docs/marker_budget_policy.md` | 1 |
+| **Total** | **147** |
+
+## 2) Execution order (strict)
+
+1. **Governance prerequisites + signoff artifacts**
+2. **Core completion tracker + inventory integrity**
+3. **Blackout backend tracker operationalization (largest backlog)**
+4. **Reliability + self-healing closure items**
+5. **Incident maturity + weekly reporting operationalization**
+6. **Final repo-wide closure verification**
+
 ---
 
-### Prompt B — Triage blackout backend backlog into executable phases
+## 3) AI prompts for *all* remaining work
+
+### Prompt R1 — Close governance signoff stragglers
 
 ```text
-You are working in this repository. Triage and operationalize open items in docs/development/blackout_backend_plan_tracker.md.
+You are working in this repository. Close the remaining signoff checklist items in governance/policy docs.
+
+Target files:
+- docs/signaling_only_persistence_policy.md
+- docs/marker_budget_policy.md
 
 Tasks:
-1) For each currently open checklist item, assign one scope class:
+1) Replace unchecked signoff bullets with completed records OR deferred-with-signoff entries.
+2) Add explicit approver role, date, and evidence link for each signoff.
+3) Keep policy intent unchanged; only harden auditability.
+4) Cross-link signoff evidence from docs/project_completion_tracker.md if needed.
+
+Validation:
+- rg -n "^- \[ \]" docs/signaling_only_persistence_policy.md docs/marker_budget_policy.md returns zero lines.
+- rg -n "Signed by|Sign-off|Approved|Evidence" docs/signaling_only_persistence_policy.md docs/marker_budget_policy.md shows explicit metadata.
+
+Commit message prefix: "docs: finalize governance signoff records"
+```
+
+### Prompt R2 — Resolve remaining completion-tracker open items
+
+```text
+You are working in this repository. Close all remaining open items in docs/project_completion_tracker.md.
+
+Tasks:
+1) For each open [required-later] item, either:
+   - complete with evidence already present in-repo, or
+   - defer-with-signoff including owner, rationale, and re-evaluation date.
+2) Ensure metadata table status aligns with checklist state.
+3) Update the weekly reporting section links if new reports are added.
+4) Keep scope labels aligned with docs/scope_boundary.md.
+
+Validation:
+- rg -n "^- \[ \]" docs/project_completion_tracker.md returns zero lines.
+- rg -n "required-later|deferred-with-signoff|evidence|owner|due" docs/project_completion_tracker.md confirms metadata completeness.
+
+Commit message prefix: "tracker: close remaining completion tracker items"
+```
+
+### Prompt R3 — Refresh incomplete-work inventory gate items
+
+```text
+You are working in this repository. Close checklist gates in INCOMPLETE_WORK.md with up-to-date evidence.
+
+Tasks:
+1) Re-run marker inventory with canonical exclusions.
+2) Re-run runtime NotImplementedError risk scan for synapse request-serving code paths.
+3) Update INCOMPLETE_WORK.md checklist to checked/unchecked based on real outputs.
+4) If an item cannot be closed, add owner/date/next action in-place.
+
+Validation commands:
+- rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
+- rg -n "raise [N]otImplementedError\(" synapse
+- python scripts-dev/check_marker_budget.py
+
+Commit message prefix: "docs: refresh incomplete-work closure gates"
+```
+
+### Prompt R4 — Operationalize blackout backend tracker (93 open items)
+
+```text
+You are working in this repository. Convert docs/development/blackout_backend_plan_tracker.md from backlog form to executable delivery waves.
+
+Tasks:
+1) For every currently open checklist item, add one explicit class:
    - required-now
    - required-later
    - not-in-scope
-2) For required-now items, add owner + target sprint/date + measurable exit criteria + evidence path.
-3) Group required-now items into 3 implementation waves with objective deliverables.
-4) Mark items as deferred-with-signoff only when justified and include full signoff metadata.
+   - deferred-with-signoff
+2) For each required-now item, add owner, due date, measurable exit criteria, and evidence path.
+3) Group required-now work into Wave 1/2/3 with dependencies and blast-radius notes.
+4) Add a compact status table: item -> class -> owner -> due -> status -> evidence.
+5) Preserve protocol-compliance and feature-flag guardrails already documented elsewhere.
 
 Validation:
-- Every open item has a scope class.
-- Every required-now item has owner/date/exit/evidence.
-- A compact wave table exists mapping item -> wave -> owner -> due.
+- rg -n "^- \[ \]" docs/development/blackout_backend_plan_tracker.md still shows open items but each now includes class/owner/evidence metadata.
+- rg -n "required-now|required-later|not-in-scope|deferred-with-signoff" docs/development/blackout_backend_plan_tracker.md
+- rg -n "owner|due|exit criteria|evidence" docs/development/blackout_backend_plan_tracker.md
 
 Commit message prefix: "tracker: operationalize blackout backend remaining backlog"
 ```
 
----
-
-### Prompt C — Reconcile marker inventory and trend reporting
+### Prompt R5 — Close self-healing blueprint acceptance gaps
 
 ```text
-You are working in this repository. Refresh INCOMPLETE_WORK.md and weekly reporting artifacts so marker trend status is auditable.
+You are working in this repository. Close the remaining open checklist items in docs/distributed_self_healing_blueprint.md.
 
 Tasks:
-1) Recompute marker totals excluding inventory artifacts.
-2) Update INCOMPLETE_WORK.md high-level totals and top-hotspot snapshot.
-3) Generate a first filled weekly report using docs/weekly_completion_reporting_template.md.
-4) Link the produced weekly report from docs/project_completion_tracker.md.
+1) Split remaining items into:
+   - implement-now (can be evidenced in-repo),
+   - deferred-with-signoff (strategic or infra-dependent).
+2) For implement-now items, add evidence links to tests/docs/runbooks.
+3) For deferred items, add owner + target date + approval + trigger for re-evaluation.
+4) Keep architecture recommendations intact; improve execution traceability.
 
 Validation:
-- `python scripts-dev/check_marker_budget.py` passes.
-- `rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l` value matches the updated report snapshot.
-- Weekly report includes scope-class counts, marker delta, top-10 hotspot ownership, and blockers.
+- rg -n "^- \[ \]" docs/distributed_self_healing_blueprint.md returns only intentionally deferred items with signoff metadata.
+- rg -n "Evidence|Owner|Due|Deferred-with-signoff|Trigger" docs/distributed_self_healing_blueprint.md
 
-Commit message prefix: "docs: publish weekly completion baseline report"
+Commit message prefix: "docs: reconcile self-healing blueprint open items"
 ```
 
----
-
-### Prompt E — Build upstream feature parity matrix (U1-U12)
+### Prompt R6 — Complete incident-response maturity checklist
 
 ```text
-You are working in this repository. Build and maintain upstream parity tracking for features defined in docs/upstream_blackout_feature_build_plan.md.
+You are working in this repository. Complete docs/incident_response_maturity.md remaining checklist items.
 
 Tasks:
-1) Create/update docs/development/blackout_upstream_feature_matrix.md with U1-U12 support status (unsupported/partial/complete).
-2) Add owner/due/exit/evidence fields for each unsupported or partial feature.
-3) Cross-link the matrix from docs/project_completion_tracker.md.
+1) Add concrete references/templates for impact timeline, root cause, detection improvement, prevention action, runbook updates, and learning distribution.
+2) Mark checklist items complete only when linked evidence exists.
+3) If evidence is missing, leave item open but add owner + due + next action.
 
 Validation:
-- rg -n "U1|U12|unsupported|partial|complete" docs/development/blackout_upstream_feature_matrix.md
-- rg -n "blackout_upstream_feature_matrix|upstream_blackout_feature_build_plan" docs/project_completion_tracker.md
+- rg -n "^- \[ \]" docs/incident_response_maturity.md
+- rg -n "impact|root cause|detection|prevention|runbook|learning" docs/incident_response_maturity.md
 
-Commit message prefix: "tracker: maintain upstream feature parity matrix"
+Commit message prefix: "docs: close incident response maturity checklist"
 ```
 
----
-
-### Prompt D — Final completion gate rerun
+### Prompt R7 — Turn weekly tracker template into generated weekly output
 
 ```text
-You are working in this repository. Re-run final completion gate and update docs/project_completion_closure_report.md.
+You are working in this repository. Convert docs/development/blackout_weekly_tracker_update_template.md checklist into an operational reporting workflow.
 
 Tasks:
-1) Verify open required-now items are zero or deferred-with-signoff.
-2) Verify marker budget passes and trend is non-increasing from last published week.
-3) Verify runtime-path raw N.I.E. risk remains zero in request-serving flows.
-4) Update closure report checklist statuses and recommendation.
+1) Produce a new dated weekly report in docs/reports/ using the template.
+2) Ensure report contains:
+   - marker budget enforcement status,
+   - marker delta opened/closed/net,
+   - top-hotspot DRI updates,
+   - blockers with owner + next action date.
+3) Update docs/project_completion_tracker.md to link the new report.
+4) Mark template checklist items complete where the workflow is now evidenced.
+
+Validation:
+- rg -n "^- \[ \]" docs/development/blackout_weekly_tracker_update_template.md
+- rg -n "marker budget|opened|closed|net|hotspot|blocker" docs/reports/weekly_completion_report_*.md
+
+Commit message prefix: "docs: operationalize blackout weekly tracker reporting"
+```
+
+### Prompt R8 — Final repo-wide closure gate
+
+```text
+You are working in this repository. Run a final repo-wide remaining-work gate and publish closure status.
+
+Tasks:
+1) Re-scan all open checklist items across docs + INCOMPLETE_WORK.md.
+2) Publish a closure snapshot in docs/project_completion_closure_report.md:
+   - remaining open item count by file,
+   - what is complete,
+   - what is deferred-with-signoff,
+   - go/no-go recommendation.
+3) Ensure all deferred items have owner/date/approval/trigger metadata.
 
 Validation commands:
+- rg -n "^- \[ \]" docs INCOMPLETE_WORK.md
 - python scripts-dev/check_marker_budget.py
-- rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md
-- rg -n "raise [N]otImplementedError\(" synapse
+- rg -n "Deferred-with-signoff|owner|due|approval|trigger" docs/project_completion_closure_report.md
 
-Commit message prefix: "docs: refresh completion closure gate"
+Commit message prefix: "docs: publish repo-wide remaining work closure gate"
 ```
 
-## 4) Operator command bundle (copy/paste)
+---
+
+## 4) Operator command bundle
 
 ```bash
-# A) open required-now items in completion tracker
-rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md
+# 1) global open-checklist scan
+rg -n "^- \[ \]" docs INCOMPLETE_WORK.md
 
-# B) all open items in blackout backend tracker
-rg -n "^- \[ \]" docs/development/blackout_backend_plan_tracker.md
-
-# C) marker budget + current marker total
+# 2) marker budget + marker inventory
 python scripts-dev/check_marker_budget.py
 rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l
 
-# D) runtime-path raw N.I.E. check
+# 3) runtime raw NotImplementedError sanity check
 rg -n "raise [N]otImplementedError\(" synapse
+
+# 4) highest-backlog tracker open items
+rg -n "^- \[ \]" docs/development/blackout_backend_plan_tracker.md
 ```
+
+## 5) Definition of completion for this prompt pack
+
+This pack is considered complete when:
+
+1. Every file currently containing unchecked checklist items has at least one dedicated prompt above.
+2. Prompt sequence R1→R8 can be executed independently in small PR waves.
+3. Each prompt includes explicit validation commands and commit prefix guidance.
