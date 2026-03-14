@@ -11,6 +11,13 @@ from .module import (
     BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE,
     BlackoutRuntimeModule,
 )
+from .policy_engine import (
+    DEFAULT_FEATURE_FLAGS,
+    FEDERATION_TRUST_TIER_ACLS,
+    BlackoutPolicyEngine,
+    PilotDecision,
+    RollbackCriteria,
+)
 from .runtime import BlackoutNodeRuntime
 from .server_semantics import (
     BLACKOUT_CHANNEL_TYPE_EVENT,
@@ -40,4 +47,9 @@ __all__ = [
     "ReleaseReadinessReview",
     "SecurityAuditChecklist",
     "generate_event_id",
+    "DEFAULT_FEATURE_FLAGS",
+    "FEDERATION_TRUST_TIER_ACLS",
+    "BlackoutPolicyEngine",
+    "PilotDecision",
+    "RollbackCriteria",
 ]
