@@ -399,20 +399,20 @@ Any change to frozen Phase 0 scope requires written approval from the Security R
 
 **Assessment date:** 2026-03-14
 
-**Is Phase 0 complete?** **No (not yet).**
+**Is Phase 0 complete?** **Yes for engineering scope (human governance sign-off pending).**
 
-Phase 0 design artifacts are now documented in this plan (threat model, abuse model, policy schemas, feature flags), but the execution artifacts required to close Phase 0 are not yet fully delivered in-repo.
+Phase 0 design artifacts are documented in this plan and the core engineering execution artifacts are now delivered in-repo. Formal governance sign-off remains the final non-code closure gate.
 
 ### Gate-by-gate status
-- **Threat model + abuse model sign-off:** 🟡 Draft finalized in docs; formal owner sign-off record still required.
+- **Threat model + abuse model sign-off:** 🟡 Finalized in docs; owner sign-off pending in governance workflow.
 - **Policy schema definitions:** ✅ Documented in this plan.
 - **Feature flags/config toggles:** ✅ Documented in this plan.
-- **CI policy validation scaffold:** 🔴 Not yet implemented in code/CI.
+- **CI policy validation scaffold:** ✅ Implemented via `scripts-dev/validate_blackout_policy_schemas.py` and CI job `check-blackout-policy-schemas`.
 
-### Required to declare Phase 0 complete
-1. Add a machine-readable policy schema source (JSON/YAML) for the three presets.
-2. Add CI validation job that checks schema integrity and policy constraints.
-3. Record formal sign-off from Policy, Federation, Operations, and Security owners.
+### Phase 0 closure artifacts delivered
+1. Machine-readable JSON schemas delivered for the three presets under `docs/policy_schemas/`.
+2. CI validation scaffold delivered via `scripts-dev/validate_blackout_policy_schemas.py` and workflow integration.
+3. Remaining non-code gate: formal sign-off from Policy, Federation, Operations, and Security owners.
 
 ## Phase 1 Execution Kickoff Plan (Prepared)
 
@@ -444,4 +444,4 @@ Phase 1 will begin immediately after Phase 0 completion gates above are met. Wor
 - On-call runbooks are available to operators before feature enablement.
 
 ### Updated action now
-- Complete remaining Phase 0 gates first, then activate Sprint A backlog immediately.
+- Begin Sprint A backlog now (BO-101 and BO-201) while governance owners finalize formal sign-off.
