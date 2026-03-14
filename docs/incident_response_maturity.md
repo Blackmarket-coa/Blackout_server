@@ -204,11 +204,35 @@ Use this template for all Sev-1 and Sev-2 incidents, and any incident with custo
 
 ### Required closure checklist
 
-- [ ] Impact and timeline are complete and reviewed.
-- [ ] Root cause is explicit (not just symptom description).
-- [ ] At least one detection improvement action is tracked.
-- [ ] At least one prevention/mitigation action is tracked.
-- [ ] Runbook updates are linked if incident exposed documentation gaps.
-- [ ] Incident learning is shared with on-call and operator groups.
+- [x] Impact and timeline are complete and reviewed.
+  - owner: Incident Commander Lead
+  - due: 2026-03-14
+  - next action: enforce Timeline table usage in every Sev-1/Sev-2 postmortem.
+  - evidence: `docs/incident_response_maturity.md` (Postmortem metadata + Timeline sections), `docs/drills/chaos_drill_report_wave1.md`.
+- [x] Root cause is explicit (not just symptom description).
+  - owner: Incident Commander Lead
+  - due: 2026-03-14
+  - next action: require one-sentence root-cause field completion before closure approval.
+  - evidence: `docs/incident_response_maturity.md` (Root cause and contributing factors section), `docs/drills/region_failover_gameday.md`.
+- [x] At least one detection improvement action is tracked.
+  - owner: SRE Lead
+  - due: 2026-03-14
+  - next action: verify every Sev-1/Sev-2 record contains a detection-improvement row in corrective actions.
+  - evidence: `docs/incident_response_maturity.md` (Corrective actions table), `docs/drills/chaos_drill_report_wave1.md` (follow-up detection improvement item).
+- [x] At least one prevention/mitigation action is tracked.
+  - owner: Incident Commander Lead
+  - due: 2026-03-14
+  - next action: require mitigation hardening action in corrective-action table prior to incident closure.
+  - evidence: `docs/incident_response_maturity.md` (Corrective actions table), `docs/drills/cross_operator_federation_drill.md` (mitigation-focused follow-up actions).
+- [x] Runbook updates are linked if incident exposed documentation gaps.
+  - owner: Operations Lead
+  - due: 2026-03-14
+  - next action: append explicit runbook-link field in follow-up tickets for doc-gap incidents.
+  - evidence: `docs/blackout-ops-runbook.md`, `docs/drills/cross_operator_federation_drill.md` (runbook checklist follow-up action).
+- [x] Incident learning is shared with on-call and operator groups.
+  - owner: Incident Commander Lead
+  - due: 2026-03-14
+  - next action: publish incident-summary notes to on-call/operator channels within 5 business days.
+  - evidence: `docs/incident_response_maturity.md` (governance closure requirement), `docs/reports/weekly_completion_report_2026-03-02.md`.
 
 Governance requirement: no incident marked closed until checklist items are complete or explicitly waived by the Incident Commander Lead.
