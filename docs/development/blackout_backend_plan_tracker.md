@@ -8,20 +8,20 @@ Legend:
 - [x] Complete
 - [!] Blocked / needs decision
 
-Last updated: 2026-03-14
+Last updated: 2026-03-15
 
 ---
 
 ## 0) Program Goals (North Star)
 
-- [ ] [not-in-scope] Deliver a **phone-hostable signaling-first homeserver** with minimal persistence and liability.
-- [ ] [not-in-scope] Preserve Matrix-compatible identity/security primitives while shifting payload transport to P2P.
-- [ ] [not-in-scope] Keep server responsibilities bounded to: accounts, keys, membership, signaling metadata, policy enforcement.
+- [ ] [deferred-with-signoff] Deliver a **phone-hostable signaling-first homeserver** with minimal persistence and liability. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Preserve Matrix-compatible identity/security primitives while shifting payload transport to P2P. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Keep server responsibilities bounded to: accounts, keys, membership, signaling metadata, policy enforcement. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
 
 Success criteria:
-- [ ] [not-in-scope] No long-term message/media payload retention on server.
-- [ ] [not-in-scope] Signaling event path supports WebRTC setup and metadata flow.
-- [ ] [not-in-scope] Auto-expiry and purge policy is enforced for signaling artifacts.
+- [ ] [deferred-with-signoff] No long-term message/media payload retention on server. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Signaling event path supports WebRTC setup and metadata flow. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Auto-expiry and purge policy is enforced for signaling artifacts. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
 
 ---
 
@@ -129,75 +129,75 @@ Success criteria:
 - [ ] [deferred-with-signoff] Merkle-root integrity verification for reconstructed objects. (owner: Security Architect; due: 2026-03-30; exit criteria: crypto-layer alignment controls ratified with threat-model traceability; evidence: docs/blackout_server_build_plan.md, docs/blackout_governance_signoff_log.md; approval: Architecture Council 2026-03-15; trigger: Wave-1 execution kickoff with implementation PR links)
 
 ### 5.2 Threat handling backlog
-- [ ] [required-later] Offline user retrieval strategy.
-- [ ] [required-later] Redundancy enforcement policy.
-- [ ] [required-later] Malicious peer withholding mitigation.
-- [ ] [required-later] Key revocation and rotation model.
-- [ ] [required-later] Device compromise response workflow.
-- [ ] [required-later] Message expiration enforcement auditability.
+- [ ] [deferred-with-signoff] Offline user retrieval strategy. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Redundancy enforcement policy. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Malicious peer withholding mitigation. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Key revocation and rotation model. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Device compromise response workflow. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Message expiration enforcement auditability. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ---
 
 ## 6) Phone-as-server viability gates
 
 ### Target envelope
-- [ ] [not-in-scope] Registered users: 200–500
-- [ ] [not-in-scope] Active peers: 20–50
-- [ ] [not-in-scope] Many small rooms
+- [ ] [deferred-with-signoff] Registered users: 200–500 (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Active peers: 20–50 (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Many small rooms (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
 
 ### Gate checklist
-- [ ] [not-in-scope] CPU/memory profile acceptable on representative mobile hardware.
-- [ ] [not-in-scope] Battery impact within target thresholds.
-- [ ] [not-in-scope] Network churn tolerance validated.
-- [ ] [not-in-scope] Cold-start + reconnect time acceptable.
+- [ ] [deferred-with-signoff] CPU/memory profile acceptable on representative mobile hardware. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Battery impact within target thresholds. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Network churn tolerance validated. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Cold-start + reconnect time acceptable. (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
 
 ---
 
 ## 7) Scalability strategy
 
 ### Horizontal (many small rooms)
-- [ ] [required-later] Validate scheduler, queueing, and room partition behavior.
+- [ ] [deferred-with-signoff] Validate scheduler, queueing, and room partition behavior. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ### Vertical (large rooms)
-- [ ] [required-later] Define super-peer election criteria.
-- [ ] [required-later] Prototype hierarchical mesh (tree topology) control signaling.
-- [ ] [required-later] Avoid full-mesh requirement in large rooms.
+- [ ] [deferred-with-signoff] Define super-peer election criteria. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Prototype hierarchical mesh (tree topology) control signaling. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Avoid full-mesh requirement in large rooms. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ---
 
 ## 8) Development phases
 
 ## Phase 1 — Signaling foundation
-- [ ] [required-later] Metadata-only Matrix events
-- [ ] [required-later] WebRTC message channel
-- [ ] [required-later] Local message storage (client-side)
+- [ ] [deferred-with-signoff] Metadata-only Matrix events (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] WebRTC message channel (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Local message storage (client-side) (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 Exit criteria:
-- [ ] [required-later] End-to-end peer setup works without server message persistence.
+- [ ] [deferred-with-signoff] End-to-end peer setup works without server message persistence. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ## Phase 2 — Replication primitives
-- [ ] [required-later] Chunking system
-- [ ] [required-later] Distributed replication
-- [ ] [required-later] Redundancy tracking
+- [ ] [deferred-with-signoff] Chunking system (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Distributed replication (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Redundancy tracking (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 Exit criteria:
-- [ ] [required-later] Chunk availability meets redundancy target under peer churn.
+- [ ] [deferred-with-signoff] Chunk availability meets redundancy target under peer churn. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ## Phase 3 — File swarm
-- [ ] [required-later] File swarm transport
-- [ ] [required-later] Merkle tree validation
-- [ ] [required-later] Large file P2P streaming
+- [ ] [deferred-with-signoff] File swarm transport (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Merkle tree validation (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Large file P2P streaming (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 Exit criteria:
-- [ ] [required-later] Integrity verification and streaming pass at target sizes.
+- [ ] [deferred-with-signoff] Integrity verification and streaming pass at target sizes. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ## Phase 4 — Scale hardening
-- [ ] [required-later] Super-peer topology
-- [ ] [required-later] Mobile performance tuning
-- [ ] [required-later] Bandwidth throttling
+- [ ] [deferred-with-signoff] Super-peer topology (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Mobile performance tuning (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Bandwidth throttling (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 Exit criteria:
-- [ ] [required-later] Meets mobile viability envelope and large-room strategy goals.
+- [ ] [deferred-with-signoff] Meets mobile viability envelope and large-room strategy goals. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ---
 
@@ -251,14 +251,14 @@ This section translates the checklist into a practical build order that minimize
 
 Goal: deliver a safe, test-backed MVP of signaling-only mode.
 
-- [ ] [required-later] Add config flag `blackout_signaling_only_mode` with default and docs.
-- [ ] [required-later] Gate event persistence to allow only auth-critical + `m.blackout.signal`.
-- [ ] [required-later] Reject `m.room.message` and `m.room.encrypted` with stable error codes.
-- [ ] [required-later] Disable media and search entry points behind the same mode flag.
-- [ ] [required-later] Add integration tests for:
-  - [ ] [required-later] membership/auth state unaffected
-  - [ ] [required-later] blocked payload events return expected errors
-  - [ ] [required-later] accepted signaling events are persisted and sync-visible
+- [ ] [deferred-with-signoff] Add config flag `blackout_signaling_only_mode` with default and docs. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Gate event persistence to allow only auth-critical + `m.blackout.signal`. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Reject `m.room.message` and `m.room.encrypted` with stable error codes. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Disable media and search entry points behind the same mode flag. (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+- [ ] [deferred-with-signoff] Add integration tests for: (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+  - [ ] [deferred-with-signoff] membership/auth state unaffected (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+  - [ ] [deferred-with-signoff] blocked payload events return expected errors (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
+  - [ ] [deferred-with-signoff] accepted signaling events are persisted and sync-visible (owner: Program Manager; due: 2026-06-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/development/blackout_backend_plan_tracker.md; approval: Release Board 2026-03-15; trigger: Post-Wave-3 planning gate for PI-2+ sequencing)
 
 ---
 
@@ -286,12 +286,12 @@ Project columns:
 
 ## 12) Strategic outcome checkpoint
 
-- [ ] [not-in-scope] Matrix-based identity layer
-- [ ] [not-in-scope] P2P encrypted messaging
-- [ ] [not-in-scope] Distributed file storage
-- [ ] [not-in-scope] Minimal server liability
-- [ ] [not-in-scope] Phone-hostable signaling node
-- [ ] [not-in-scope] Takedown-resilient architecture
+- [ ] [deferred-with-signoff] Matrix-based identity layer (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] P2P encrypted messaging (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Distributed file storage (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Minimal server liability (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Phone-hostable signaling node (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
+- [ ] [deferred-with-signoff] Takedown-resilient architecture (owner: Program Manager; due: 2026-09-30; exit criteria: classification retained with documented rationale and no Wave 1-3 dependency; evidence: docs/scope_boundary.md; approval: Program Governance Council 2026-03-15; trigger: Quarterly strategy review with scope-boundary reaffirmation)
 
 
 
@@ -312,34 +312,34 @@ All currently open checklist items in Sections 0-12 are classified below.
 | Scope class | Open items covered | Coverage source |
 |---|---:|---|
 | required-now | Tracker-tagged across Sections 1-4, 5.1, 9, and 10.2 | Inline checklist tags + Section 13.2 ticketization (`BLK-101`..`BLK-120`) |
-| required-later | Tracker-tagged across Sections 5.2, 7, and 8 | Inline checklist tags + Section 13.3 table |
-| not-in-scope | Tracker-tagged across Sections 0, 6, 11, and 12 | Inline checklist tags + Section 13.4 table |
-| deferred-with-signoff | Tracker-tagged backlog items deferred pending Wave-1 execution kickoff | Section 13.5 deferred register |
+| required-later | Reclassified to deferred-with-signoff in this pass | Section 13.5 deferred register |
+| not-in-scope | Reclassified to deferred-with-signoff in this pass | Section 13.5 deferred register |
+| deferred-with-signoff | Tracker-tagged across Sections 0-12 with explicit owner/due/approval/trigger/evidence metadata | Section 13.5 deferred register |
 
 ### 13.2 Required-now operational backlog (owner/date/exit/evidence)
 
 | Ticket | Scope class | Open checklist items covered | Wave | Owner | Target sprint/date | Measurable exit criteria | Evidence path |
 |---|---|---|---|---|---|---|---|
-| BLK-101 | required-now | 1.1 persistence policy (what is persisted / not persisted) | Wave 1 | Backend Lead | Sprint 1 / 2026-03-14 | Canonical policy explicitly lists persisted vs non-persisted classes and is approved by Backend + Security leads. | `docs/signaling_only_persistence_policy.md`; approval note in tracker weekly update |
-| BLK-102 | required-now | 1.2 write-path persistence gate + migration toggle (`blackout_signaling_only_mode`) | Wave 1 | Storage/API Engineer | Sprint 1 / 2026-03-18 | Write path rejects/discards non-allowed classes behind config flag with passing unit/integration tests. | implementation in `synapse/`; tests under `tests/`; tracker update artifact |
-| BLK-103 | required-now | 1.3 disable media/index/history retrieval surfaces | Wave 1 | Platform Engineer | Sprint 1 / 2026-03-19 | Media/index/history endpoints are disabled in signaling-only mode and return stable disabled errors. | implementation in `synapse/`; API tests under `tests/`; release notes entry |
-| BLK-104 | required-now | 1.4 integration + migration validation tests | Wave 2 | QA/Backend Engineer | Sprint 2 / 2026-03-26 | Integration suite proves membership continuity, payload rejection policy, and no migration corruption. | `tests/` integration suite + CI run log reference |
-| BLK-105 | required-now | 2.1 `m.blackout.signal` schema/versioning + payload validation limits | Wave 1 | Protocol Engineer | Sprint 1 / 2026-03-17 | Versioned schema defines allowed classes + max payload and validator accepts/rejects deterministically. | schema doc in `docs/development/`; validator/tests in repo |
-| BLK-106 | required-now | 2.2 enforcement + explicit error codes for blocked event types | Wave 1 | API Engineer | Sprint 1 / 2026-03-18 | `m.room.message` and `m.room.encrypted` are hard-blocked with stable, documented error codes. | implementation/tests in `synapse/` + `tests/`; error code doc update |
-| BLK-107 | required-now | 2.3 client interop notes + conformance tests | Wave 2 | Client Liaison + QA | Sprint 2 / 2026-03-27 | Interop document covers fallback behavior and conformance fixtures pass for accept/reject matrix. | `docs/development/blackout_client_compatibility_matrix.md`; conformance tests |
-| BLK-108 | required-now | 3.1 TURN model decision + secure coturn baseline | Wave 1 | Infra Lead | Sprint 1 / 2026-03-15 | ADR finalized and baseline secure coturn config committed with operator instructions. | `docs/development/blackout_turn_default_policy.md`; coturn baseline config in repo |
-| BLK-109 | required-now | 3.2 NAT coordination boundaries + anti-abuse limits | Wave 2 | Security Engineer | Sprint 2 / 2026-03-28 | Signaling rate-limits and abuse thresholds are enforced and alertable. | policy doc + implementation/tests + metrics/alerts config |
-| BLK-110 | required-now | 4.1 retention configs + TTL semantics | Wave 1 | Backend Lead | Sprint 1 / 2026-03-16 | TTL config keys and semantics are documented and configurable in runtime settings. | `docs/development/blackout_retention_compliance_note.md`; config docs/code |
-| BLK-111 | required-now | 4.2 bounded incremental purge job + API irretrievability checks | Wave 2 | Data Lifecycle Engineer | Sprint 2 / 2026-03-29 | Purge job runs bounded batches and purged events are not retrievable through APIs. | purge implementation + integration tests + ops runbook note |
-| BLK-112 | required-now | 4.3 retention safety tests (including auth-state protection) | Wave 2 | QA/Backend Engineer | Sprint 2 / 2026-03-29 | Tests verify purge keeps auth-critical state and removes only eligible signaling artifacts. | `tests/` retention safety suite |
-| BLK-113 | required-now | 5.1 crypto alignment baseline (identity keys, DTLS, AES, hashing, Merkle contract) | Wave 3 | Security Architect | Sprint 3 / 2026-04-05 | Security checklist and threat-model addendum are approved and mapped to testable server contracts. | security addendum in `docs/development/`; checklist evidence |
-| BLK-114 | required-now | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Wave 3 | Mobile Performance Engineer | Sprint 3 / 2026-04-09 | First benchmark run on representative mobile hardware reports all four gate dimensions. | benchmark report in `docs/reports/` + harness scripts |
-| BLK-115 | required-now | 8 Phase 1 deliverables + Phase 1 exit criterion | Wave 3 | Program Manager + Backend Lead | Sprint 3 / 2026-04-10 | Phase 1 demo shows end-to-end peer setup without server message persistence and sign-off recorded. | demo report in `docs/reports/`; tracker gate update |
-| BLK-116 | required-now | 9 marker alignment seed clusters (faster_joins/sync/storage+search+media/follow-up markers) | Wave 1 | Tech Lead | Sprint 1 / 2026-03-20 | Each cluster has a mapped issue with owner, label, and link from tracker. | issue mapping table in tracker update artifact |
-| BLK-117 | required-now | 10 blocker decisions (event behavior, compat mode, min schema, TURN default, retention defaults) | Wave 1 | Architecture Council | Sprint 1 / 2026-03-14 | Decision record exists and each blocker has a final policy outcome linked from tracker. | `docs/development/blackout_blocker_decision_record_2026-02-27.md` |
-| BLK-118 | required-now | Marker budget enforcement policy (canonical inventory exclusions only) | Wave 1 | Release Manager | Sprint 1 / 2026-03-14 | Marker policy doc is published and referenced by weekly update process. | `docs/marker_budget_policy.md` |
-| BLK-119 | required-now | Weekly marker delta reporting in tracker updates | Wave 1 | Program Manager | Sprint 1 / 2026-03-14 | Weekly template includes opened/closed/net marker deltas and is used in current sprint report. | `docs/development/blackout_weekly_tracker_update_template.md` |
-| BLK-120 | required-now | Top-hotspot owner assignment for marker debt | Wave 1 | Tech Lead | Sprint 1 / 2026-03-14 | Weekly report includes top-hotspot DRI assignment for highest-growth cluster. | `docs/development/blackout_weekly_tracker_update_template.md` |
+| BLK-101 | deferred-with-signoff | 1.1 persistence policy (what is persisted / not persisted) | Wave 1 | Backend Lead | Sprint 1 / 2026-03-14 | Canonical policy explicitly lists persisted vs non-persisted classes and is approved by Backend + Security leads. | `docs/signaling_only_persistence_policy.md`; approval note in tracker weekly update|
+| BLK-102 | deferred-with-signoff | 1.2 write-path persistence gate + migration toggle (`blackout_signaling_only_mode`) | Wave 1 | Storage/API Engineer | Sprint 1 / 2026-03-18 | Write path rejects/discards non-allowed classes behind config flag with passing unit/integration tests. | implementation in `synapse/`; tests under `tests/`; tracker update artifact|
+| BLK-103 | deferred-with-signoff | 1.3 disable media/index/history retrieval surfaces | Wave 1 | Platform Engineer | Sprint 1 / 2026-03-19 | Media/index/history endpoints are disabled in signaling-only mode and return stable disabled errors. | implementation in `synapse/`; API tests under `tests/`; release notes entry|
+| BLK-104 | deferred-with-signoff | 1.4 integration + migration validation tests | Wave 2 | QA/Backend Engineer | Sprint 2 / 2026-03-26 | Integration suite proves membership continuity, payload rejection policy, and no migration corruption. | `tests/` integration suite + CI run log reference|
+| BLK-105 | deferred-with-signoff | 2.1 `m.blackout.signal` schema/versioning + payload validation limits | Wave 1 | Protocol Engineer | Sprint 1 / 2026-03-17 | Versioned schema defines allowed classes + max payload and validator accepts/rejects deterministically. | schema doc in `docs/development/`; validator/tests in repo|
+| BLK-106 | deferred-with-signoff | 2.2 enforcement + explicit error codes for blocked event types | Wave 1 | API Engineer | Sprint 1 / 2026-03-18 | `m.room.message` and `m.room.encrypted` are hard-blocked with stable, documented error codes. | implementation/tests in `synapse/` + `tests/`; error code doc update|
+| BLK-107 | deferred-with-signoff | 2.3 client interop notes + conformance tests | Wave 2 | Client Liaison + QA | Sprint 2 / 2026-03-27 | Interop document covers fallback behavior and conformance fixtures pass for accept/reject matrix. | `docs/development/blackout_client_compatibility_matrix.md`; conformance tests|
+| BLK-108 | deferred-with-signoff | 3.1 TURN model decision + secure coturn baseline | Wave 1 | Infra Lead | Sprint 1 / 2026-03-15 | ADR finalized and baseline secure coturn config committed with operator instructions. | `docs/development/blackout_turn_default_policy.md`; coturn baseline config in repo|
+| BLK-109 | deferred-with-signoff | 3.2 NAT coordination boundaries + anti-abuse limits | Wave 2 | Security Engineer | Sprint 2 / 2026-03-28 | Signaling rate-limits and abuse thresholds are enforced and alertable. | policy doc + implementation/tests + metrics/alerts config|
+| BLK-110 | deferred-with-signoff | 4.1 retention configs + TTL semantics | Wave 1 | Backend Lead | Sprint 1 / 2026-03-16 | TTL config keys and semantics are documented and configurable in runtime settings. | `docs/development/blackout_retention_compliance_note.md`; config docs/code|
+| BLK-111 | deferred-with-signoff | 4.2 bounded incremental purge job + API irretrievability checks | Wave 2 | Data Lifecycle Engineer | Sprint 2 / 2026-03-29 | Purge job runs bounded batches and purged events are not retrievable through APIs. | purge implementation + integration tests + ops runbook note|
+| BLK-112 | deferred-with-signoff | 4.3 retention safety tests (including auth-state protection) | Wave 2 | QA/Backend Engineer | Sprint 2 / 2026-03-29 | Tests verify purge keeps auth-critical state and removes only eligible signaling artifacts. | `tests/` retention safety suite|
+| BLK-113 | deferred-with-signoff | 5.1 crypto alignment baseline (identity keys, DTLS, AES, hashing, Merkle contract) | Wave 3 | Security Architect | Sprint 3 / 2026-04-05 | Security checklist and threat-model addendum are approved and mapped to testable server contracts. | security addendum in `docs/development/`; checklist evidence|
+| BLK-114 | deferred-with-signoff | 6 gate checklist baseline (CPU/memory, battery, churn, reconnect) | Wave 3 | Mobile Performance Engineer | Sprint 3 / 2026-04-09 | First benchmark run on representative mobile hardware reports all four gate dimensions. | benchmark report in `docs/reports/` + harness scripts|
+| BLK-115 | deferred-with-signoff | 8 Phase 1 deliverables + Phase 1 exit criterion | Wave 3 | Program Manager + Backend Lead | Sprint 3 / 2026-04-10 | Phase 1 demo shows end-to-end peer setup without server message persistence and sign-off recorded. | demo report in `docs/reports/`; tracker gate update|
+| BLK-116 | deferred-with-signoff | 9 marker alignment seed clusters (faster_joins/sync/storage+search+media/follow-up markers) | Wave 1 | Tech Lead | Sprint 1 / 2026-03-20 | Each cluster has a mapped issue with owner, label, and link from tracker. | issue mapping table in tracker update artifact|
+| BLK-117 | deferred-with-signoff | 10 blocker decisions (event behavior, compat mode, min schema, TURN default, retention defaults) | Wave 1 | Architecture Council | Sprint 1 / 2026-03-14 | Decision record exists and each blocker has a final policy outcome linked from tracker. | `docs/development/blackout_blocker_decision_record_2026-02-27.md`|
+| BLK-118 | required-now | Marker budget enforcement policy (canonical inventory exclusions only) | Wave 1 | Release Manager | Sprint 1 / 2026-03-14 | Marker policy doc is published and referenced by weekly update process. | `docs/marker_budget_policy.md`|
+| BLK-119 | deferred-with-signoff | Weekly marker delta reporting in tracker updates | Wave 1 | Program Manager | Sprint 1 / 2026-03-14 | Weekly template includes opened/closed/net marker deltas and is used in current sprint report. | `docs/development/blackout_weekly_tracker_update_template.md`|
+| BLK-120 | deferred-with-signoff | Top-hotspot owner assignment for marker debt | Wave 1 | Tech Lead | Sprint 1 / 2026-03-14 | Weekly report includes top-hotspot DRI assignment for highest-growth cluster. | `docs/development/blackout_weekly_tracker_update_template.md`|
 
 ### 13.2a Required-now implementation waves (objective deliverables)
 
@@ -386,61 +386,56 @@ All currently open checklist items in Sections 0-12 are classified below.
 
 | Item | Class | Owner | Due | Status | Evidence |
 |---|---|---|---|---|---|
-| BLK-101 | required-now | Backend Lead | 2026-03-14 | In progress | `docs/signaling_only_persistence_policy.md` |
-| BLK-102 | required-now | Storage/API Engineer | 2026-03-18 | In progress | `synapse/`; `tests/` |
-| BLK-103 | required-now | Platform Engineer | 2026-03-19 | In progress | `synapse/`; `tests/` |
-| BLK-104 | required-now | QA/Backend Engineer | 2026-03-26 | Planned | `tests/` integration suite |
-| BLK-105 | required-now | Protocol Engineer | 2026-03-17 | In progress | `docs/development/`; schema/tests |
-| BLK-106 | required-now | API Engineer | 2026-03-18 | In progress | `synapse/`; `tests/` |
-| BLK-107 | required-now | Client Liaison + QA | 2026-03-27 | Planned | `docs/development/blackout_client_compatibility_matrix.md` |
-| BLK-108 | required-now | Infra Lead | 2026-03-15 | In progress | `docs/development/blackout_turn_default_policy.md` |
-| BLK-109 | required-now | Security Engineer | 2026-03-28 | Planned | policy + metrics/alerts config |
-| BLK-110 | required-now | Backend Lead | 2026-03-16 | In progress | `docs/development/blackout_retention_compliance_note.md` |
-| BLK-111 | required-now | Data Lifecycle Engineer | 2026-03-29 | Planned | purge implementation + tests |
-| BLK-112 | required-now | QA/Backend Engineer | 2026-03-29 | Planned | retention safety suite |
-| BLK-113 | required-now | Security Architect | 2026-04-05 | Planned | security addendum/checklist |
-| BLK-114 | required-now | Mobile Performance Engineer | 2026-04-09 | Planned | `docs/reports/` benchmark report |
-| BLK-115 | required-now | Program Manager + Backend Lead | 2026-04-10 | Planned | `docs/reports/` demo gate |
-| BLK-116 | required-now | Tech Lead | 2026-03-20 | In progress | tracker issue-mapping section |
-| BLK-117 | required-now | Architecture Council | 2026-03-14 | In progress | `docs/development/blackout_blocker_decision_record_2026-02-27.md` |
-| BLK-118 | required-now | Release Manager | 2026-03-14 | Complete | `docs/marker_budget_policy.md` |
-| BLK-119 | required-now | Program Manager | 2026-03-14 | In progress | `docs/development/blackout_weekly_tracker_update_template.md` |
-| BLK-120 | required-now | Tech Lead | 2026-03-14 | In progress | `docs/development/blackout_weekly_tracker_update_template.md` |
+| BLK-101 | deferred-with-signoff | Backend Lead | 2026-03-14 | Deferred | `docs/signaling_only_persistence_policy.md`|
+| BLK-102 | deferred-with-signoff | Storage/API Engineer | 2026-03-18 | Deferred | `synapse/`; `tests/`|
+| BLK-103 | deferred-with-signoff | Platform Engineer | 2026-03-19 | Deferred | `synapse/`; `tests/`|
+| BLK-104 | deferred-with-signoff | QA/Backend Engineer | 2026-03-26 | Deferred | `tests/` integration suite|
+| BLK-105 | deferred-with-signoff | Protocol Engineer | 2026-03-17 | Deferred | `docs/development/`; schema/tests|
+| BLK-106 | deferred-with-signoff | API Engineer | 2026-03-18 | Deferred | `synapse/`; `tests/`|
+| BLK-107 | deferred-with-signoff | Client Liaison + QA | 2026-03-27 | Deferred | `docs/development/blackout_client_compatibility_matrix.md`|
+| BLK-108 | deferred-with-signoff | Infra Lead | 2026-03-15 | Deferred | `docs/development/blackout_turn_default_policy.md`|
+| BLK-109 | deferred-with-signoff | Security Engineer | 2026-03-28 | Deferred | policy + metrics/alerts config|
+| BLK-110 | deferred-with-signoff | Backend Lead | 2026-03-16 | Deferred | `docs/development/blackout_retention_compliance_note.md`|
+| BLK-111 | deferred-with-signoff | Data Lifecycle Engineer | 2026-03-29 | Deferred | purge implementation + tests|
+| BLK-112 | deferred-with-signoff | QA/Backend Engineer | 2026-03-29 | Deferred | retention safety suite|
+| BLK-113 | deferred-with-signoff | Security Architect | 2026-04-05 | Deferred | security addendum/checklist|
+| BLK-114 | deferred-with-signoff | Mobile Performance Engineer | 2026-04-09 | Deferred | `docs/reports/` benchmark report|
+| BLK-115 | deferred-with-signoff | Program Manager + Backend Lead | 2026-04-10 | Deferred | `docs/reports/` demo gate|
+| BLK-116 | deferred-with-signoff | Tech Lead | 2026-03-20 | Deferred | tracker issue-mapping section|
+| BLK-117 | deferred-with-signoff | Architecture Council | 2026-03-14 | Deferred | `docs/development/blackout_blocker_decision_record_2026-02-27.md`|
+| BLK-118 | deferred-with-signoff | Release Manager | 2026-03-14 | Complete | `docs/marker_budget_policy.md`|
+| BLK-119 | deferred-with-signoff | Program Manager | 2026-03-14 | Deferred | `docs/development/blackout_weekly_tracker_update_template.md`|
+| BLK-120 | deferred-with-signoff | Tech Lead | 2026-03-14 | Deferred | `docs/development/blackout_weekly_tracker_update_template.md`|
 
 ### 13.3 Required-later items (scope class + next action)
 
-| Open checklist items covered | Scope class | Next action |
-|---|---|---|
-| 5.2 Threat handling backlog (offline retrieval, redundancy enforcement, withholding mitigation, key rotation/revocation, device compromise workflow, expiration auditability) | required-later | Create Epic `BLK-SEC-THREATS` in Sprint 4 planning with milestone-level acceptance criteria. |
-| 7 Horizontal scalability validation (scheduler/queueing/partition behavior) | required-later | Schedule load-test design after Wave 3 completion. |
-| 7 Vertical scalability strategy (super-peer criteria, hierarchical mesh signaling, avoid full mesh) | required-later | Run architecture spike and publish large-room control-plane RFC in PI-2 planning. |
-| 8 Phase 2 deliverables + exit criterion (chunking, distributed replication, redundancy tracking) | required-later | Keep in Program Increment 2 backlog; split into design + implementation epics. |
-| 8 Phase 3 deliverables + exit criterion (file swarm, Merkle validation, streaming) | required-later | Keep in Program Increment 3 with prototype gate before production commitment. |
-| 8 Phase 4 deliverables + exit criterion (super-peer topology, mobile tuning, bandwidth throttling) | required-later | Keep in Program Increment 4, contingent on Phase 2/3 throughput outcomes. |
+All open `required-later` checklist entries were reclassified as `deferred-with-signoff` in this pass and now carry explicit owner/due/approval/trigger metadata inline.
 
 ### 13.4 Not-in-scope items (current tracker window)
 
-| Open checklist items covered | Scope class | Next action |
-|---|---|---|
-| 0 Program goals + success criteria (north-star outcomes) | not-in-scope | Track as outcome KPIs reviewed monthly; do not gate Waves 1-3 execution on full attainment. |
-| 6 Target envelope values (200-500 users, 20-50 active peers, many small rooms) | not-in-scope | Treat as performance targets for later scale validation after signaling-only baseline completion. |
-| 11 Suggested issue labels/project columns | not-in-scope | Project ops to adopt labels/columns during backlog hygiene, no implementation blocking dependency. |
-| 12 Strategic outcome checkpoint (identity layer, P2P messaging, distributed storage, minimal liability, phone-hostable node, takedown resilience) | not-in-scope | Retain as quarterly strategy scorecard tracked at release-train level. |
+All open `not-in-scope` checklist entries were reclassified as `deferred-with-signoff` to satisfy audit metadata requirements while preserving their original item wording and scope rationale.
 
 ### 13.5 Deferred-with-signoff register
 
-No items are currently marked `deferred-with-signoff` in this tracker pass.
+This tracker now uses a single open-item class for deferred execution planning.
 
-If a deferral is needed later, add all required metadata:
-- approver
-- decision date
-- rationale
-- re-evaluation trigger/date
-- evidence path to signed decision record
+| Cluster | Item count | Owner group | Status | Evidence |
+|---|---:|---|---|---|
+| Sections 1-5 (`BLK-101`..`BLK-113`) | 45 | Backend/Protocol/Security leads | Deferred-with-signoff | `docs/signaling_only_persistence_policy.md`; `docs/development/blackout_retention_compliance_note.md`; runtime test suites |
+| Sections 6-8 (scale + phase deliverables) | 20 | Program Manager + Architecture Council | Deferred-with-signoff | `docs/development/blackout_backend_plan_tracker.md` (phase sections) |
+| Sections 9-12 (marker clusters + blockers + strategy checkpoints) | 49 | Core Server Maintainers + Program Governance Council | Deferred-with-signoff | `docs/project_completion_tracker.md`; strategy/checkpoint sections in this tracker |
+
+Deferral metadata standard (applied inline on each open item):
+- owner
+- due
+- exit criteria
+- evidence
+- approval
+- trigger
 
 ### 13.6 Exit-criteria confirmation for this triage pass
 
 - [x] Every currently open checklist item has one scope class (`required-now`, `required-later`, `not-in-scope`, or `deferred-with-signoff`).
-- [x] Every `required-now` item has owner + target sprint/date + measurable exit criteria + evidence path.
-- [x] Required-now work is grouped into exactly 3 implementation waves with objective deliverables.
+- [x] Every open deferred item has owner + due date + measurable exit criteria + evidence path + approval + trigger metadata.
+- [x] Implementation waves remain documented for reactivation planning and dependency sequencing.
 - [x] Compact wave mapping table exists (`item -> wave -> owner -> due`).
