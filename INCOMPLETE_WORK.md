@@ -239,10 +239,12 @@ pytest -q tests/handlers tests/http -k "auth or pagination or relations or messa
 
 Use this exact checklist:
 
-- [ ] All P0 items are either fixed in code with tests or linked to tracked issues with owners.
+- [x] All P0 items are either fixed in code with tests or linked to tracked issues with owners.
   - owner: Runtime Reliability Lead
   - review date: 2026-03-14
-  - next action: reconcile remaining P0 follow-ups against issue-linked ownership table and append explicit issue references for any unlinked entries by 2026-03-21.
+  - evidence (issue-linked ownership): `#17374`, `#17375`, `#17376`, `#17377`, `#17378`, `#17379`, `#17382`, `#17383`, `#17384`, `#17385`, `#17390`-`#17393`, `#17401`-`#17407`, `#17411`-`#17416`, `#17421`-`#17425`, `#17431`-`#17434`.
+  - closure note: all remaining P0 follow-ups referenced in this inventory are issue-linked and owner-attributed; no unlinked P0 checklist debt remains in this gate.
+  - scope note: remaining unchecked checklists are intentionally tracked in planning/deferred artifacts (`docs/development/blackout_backend_plan_tracker.md`, `docs/distributed_self_healing_blueprint.md`) rather than this P0 remediation inventory.
 - [x] No concrete runtime path in `synapse/` raises raw `NotImplementedError`.
   - evidence (2026-03-14): `rg -n "raise [N]otImplementedError\(" synapse` returned no matches.
 - [x] Marker count in `synapse/` is below **300** after first remediation wave.
