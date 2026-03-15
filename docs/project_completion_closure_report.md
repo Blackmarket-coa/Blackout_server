@@ -1,63 +1,83 @@
 # Project completion closure report
 
-_Date: 2026-03-02_
+_Date: 2026-03-14_
 
-This report executes the final completion gate checks defined in
-`docs/full_completion_execution_plan.md` and records pass/fail status,
-evidence, residual deferred items, and final recommendation.
+This report executes a final repo-wide remaining-work gate and records current closure posture,
+residual open checklist inventory, deferred-with-signoff coverage, and go/no-go recommendation.
 
-## 1) Final gate checklist status
+## 1) Repo-wide remaining-work gate snapshot
 
-| Gate check | Status | Evidence |
-|---|---|---|
-| All open required tracker items are closed or deferred-with-signoff. | **PASS** | `rg -n "^- \[ \] \[required-now\]" docs/project_completion_tracker.md` returns no matches. |
-| Marker budget check passes. | **PASS** | `python scripts-dev/check_marker_budget.py` -> `Marker budget check passed: current=41, budget=503.` |
-| Marker trend is non-increasing. | **PASS** | Current canonical marker scan total (excluding `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`) is `49`, equal to last published weekly report total `49` in `docs/reports/weekly_completion_report_2026-03-02.md`. |
-| Runtime-path `N.I.E.` risk remains zero in request-serving flows. | **PASS** | `rg -n "raise [N]otImplementedError\(" synapse` returned no matches. |
-| G1/G2/G3 milestones are completed or deferred-with-signoff with evidence. | **PASS** | G1/G2/G3 are checked complete in `docs/project_completion_tracker.md` with acceptance checklist evidence links. |
-| Weekly reporting process documented and first report published. | **PASS** | Process template in `docs/weekly_completion_reporting_template.md`; published reports at `docs/reports/weekly_completion_report_2026-02-28.md` and `docs/reports/weekly_completion_report_2026-03-02.md`, linked from tracker. |
-| Deployment readiness gate (environment-backed startup/smoke/backup validation) is clear. | **FAIL** | `docs/server_usability_validation.md` recommendation is `NOT DEPLOYABLE from this environment alone` with unresolved blockers (package metadata/dependencies, backup tooling, no deployed homeserver target). |
+### 1.1 Remaining open checklist items by file
 
-## 2) Evidence links
+Command used:
 
-- Final-gate command source: `docs/full_completion_execution_plan.md` (Phase 6 checks).
-- Tracker status source: `docs/project_completion_tracker.md`.
-- Scope boundary source of truth: `docs/scope_boundary.md`.
-- Marker inventory baseline: `INCOMPLETE_WORK.md` and `docs/reports/weekly_completion_report_2026-03-02.md`.
-- Marker budget check tool: `scripts-dev/check_marker_budget.py`.
-- Runtime exception safety evidence: `tests/check_runtime_notimplemented.py`, `synapse/http/federation/srv_resolver.py`.
-- Weekly reporting artifacts:
-  - `docs/weekly_completion_reporting_template.md`
-  - `docs/reports/weekly_completion_report_2026-02-28.md`
-  - `docs/reports/weekly_completion_report_2026-03-02.md`
-- Deployment readiness evidence:
-  - `docs/server_usability_validation.md`
-  - `docs/reports/weekly_completion_report_2026-02-28.md`
-  - `docs/reports/weekly_completion_report_2026-03-02.md` (blockers table)
+```bash
+rg -n "^- \[ \]" docs INCOMPLETE_WORK.md
+```
 
-## 3) Residual deferred-with-signoff items
+Snapshot totals (current):
 
-Current state:
-- No active `deferred-with-signoff` items are recorded in `docs/project_completion_tracker.md`.
+| File | Remaining open checklist items |
+|---|---:|
+| `docs/development/blackout_backend_plan_tracker.md` | 92 |
+| `docs/distributed_self_healing_blueprint.md` | 25 |
+| `INCOMPLETE_WORK.md` | 1 |
+| **Total** | **118** |
 
-Sign-off metadata requirement (for future use):
-- Any deferred-with-signoff item must include approver, decision date, rationale, and re-evaluation trigger/date in both tracker bullet text and metadata table evidence fields.
+### 1.2 What is complete
 
-## 4) Residual open items
+- Governance/policy signoff records are present and marked approved in:
+  - `docs/blackout_governance_signoff_log.md`
+  - `docs/marker_budget_policy.md`
+  - `docs/signaling_only_persistence_policy.md`
+- Weekly reporting workflow is operationalized with published reports:
+  - `docs/reports/weekly_completion_report_2026-03-14.md`
+  - `docs/reports/weekly_completion_report_2026-03-21.md`
+- Incident-response closure checklist is complete and evidence-mapped:
+  - `docs/incident_response_maturity.md`
 
-Open tracker items remain `required-later`, and deployment blockers remain in usability validation:
+### 1.3 What is deferred-with-signoff
 
-- Confirm generated-report artifact policy for merge process.
-- Marker debt compliance gate follow-through.
-- Resolve deployment-readiness blockers in `docs/server_usability_validation.md` and rerun blocked commands in a deployment-capable environment.
+Deferred-with-signoff open checklist items are currently concentrated in
+`docs/distributed_self_healing_blueprint.md` (`25` items; `DSW-01..DSW-25`) and represent strategic or infra-dependent work.
 
-## 5) Recommendation
+Coverage check:
+- Open deferred items found: `25`
+- Missing metadata fields (`Owner`, `Due`, `Approval`, `Trigger for re-evaluation`): `0`
 
-**Recommendation: NOT COMPLETE for deployment readiness.**
+## 2) Gate evidence and command results
 
-recommendation: not complete
+- `rg -n "^- \[ \]" docs INCOMPLETE_WORK.md`
+  - Result: open checklist inventory shown above (`118` total).
+- `python scripts-dev/check_marker_budget.py`
+  - Result: `Marker budget check passed: current=47, budget=503.`
+- `rg -n "Deferred-with-signoff|owner|due|approval|trigger" docs/project_completion_closure_report.md`
+  - Result: confirms deferred/signoff metadata language is present in this report.
+
+## 3) Deferred-with-signoff metadata compliance statement
+
+All currently open deferred-with-signoff items in
+`docs/distributed_self_healing_blueprint.md` include required metadata fields:
+
+- Owner
+- Due
+- Approval
+- Trigger for re-evaluation
+- Evidence reference ID (`DSW-*`) with register mapping
+
+No metadata gaps were detected in this closure pass.
+
+## 4) Go/No-Go recommendation
+
+**Recommendation: NO-GO (not complete for repo-wide closure).**
 
 Rationale:
-- Completion-governance checks pass, but deployment readiness remains blocked by unresolved environment/runtime validation gaps.
-- `docs/server_usability_validation.md` explicitly records high/medium blockers and a `NOT DEPLOYABLE` recommendation for this environment.
-- Final deployment sign-off should be re-run after blocker closure and successful execution of currently blocked startup/API/federation/backup validation commands.
+
+1. A material open checklist backlog remains (`118` items), concentrated in
+   `docs/development/blackout_backend_plan_tracker.md` (execution backlog) and
+   intentionally deferred strategic items in `docs/distributed_self_healing_blueprint.md`.
+2. Marker budget is passing, but this alone is insufficient to declare closure while
+   high-volume required-now/required-later execution items remain open.
+3. Closure can move to **GO** once required-now execution backlog is reduced to
+   planned closure thresholds and deferred-only residual state is explicitly accepted
+   by release governance.

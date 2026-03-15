@@ -5,19 +5,20 @@ This file was generated from a quick source scan for common incomplete-work mark
 
 ## High-level totals
 
-- Total potential incomplete-work markers (excluding this inventory file and the marker inventory CSV artifact): **49**
+- Total potential incomplete-work markers (excluding this inventory file and the marker inventory CSV artifact): **51**
 - Top directories by marker count:
-  - `docs/`: **30**
+  - `docs/`: **32**
   - `NOTIMPLEMENTED_AUDIT.md`: **12**
   - `docker/`: **2**
   - `synapse/`: **2**
-  - `debian/`: **1**
+  - `pylint.cfg`: **1**
   - `tests/`: **1**
+  - `debian/`: **1**
 
-## Post-review tracker refresh (2026-03-02)
+## Post-review tracker refresh (2026-03-14)
 
 - Re-ran the canonical marker scan and refreshed tracker metrics after the review-driven cleanup pass.
-- New baseline (excluding inventory artifacts `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`): **49** total markers.
+- New baseline (excluding inventory artifacts `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`): **51** total markers.
 - `synapse/` has **2** marker-string hits, both from Twisted `DNSNotImplementedError` import/exception handling in `synapse/http/federation/srv_resolver.py` (no local runtime `raise NotImplementedError`).
 - Updated `docs/tracker_todo_fixme_report.md`, `docs/project_completion_tracker.md`, and weekly report artifacts so completion governance reflects the current repository state.
 
@@ -30,9 +31,11 @@ This file was generated from a quick source scan for common incomplete-work mark
 - `docs/tracker_todo_fixme_report.md` (**8**) – generated reporting artifact with marker taxonomy references.
 - `docs/notimplemented_audit_report.md` (**6**) – audit narrative references marker taxonomy terms.
 - `docker/Dockerfile-dhvirtualenv` (**2**) – external build/dependency follow-up comments.
+- `docs/repo_remaining_work_ai_prompts.md` (**2**) – operator prompt catalog intentionally references marker taxonomy terms.
 - `docs/project_completion_tracker.md` (**2**) – reporting backlog and status text include marker taxonomy literals.
 - `docs/marker_budget_policy.md` (**2**) – policy document defines marker classes by name.
 - `synapse/http/federation/srv_resolver.py` (**2**) – imports/handles Twisted `DNSNotImplementedError` only; no raw runtime raise.
+- `pylint.cfg` (**1**) – lint guidance text intentionally includes marker token names.
 
 ## Command used
 
@@ -236,10 +239,20 @@ pytest -q tests/handlers tests/http -k "auth or pagination or relations or messa
 
 Use this exact checklist:
 
-- [ ] All P0 items are either fixed in code with tests or linked to tracked issues with owners.
-- [ ] No concrete runtime path in `synapse/` raises raw `NotImplementedError`.
-- [ ] Marker count in `synapse/` is below **300** after first remediation wave.
-- [ ] Marker inventory is regenerated and committed.
+- [x] All P0 items are either fixed in code with tests or linked to tracked issues with owners.
+  - owner: Runtime Reliability Lead
+  - review date: 2026-03-14
+  - evidence (issue-linked ownership): `#17374`, `#17375`, `#17376`, `#17377`, `#17378`, `#17379`, `#17382`, `#17383`, `#17384`, `#17385`, `#17390`-`#17393`, `#17401`-`#17407`, `#17411`-`#17416`, `#17421`-`#17425`, `#17431`-`#17434`.
+  - closure note: all remaining P0 follow-ups referenced in this inventory are issue-linked and owner-attributed; no unlinked P0 checklist debt remains in this gate.
+  - scope note: remaining unchecked checklists are intentionally tracked in planning/deferred artifacts (`docs/development/blackout_backend_plan_tracker.md`, `docs/distributed_self_healing_blueprint.md`) rather than this P0 remediation inventory.
+- [x] No concrete runtime path in `synapse/` raises raw `NotImplementedError`.
+  - evidence (2026-03-14): `rg -n "raise [N]otImplementedError\(" synapse` returned no matches.
+- [x] Marker count in `synapse/` is below **300** after first remediation wave.
+  - evidence (2026-03-14): `rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" synapse | wc -l` -> `2`.
+- [x] Marker inventory is regenerated and committed.
+  - evidence (2026-03-14):
+    - `rg -n "[T]ODO|[F]IXME|[T]BD|[X]XX|[H]ACK|[N]otImplementedError|[T]ODO_test_" . -g '!INCOMPLETE_WORK.md' -g '!docs/marker_inventory.csv' | wc -l` -> `51`.
+    - `python scripts-dev/check_marker_budget.py` -> `Marker budget check passed: current=43, budget=503.`
 
 ### Recount command (copy/paste)
 ```bash

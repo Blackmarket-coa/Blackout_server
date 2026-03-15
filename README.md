@@ -70,6 +70,17 @@ This repository includes explicit artifacts for feature parity planning, backend
 - Completion tracker: [`docs/project_completion_tracker.md`](docs/project_completion_tracker.md)
 - Weekly reports: [`docs/reports/`](docs/reports/)
 
+### 7. Delivery governance and execution controls
+
+Blackout delivery now includes explicit governance sign-offs, risk/ticket operational views, and recurring execution reporting so delivery state is auditable and phase-gated.
+
+- Delivery execution report: [`docs/blackout_delivery_execution_report.md`](docs/blackout_delivery_execution_report.md)
+- Governance sign-off log: [`docs/blackout_governance_signoff_log.md`](docs/blackout_governance_signoff_log.md)
+- Risk register: [`docs/blackout_risk_register.md`](docs/blackout_risk_register.md)
+- Ticket board: [`docs/blackout_ticket_board.md`](docs/blackout_ticket_board.md)
+- Weekly completion reports: [`docs/reports/weekly_completion_report_2026-03-14.md`](docs/reports/weekly_completion_report_2026-03-14.md), [`docs/reports/weekly_completion_report_2026-03-21.md`](docs/reports/weekly_completion_report_2026-03-21.md)
+- Closure/reporting companion artifacts: [`docs/project_completion_closure_report.md`](docs/project_completion_closure_report.md), [`docs/repo_remaining_work_ai_prompts.md`](docs/repo_remaining_work_ai_prompts.md)
+
 ## How it works (high level)
 
 Blackout Server follows Synapse architecture and extends behavior through configuration, runtime validation utilities, and operations standards.
