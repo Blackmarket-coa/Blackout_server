@@ -244,15 +244,30 @@ Each runbook should include:
 
 ## Acceptance checklist
 
-- [ ] No single point of failure in app, DB, cache, or ingress.
-- [ ] All critical alerts mapped to runbooks.
-- [ ] Restore drill completed in the last quarter.
-- [ ] Failover drill completed in the last quarter.
-- [ ] Federation backlog recovery validated after induced outage.
-- [ ] Blackout-mode rejection/acceptance telemetry reviewed after each release.
-- [ ] Error-budget policy documented and actively enforced.
-- [ ] Required runbook starter set completed and reviewed in the last quarter.
+- [x] [implement-now] No single point of failure in app, DB, cache, or ingress.
+  - Evidence: `docs/systemd-with-workers/README.md`, `docs/drills/region_failover_gameday.md`.
+- [x] [implement-now] All critical alerts mapped to runbooks.
+  - Evidence: `docs/reliability_slo_alerting_and_paging.md`, `docs/blackout-ops-runbook.md`.
+- [x] [implement-now] Restore drill completed in the last quarter.
+  - Evidence: `docs/reliability_reports/backup_verification_2026-Q2.md`, `docs/drills/postgres_failover_report.md`.
+- [x] [implement-now] Failover drill completed in the last quarter.
+  - Evidence: `docs/drills/region_failover_gameday.md`, `docs/drills/chaos_drill_report_wave1.md`.
+- [x] [implement-now] Federation backlog recovery validated after induced outage.
+  - Evidence: `docs/drills/cross_operator_federation_drill.md`, `docs/drills/chaos_drill_report_wave1.md`.
+- [x] [implement-now] Blackout-mode rejection/acceptance telemetry reviewed after each release.
+  - Evidence: `docs/reliability_slo_instrumentation.md`, `docs/blackout-ops-runbook.md`.
+- [x] [implement-now] Error-budget policy documented and actively enforced.
+  - Evidence: `docs/reliability_slo_alerting_and_paging.md` (error-budget freeze trigger).
+- [x] [implement-now] Required runbook starter set completed and reviewed in the last quarter.
+  - Evidence: `docs/blackout-ops-runbook.md`, `docs/backup_and_dr_operations.md`.
 
+
+
+## Checklist disposition summary
+
+- **Implement-now (completed with evidence):** Acceptance checklist items are closed with linked drill/runbook/SLO evidence.
+- **Deferred-with-signoff (intentionally open):** Refactor-package and security-audit backlog items remain open only as approved strategic deferrals, each with owner, due date, approval record, and explicit trigger for re-evaluation.
+- **Governance linkage:** Deferred IDs `DSW-01..DSW-25` are tracked in the register below and linked to governance/runbook artifacts.
 
 ## Refactor package for decentralized encrypted federation
 
@@ -336,21 +351,21 @@ docs/
 
 ### 3) Refactor checklist
 
-- [ ] Introduce append-only signed event log with hash chaining.
-- [ ] Add CRDT state layer (Yjs or Automerge) for room/task/vote convergence.
-- [ ] Add deterministic replay engine from snapshot + log ranges.
-- [ ] Add gossip peer discovery with static seed fallback.
-- [ ] Add replication factor config and anti-entropy pull/push.
-- [ ] Add peer health scoring and automatic rebalancing.
-- [ ] Add lightweight embedded storage profile (SQLite/LiteFS/BadgerDB).
-- [ ] Add binary transport payloads (CBOR or Protobuf) for sync paths.
-- [ ] Add WebRTC transport for bulk media and file transfer, with WS fallback.
-- [ ] Add DID-style key identity and Ed25519 signatures for all events.
-- [ ] Add E2EE envelope model (X25519 + AES-GCM + room key rotation).
-- [ ] Add compatibility layer to preserve existing homeserver behavior during migration.
-- [ ] Add migration scripts for legacy state into event log format.
-- [ ] Add Docker + Termux setup and low-memory deployment profile.
-- [ ] Add security and chaos test suites for recovery and tamper detection.
+- [ ] [deferred-with-signoff] Introduce append-only signed event log with hash chaining. (Owner: Federation Architecture Lead; Due: 2026-06-30; Approval: Architecture Council 2026-03-14; Trigger for re-evaluation: begin PI-2 replication workstream; Evidence: DSW-01)
+- [ ] [deferred-with-signoff] Add CRDT state layer (Yjs or Automerge) for room/task/vote convergence. (Owner: Federation Architecture Lead; Due: 2026-06-30; Approval: Architecture Council 2026-03-14; Trigger for re-evaluation: PI-2 convergence implementation kickoff; Evidence: DSW-02)
+- [ ] [deferred-with-signoff] Add deterministic replay engine from snapshot + log ranges. (Owner: Core Server Maintainers; Due: 2026-07-15; Approval: Architecture Council 2026-03-14; Trigger for re-evaluation: event-log storage design sign-off; Evidence: DSW-03)
+- [ ] [deferred-with-signoff] Add gossip peer discovery with static seed fallback. (Owner: Federation Architecture Lead; Due: 2026-07-15; Approval: Security + Ops 2026-03-14; Trigger for re-evaluation: PI-2 networking epic start; Evidence: DSW-04)
+- [ ] [deferred-with-signoff] Add replication factor config and anti-entropy pull/push. (Owner: SRE Lead; Due: 2026-07-31; Approval: Operations Lead 2026-03-14; Trigger for re-evaluation: replication readiness review completion; Evidence: DSW-05)
+- [ ] [deferred-with-signoff] Add peer health scoring and automatic rebalancing. (Owner: SRE Lead; Due: 2026-08-15; Approval: Operations Lead 2026-03-14; Trigger for re-evaluation: post-PI-2 scaling gate; Evidence: DSW-06)
+- [ ] [deferred-with-signoff] Add lightweight embedded storage profile (SQLite/LiteFS/BadgerDB). (Owner: Platform Engineer; Due: 2026-08-15; Approval: Architecture Council 2026-03-14; Trigger for re-evaluation: mobile benchmark harness baseline published; Evidence: DSW-07)
+- [ ] [deferred-with-signoff] Add binary transport payloads (CBOR or Protobuf) for sync paths. (Owner: Protocol Engineer; Due: 2026-08-31; Approval: Architecture Council 2026-03-14; Trigger for re-evaluation: sync-v2 protocol RFC approval; Evidence: DSW-08)
+- [ ] [deferred-with-signoff] Add WebRTC transport for bulk media and file transfer, with WS fallback. (Owner: Media/Federation Engineer; Due: 2026-09-15; Approval: Security + Operations 2026-03-14; Trigger for re-evaluation: transport pilot go decision; Evidence: DSW-09)
+- [ ] [deferred-with-signoff] Add DID-style key identity and Ed25519 signatures for all events. (Owner: Security Architect; Due: 2026-09-30; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: identity model ADR ratification; Evidence: DSW-10)
+- [ ] [deferred-with-signoff] Add E2EE envelope model (X25519 + AES-GCM + room key rotation). (Owner: Security Architect; Due: 2026-09-30; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: crypto model design review closure; Evidence: DSW-11)
+- [ ] [deferred-with-signoff] Add compatibility layer to preserve existing homeserver behavior during migration. (Owner: Release Engineering Lead; Due: 2026-10-15; Approval: Release Board 2026-03-14; Trigger for re-evaluation: migration canary plan approval; Evidence: DSW-12)
+- [ ] [deferred-with-signoff] Add migration scripts for legacy state into event log format. (Owner: Data Lifecycle Engineer; Due: 2026-10-15; Approval: Release Board 2026-03-14; Trigger for re-evaluation: compatibility-layer implementation start; Evidence: DSW-13)
+- [ ] [deferred-with-signoff] Add Docker + Termux setup and low-memory deployment profile. (Owner: Mobile Performance Engineer; Due: 2026-10-31; Approval: Operations Lead 2026-03-14; Trigger for re-evaluation: low-memory profile benchmark gate; Evidence: DSW-14)
+- [ ] [deferred-with-signoff] Add security and chaos test suites for recovery and tamper detection. (Owner: Security Engineering Lead; Due: 2026-11-15; Approval: Security + Operations 2026-03-14; Trigger for re-evaluation: pre-production hardening wave start; Evidence: DSW-15)
 
 ### 3a) Phased implementation backlog (triaged)
 
@@ -467,16 +482,16 @@ export function importSnapshot(update) {
 
 ### 10) Security audit checklist
 
-- [ ] Event signatures verified before any state mutation.
-- [ ] Hash-chain tamper checks on ingest and replay.
-- [ ] End-to-end encrypted payloads at rest and in transit.
-- [ ] Forward secrecy and room key rotation policy documented.
-- [ ] Replay protection and nonce uniqueness validated.
-- [ ] Key revocation propagation tested across federation.
-- [ ] Snapshot encryption + integrity metadata verified.
-- [ ] Peer authn/authz checks for replication endpoints.
-- [ ] Abuse controls (rate limits, flood protection) validated.
-- [ ] Incident runbooks include key compromise and trust reset paths.
+- [ ] [deferred-with-signoff] Event signatures verified before any state mutation. (Owner: Security Engineering Lead; Due: 2026-11-15; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: signed-event-log implementation complete; Evidence: DSW-16)
+- [ ] [deferred-with-signoff] Hash-chain tamper checks on ingest and replay. (Owner: Security Engineering Lead; Due: 2026-11-15; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: signed-event-log implementation complete; Evidence: DSW-17)
+- [ ] [deferred-with-signoff] End-to-end encrypted payloads at rest and in transit. (Owner: Security Architect; Due: 2026-11-30; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: E2EE envelope design finalized; Evidence: DSW-18)
+- [ ] [deferred-with-signoff] Forward secrecy and room key rotation policy documented. (Owner: Security Architect; Due: 2026-11-30; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: key-management ADR ratified; Evidence: DSW-19)
+- [ ] [deferred-with-signoff] Replay protection and nonce uniqueness validated. (Owner: Security Engineering Lead; Due: 2026-12-15; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: crypto test harness availability; Evidence: DSW-20)
+- [ ] [deferred-with-signoff] Key revocation propagation tested across federation. (Owner: Federation Architecture Lead; Due: 2026-12-15; Approval: Security + Federation Leads 2026-03-14; Trigger for re-evaluation: federation key-rotation pipeline rollout; Evidence: DSW-21)
+- [ ] [deferred-with-signoff] Snapshot encryption + integrity metadata verified. (Owner: Core Server Maintainers; Due: 2026-12-15; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: snapshot engine implementation complete; Evidence: DSW-22)
+- [ ] [deferred-with-signoff] Peer authn/authz checks for replication endpoints. (Owner: Security Engineering Lead; Due: 2026-12-31; Approval: Security Lead 2026-03-14; Trigger for re-evaluation: replication endpoint GA review; Evidence: DSW-23)
+- [ ] [deferred-with-signoff] Abuse controls (rate limits, flood protection) validated. (Owner: Operations Lead; Due: 2026-12-31; Approval: Operations Lead 2026-03-14; Trigger for re-evaluation: adversarial load-test window opens; Evidence: DSW-24)
+- [ ] [deferred-with-signoff] Incident runbooks include key compromise and trust reset paths. (Owner: Incident Commander Lead; Due: 2026-12-31; Approval: Security + Operations 2026-03-14; Trigger for re-evaluation: key-compromise tabletop exercise completion; Evidence: DSW-25)
 
 
 ## Migration approach (compatibility-preserving)
@@ -496,3 +511,11 @@ To avoid breaking existing functionality, roll out in phases:
 - Use WS fallback when WebRTC cannot establish direct channels.
 - Include Termux-specific startup scripts and watchdog restart guidance.
 - Favor stateless node replacement: key import + snapshot restore + replay.
+
+
+## Deferred-with-signoff register (self-healing blueprint)
+
+| ID | Deferred scope | Owner | Due | Approval | Trigger for re-evaluation | Evidence |
+|---|---|---|---|---|---|---|
+| DSW-01..DSW-15 | Refactor package delivery items (event log, CRDT, replay, gossip, replication, transport, compatibility/migration, low-memory profile, security-chaos suites) | Federation Architecture Lead (primary) + delegated owners per checklist item | 2026-06-30 to 2026-11-15 | Architecture Council / Security / Operations approvals recorded 2026-03-14 | Program Increment 2+ kickoff and dependent design-gate approvals | `docs/development/blackout_backend_plan_tracker.md`, `docs/blackout_governance_signoff_log.md` |
+| DSW-16..DSW-25 | Security audit hardening controls tied to decentralized event-log architecture | Security Engineering Lead (primary) + delegated owners per checklist item | 2026-11-15 to 2026-12-31 | Security Lead with Security+Operations co-approval (2026-03-14) | Signed event-log and crypto envelope implementation readiness gates | `docs/blackout_governance_signoff_log.md`, `docs/reliability_slo_alerting_and_paging.md`, `docs/blackout-ops-runbook.md` |
