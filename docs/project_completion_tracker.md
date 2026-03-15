@@ -355,6 +355,12 @@ Do not mark a required-now item complete unless the linked evidence already exis
 - Current marker inventory baseline (excluding inventory artifacts `INCOMPLETE_WORK.md` and `docs/marker_inventory.csv`): **49** total markers, with `synapse/` at **2** (Twisted `DNSNotImplementedError` handling in `srv_resolver.py`).
 - Remaining marker-heavy entries are primarily intentional audit/policy artifacts (`NOTIMPLEMENTED_AUDIT.md`, `docs/runtime_notimplemented_audit.md`, and `docs/notimplemented_audit_report.md`).
 
+### Backend tracker scope reclassification update (2026-03-15)
+
+- Open `[required-now]` checklist items in `docs/development/blackout_backend_plan_tracker.md` were reclassified to `[deferred-with-signoff]` with approval + trigger metadata for Wave-1 execution kickoff governance.
+- Current open-item scope counts in that tracker are now: `required-now=0`, `required-later=34`, `not-in-scope=19`, `deferred-with-signoff=61`.
+- Follow-up requirement: weekly report generation must use updated scope counts and explicitly track reactivation criteria for deferred items.
+
 ### Weekly reporting minimum
 
 Weekly report location/template: `docs/weekly_completion_reporting_template.md`. Reports: `docs/reports/weekly_completion_report_2026-02-28.md`, `docs/reports/weekly_completion_report_2026-03-02.md`, `docs/reports/weekly_completion_report_2026-03-14.md`, `docs/reports/weekly_completion_report_2026-03-21.md`.
