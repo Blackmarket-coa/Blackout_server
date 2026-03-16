@@ -33,6 +33,8 @@ Last updated: 2026-03-16
 
 - Validation report: `docs/reports/phase1_validation_report.md`
 - Go/no-go decision: `docs/reports/phase2_go_no_go_decision.md`
+- Drill evidence: `docs/reports/staging_drill_report_2026-03-16.md`
+- Phase completion: `docs/reports/phase1_completion_report_2026-03-16.md`
 
 
 ## Federation compatibility test fixtures (BO-103/BO-302)

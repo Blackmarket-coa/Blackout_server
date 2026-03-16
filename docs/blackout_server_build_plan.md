@@ -450,6 +450,11 @@ Phase 1 will begin immediately after Phase 0 completion gates above are met. Wor
 - Run quarantine and rollback drills in staging.
 - Publish Phase 1 completion report against exit criteria.
 
+### BO-303 execution update (2026-03-16)
+- Rollback-safe announcement federation runbook published: `docs/ops/announcement_fanout_rollback.md`.
+- Quarantine + rollback drill executed with sign-off: `docs/reports/staging_drill_report_2026-03-16.md`.
+- Phase 1 completion report published against exit criteria: `docs/reports/phase1_completion_report_2026-03-16.md`.
+
 ### Phase 1 entry criteria (must all be true)
 - Phase 0 completion gates are closed.
 - 3-node staging federation environment is online and observable.
