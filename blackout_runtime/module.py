@@ -20,6 +20,7 @@ from .server_semantics import (
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
     REPUTATION_UPDATE_EVENT,
+    ANNOUNCEMENT_POLICY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
 )
@@ -537,6 +538,26 @@ class BlackoutRuntimeModule:
             if sender_power < required_power:
                 raise SynapseError(403, "Sender is not permitted to post in announcement room")
 
+            policy = self._announcement_policy(state_events)
+            allowed_roles = policy.get("sender_roles")
+            sender_role = event.content.get("blackout_sender_role") if isinstance(event.content, Mapping) else None
+            if isinstance(allowed_roles, list):
+                if not isinstance(sender_role, str) or sender_role not in allowed_roles:
+                    raise SynapseError(403, "Sender role is not allowed for announcement fanout")
+
+            fanout_mode = policy.get("fanout_mode", "immediate")
+            if fanout_mode == "delayed_window":
+                fanout = event.content.get("blackout_fanout") if isinstance(event.content, Mapping) else None
+                if not isinstance(fanout, Mapping):
+                    raise SynapseError(403, "Delayed fanout policy requires blackout_fanout payload")
+                delay_ms = fanout.get("delay_ms")
+                if not isinstance(delay_ms, int):
+                    raise SynapseError(403, "Delayed fanout requires integer delay_ms")
+                min_ms = policy.get("delayed_fanout_min_ms", 0)
+                max_ms = policy.get("delayed_fanout_max_ms", 0)
+                if not isinstance(min_ms, int) or not isinstance(max_ms, int) or delay_ms < min_ms or delay_ms > max_ms:
+                    raise SynapseError(403, "Delayed fanout delay_ms is outside policy bounds")
+
         return True, None
 
     async def on_new_event(self, event: Any, state_events: StateMap[Any]) -> None:
@@ -596,6 +617,19 @@ class BlackoutRuntimeModule:
             "room_id": row[1],
             "expires_at_ms": row[2],
             "purged_at_ms": row[3],
+        }
+
+    @staticmethod
+    def _announcement_policy(state_events: StateMap[Any]) -> JsonDict:
+        event = state_events.get((ANNOUNCEMENT_POLICY_EVENT, ""))
+        content = getattr(event, "content", None)
+        if isinstance(content, Mapping):
+            return dict(content)
+        return {
+            "sender_roles": ["announcer", "moderator"],
+            "fanout_mode": "immediate",
+            "delayed_fanout_min_ms": 5_000,
+            "delayed_fanout_max_ms": 30_000,
         }
 
     @staticmethod

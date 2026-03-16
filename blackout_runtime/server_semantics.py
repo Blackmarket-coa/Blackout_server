@@ -7,6 +7,7 @@ BLACKOUT_CHANNEL_TYPE_EVENT = "m.blackout.channel.type"
 GOVERNANCE_PROPOSAL_EVENT = "m.blackout.governance.proposal"
 GOVERNANCE_VOTE_EVENT = "m.blackout.governance.vote"
 REPUTATION_UPDATE_EVENT = "m.blackout.reputation.update"
+ANNOUNCEMENT_POLICY_EVENT = "m.blackout.announcement.policy"
 
 BLACKOUT_PRESENCE_ROUTE = "/_synapse/client/blackout/presence"
 
@@ -21,6 +22,12 @@ PRESET_TO_CHANNEL_TYPE = {
     "blackout_cell_space": "blackout_cell_space",
     "blackout_dead_drop_room": "blackout_dead_drop_room",
     "blackout_announcement_room": "blackout_announcement_room",
+}
+
+FEDERATION_TRUST_TIER_ACLS: Dict[str, Mapping[str, Sequence[str]]] = {
+    "local": {"allow": ["*.local"], "deny": []},
+    "partner": {"allow": ["*.local", "partner.example"], "deny": []},
+    "restricted": {"allow": ["*.local"], "deny": ["*"]},
 }
 
 
@@ -102,10 +109,18 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
             "m.room.message",
             "m.room.topic",
             BLACKOUT_CHANNEL_TYPE_EVENT,
+            ANNOUNCEMENT_POLICY_EVENT,
         ),
         extra_state_events={
             "m.room.history_visibility": {"history_visibility": "joined"},
             "m.room.guest_access": {"guest_access": "forbidden"},
+            ANNOUNCEMENT_POLICY_EVENT: {
+                "sender_roles": ["announcer", "moderator"],
+                "fanout_mode": "immediate",
+                "delayed_fanout_min_ms": 5000,
+                "delayed_fanout_max_ms": 30000,
+                "rollback_procedure_ref": "docs/ops/announcement_fanout_rollback.md",
+            },
         },
     ),
 }
@@ -135,6 +150,10 @@ class BlackoutServerSemantics:
             config["creation_content"] = dict(creation_content)
         config["creation_content"]["m.blackout.channel.type"] = channel_type
 
+        trust_tier = config["creation_content"].get("blackout.federation.trust_tier", "local")
+        if not isinstance(trust_tier, str) or trust_tier not in FEDERATION_TRUST_TIER_ACLS:
+            raise ValueError("Unsupported federation trust tier")
+
         initial_state = config.setdefault("initial_state", [])
         if not isinstance(initial_state, list):
             raise ValueError("initial_state must be a list")
@@ -154,6 +173,15 @@ class BlackoutServerSemantics:
             initial_state,
             event_type=BLACKOUT_CHANNEL_TYPE_EVENT,
             content={"channel_type": channel_type},
+        )
+        self._upsert_initial_state(
+            initial_state,
+            event_type="m.room.server_acl",
+            content={
+                "allow": list(FEDERATION_TRUST_TIER_ACLS[trust_tier]["allow"]),
+                "deny": list(FEDERATION_TRUST_TIER_ACLS[trust_tier]["deny"]),
+                "allow_ip_literals": False,
+            },
         )
 
         for event_type, content in template.extra_state_events.items():
@@ -184,6 +212,10 @@ class BlackoutServerSemantics:
 
         if event_type == REPUTATION_UPDATE_EVENT:
             self._validate_reputation_update(content)
+            return True
+
+        if event_type == ANNOUNCEMENT_POLICY_EVENT:
+            self._validate_announcement_policy(content)
             return True
 
         if channel_type and channel_type in ROOM_TEMPLATES:
@@ -254,6 +286,27 @@ class BlackoutServerSemantics:
 
         if not isinstance(content["delta"], (int, float)):
             raise ValueError("reputation update delta must be numeric")
+
+    @staticmethod
+    def _validate_announcement_policy(content: Mapping[str, object]) -> None:
+        sender_roles = content.get("sender_roles")
+        if not isinstance(sender_roles, list) or not sender_roles:
+            raise ValueError("announcement policy requires non-empty sender_roles")
+        if not all(isinstance(role, str) and role for role in sender_roles):
+            raise ValueError("announcement policy sender_roles must be non-empty strings")
+
+        fanout_mode = content.get("fanout_mode")
+        if fanout_mode not in {"immediate", "delayed_window"}:
+            raise ValueError("announcement policy fanout_mode must be immediate or delayed_window")
+
+        if fanout_mode == "delayed_window":
+            min_ms = content.get("delayed_fanout_min_ms")
+            max_ms = content.get("delayed_fanout_max_ms")
+            rollback_ref = content.get("rollback_procedure_ref")
+            if not isinstance(min_ms, int) or not isinstance(max_ms, int) or min_ms < 1 or max_ms < min_ms:
+                raise ValueError("announcement policy delayed fanout bounds are invalid")
+            if not isinstance(rollback_ref, str) or not rollback_ref:
+                raise ValueError("announcement policy delayed fanout requires rollback_procedure_ref")
 
 
 class BlackoutPresenceService:

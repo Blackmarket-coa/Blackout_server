@@ -10,7 +10,11 @@ import pytest
 from synapse.api.errors import SynapseError
 
 from blackout_runtime.module import BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE, BlackoutRuntimeModule
-from blackout_runtime.server_semantics import BLACKOUT_CHANNEL_TYPE_EVENT, GOVERNANCE_PROPOSAL_EVENT
+from blackout_runtime.server_semantics import (
+    ANNOUNCEMENT_POLICY_EVENT,
+    BLACKOUT_CHANNEL_TYPE_EVENT,
+    GOVERNANCE_PROPOSAL_EVENT,
+)
 
 
 class _DummyUser:
@@ -301,7 +305,7 @@ def test_announcement_room_sender_restrictions_enforced() -> None:
             module.check_event_allowed(
                 _DummyEvent(
                     "m.room.message",
-                    {"body": "unauthorized"},
+                    {"body": "unauthorized", "blackout_sender_role": "member"},
                     room_id="!announce:test",
                     sender="@member:test",
                     event_id="$msg1",
@@ -314,7 +318,7 @@ def test_announcement_room_sender_restrictions_enforced() -> None:
         module.check_event_allowed(
             _DummyEvent(
                 "m.room.message",
-                {"body": "authorized"},
+                {"body": "authorized", "blackout_sender_role": "announcer"},
                 room_id="!announce:test",
                 sender="@announcer:test",
                 event_id="$msg2",
@@ -324,3 +328,84 @@ def test_announcement_room_sender_restrictions_enforced() -> None:
     )
     assert allowed is True
     assert replacement_dict is None
+
+
+def test_announcement_fanout_role_and_delay_policy_gating() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_announcement_room"}),
+        (ANNOUNCEMENT_POLICY_EVENT, ""): _DummyStateEvent(
+            {
+                "sender_roles": ["announcer"],
+                "fanout_mode": "delayed_window",
+                "delayed_fanout_min_ms": 5000,
+                "delayed_fanout_max_ms": 10000,
+                "rollback_procedure_ref": "docs/ops/announcement_fanout_rollback.md",
+            }
+        ),
+        ("m.room.power_levels", ""): _DummyStateEvent(
+            {"events": {"m.room.message": 50}, "users": {"@announcer:test": 100}}
+        ),
+    }
+
+    with pytest.raises(SynapseError, match="Sender role"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.message",
+                    {"body": "x", "blackout_sender_role": "member", "blackout_fanout": {"delay_ms": 6000}},
+                    room_id="!announce:test",
+                    sender="@announcer:test",
+                    event_id="$f1",
+                ),
+                state_events,
+            )
+        )
+
+    with pytest.raises(SynapseError, match="outside policy bounds"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.message",
+                    {"body": "x", "blackout_sender_role": "announcer", "blackout_fanout": {"delay_ms": 20000}},
+                    room_id="!announce:test",
+                    sender="@announcer:test",
+                    event_id="$f2",
+                ),
+                state_events,
+            )
+        )
+
+    allowed, replacement_dict = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "x", "blackout_sender_role": "announcer", "blackout_fanout": {"delay_ms": 7000}},
+                room_id="!announce:test",
+                sender="@announcer:test",
+                event_id="$f3",
+            ),
+            state_events,
+        )
+    )
+    assert allowed is True
+    assert replacement_dict is None
+
+
+def test_federation_acl_template_compatibility_fixture() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    config = {
+        "preset": "blackout_cell_space",
+        "creation_content": {"blackout.federation.trust_tier": "partner"},
+    }
+    asyncio.run(module.on_create_room(api._requester, config, False))
+
+    by_type = {entry["type"]: entry["content"] for entry in config["initial_state"]}
+    acl = by_type["m.room.server_acl"]
+    assert "partner.example" in acl["allow"]
+    assert acl["deny"] == []
+    assert acl["allow_ip_literals"] is False
