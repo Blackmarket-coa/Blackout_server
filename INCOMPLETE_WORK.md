@@ -22,6 +22,12 @@ This file was generated from a quick source scan for common incomplete-work mark
 - `synapse/` has **2** marker-string hits, both from Twisted `DNSNotImplementedError` import/exception handling in `synapse/http/federation/srv_resolver.py` (no local runtime `raise NotImplementedError`).
 - Updated `docs/tracker_todo_fixme_report.md`, `docs/project_completion_tracker.md`, and weekly report artifacts so completion governance reflects the current repository state.
 
+## Follow-up from monetization roadmap review (2026-03-16)
+
+- Added `docs/business/14-stream-revenue-implementation-plan.md` as a strategic implementation roadmap covering 14 revenue streams over 7 phases.
+- This roadmap is planning guidance only and does **not** represent completed engineering work.
+- Execution tracking still needs to be added as phases begin (recommended next step: create per-phase work breakdown/checklist tickets and link them from this inventory).
+
 ## Representative examples to prioritize
 
 ### Highest-remaining marker files (fresh scan, excluding inventory artifacts)
