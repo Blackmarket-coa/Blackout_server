@@ -414,6 +414,18 @@ Phase 0 design artifacts are documented in this plan and the core engineering ex
 2. CI validation scaffold delivered via `scripts-dev/validate_blackout_policy_schemas.py` and workflow integration.
 3. Remaining non-code gate: formal sign-off from Policy, Federation, Operations, and Security owners.
 
+### Phase 0 sign-off record (governance gate)
+- Policy owner sign-off: Pending
+- Federation owner sign-off: Pending
+- Operations owner sign-off: Pending
+- Security owner sign-off: Pending
+- Sign-off evidence pack:
+  - `docs/policy/blackout_cell_space_template.md`
+  - `docs/ops/staging_federation_topology.md`
+  - `docs/reports/phase1_validation_report.md`
+  - `docs/reports/phase2_go_no_go_decision.md`
+
+
 ## Phase 1 Execution Kickoff Plan (Prepared)
 
 Phase 1 will begin immediately after Phase 0 completion gates above are met. Work can be pre-staged now.
