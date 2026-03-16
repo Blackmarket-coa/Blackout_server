@@ -90,6 +90,7 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
         power_levels={"events_default": 0, "state_default": 100},
         allowed_event_types=(
             "m.room.message",
+            "m.room.member",
             BLACKOUT_CHANNEL_TYPE_EVENT,
         ),
         extra_state_events={

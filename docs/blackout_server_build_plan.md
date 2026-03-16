@@ -462,3 +462,10 @@ Phase 1 will begin immediately after Phase 0 completion gates above are met. Wor
 
 ### Updated action now
 - Begin Sprint A backlog now (BO-101 and BO-201) while governance owners finalize formal sign-off.
+
+### Risk-order execution update (2026-03-16)
+- BO-203 executed: dead-drop invite/join quota guardrails + anomaly hooks added in runtime module and tests.
+- BO-4xx advanced: feature-flag-friendly jitter batching worker skeleton added (`blackout_runtime/jitter_worker.py`).
+- BO-5xx executed: steganography decision record + media integrity checklist published.
+- BO-6xx advanced: edge homeserver profile, edge federation tuning guide, and relay/bridge assumptions published.
+- Consolidated report: `docs/reports/bo_backlog_risk_order_execution_2026-03-16.md`.

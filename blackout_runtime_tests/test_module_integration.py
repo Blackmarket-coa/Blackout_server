@@ -409,3 +409,72 @@ def test_federation_acl_template_compatibility_fixture() -> None:
     assert "partner.example" in acl["allow"]
     assert acl["deny"] == []
     assert acl["allow_ip_literals"] is False
+
+
+def test_dead_drop_invite_join_quota_guardrails_and_anomaly_hook() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    module._dead_drop_invite_rate_limit_per_minute = 1
+    module._dead_drop_join_rate_limit_per_minute = 1
+
+    state_events = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_dead_drop_room"})}
+
+    allowed, _ = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.member",
+                {"membership": "invite"},
+                room_id="!dd:test",
+                sender="@alice:test",
+                event_id="$i1",
+            ),
+            state_events,
+        )
+    )
+    assert allowed is True
+
+    with pytest.raises(SynapseError, match="invite rate limit"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.member",
+                    {"membership": "invite"},
+                    room_id="!dd:test",
+                    sender="@alice:test",
+                    event_id="$i2",
+                ),
+                state_events,
+            )
+        )
+
+    anomalies = module.drain_anomaly_events()
+    assert anomalies and anomalies[0]["type"] == "dead_drop_membership_rate_exceeded"
+
+    allowed, _ = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.member",
+                {"membership": "join"},
+                room_id="!dd:test",
+                sender="@bob:test",
+                event_id="$j1",
+            ),
+            state_events,
+        )
+    )
+    assert allowed is True
+
+    with pytest.raises(SynapseError, match="join rate limit"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.member",
+                    {"membership": "join"},
+                    room_id="!dd:test",
+                    sender="@bob:test",
+                    event_id="$j2",
+                ),
+                state_events,
+            )
+        )

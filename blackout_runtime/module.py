@@ -30,6 +30,7 @@ DEAD_DROP_CHANNEL_TYPE = "blackout_dead_drop_room"
 ANNOUNCEMENT_CHANNEL_TYPE = "blackout_announcement_room"
 DEAD_DROP_MESSAGE_EVENT_TYPE = "m.room.message"
 ANNOUNCEMENT_MESSAGE_EVENT_TYPE = "m.room.message"
+ROOM_MEMBER_EVENT_TYPE = "m.room.member"
 
 
 
@@ -413,6 +414,10 @@ class BlackoutRuntimeModule:
         self._backfilled_nodes: Set[str] = set()
         self._dead_drop_ttl_hours = int(config.get("dead_drop_ttl_hours", 24))
         self._dead_drop_purge_batch_size = int(config.get("dead_drop_purge_batch_size", 100))
+        self._dead_drop_invite_rate_limit_per_minute = int(config.get("dead_drop_invite_rate_limit_per_minute", 20))
+        self._dead_drop_join_rate_limit_per_minute = int(config.get("dead_drop_join_rate_limit_per_minute", 30))
+        self._dead_drop_membership_times: Dict[Tuple[str, str], Deque[int]] = defaultdict(deque)
+        self._anomaly_events: List[JsonDict] = []
 
         db_path = Path(str(config.get("persistence_path", "/tmp/blackout_runtime.sqlite3")))
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -558,6 +563,11 @@ class BlackoutRuntimeModule:
                 if not isinstance(min_ms, int) or not isinstance(max_ms, int) or delay_ms < min_ms or delay_ms > max_ms:
                     raise SynapseError(403, "Delayed fanout delay_ms is outside policy bounds")
 
+        if channel_type == DEAD_DROP_CHANNEL_TYPE and event.type == ROOM_MEMBER_EVENT_TYPE and isinstance(event.content, Mapping):
+            membership = event.content.get("membership")
+            if membership in {"invite", "join"} and isinstance(sender, str) and sender:
+                self._enforce_dead_drop_membership_quota(sender=sender, membership=membership, now_s=now)
+
         return True, None
 
     async def on_new_event(self, event: Any, state_events: StateMap[Any]) -> None:
@@ -618,6 +628,36 @@ class BlackoutRuntimeModule:
             "expires_at_ms": row[2],
             "purged_at_ms": row[3],
         }
+
+    def _enforce_dead_drop_membership_quota(self, *, sender: str, membership: str, now_s: int) -> None:
+        key = (sender, membership)
+        q = self._dead_drop_membership_times[key]
+        while q and q[0] <= now_s - 60:
+            q.popleft()
+
+        limit = (
+            self._dead_drop_invite_rate_limit_per_minute
+            if membership == "invite"
+            else self._dead_drop_join_rate_limit_per_minute
+        )
+        if len(q) >= limit:
+            self._anomaly_events.append(
+                {
+                    "ts": now_s,
+                    "type": "dead_drop_membership_rate_exceeded",
+                    "sender": sender,
+                    "membership": membership,
+                    "limit": limit,
+                }
+            )
+            raise SynapseError(429, f"Dead-drop {membership} rate limit exceeded")
+
+        q.append(now_s)
+
+    def drain_anomaly_events(self) -> List[JsonDict]:
+        drained = list(self._anomaly_events)
+        self._anomaly_events.clear()
+        return drained
 
     @staticmethod
     def _announcement_policy(state_events: StateMap[Any]) -> JsonDict:
