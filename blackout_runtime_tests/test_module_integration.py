@@ -141,6 +141,18 @@ def test_on_create_room_callback_applies_template_state() -> None:
     assert by_type[BLACKOUT_CHANNEL_TYPE_EVENT]["channel_type"] == "governance"
 
 
+def test_on_create_room_callback_wires_dead_drop_preset() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    config = {"preset": "blackout_dead_drop_room"}
+    asyncio.run(module.on_create_room(api._requester, config, False))
+
+    assert config["creation_content"]["m.blackout.channel.type"] == "blackout_dead_drop_room"
+    initial_state = {entry["type"]: entry["content"] for entry in config["initial_state"]}
+    assert initial_state["m.room.join_rules"]["join_rule"] == "invite"
+    assert initial_state["m.room.history_visibility"]["history_visibility"] == "joined"
+
 def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote() -> None:
     api = _FakeModuleApi()
     module = _build_module(api)

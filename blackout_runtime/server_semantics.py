@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Mapping, MutableMapping, Sequence
 
 BLACKOUT_CHANNEL_TYPE_EVENT = "m.blackout.channel.type"
@@ -17,12 +17,18 @@ _ALLOWED_PRESENCE = {
     "in_governance_session",
 }
 
+PRESET_TO_CHANNEL_TYPE = {
+    "blackout_cell_space": "blackout_cell_space",
+    "blackout_dead_drop_room": "blackout_dead_drop_room",
+}
+
 
 @dataclass(frozen=True)
 class RoomTemplate:
     join_rule: str
     power_levels: Mapping[str, object]
     allowed_event_types: Sequence[str]
+    extra_state_events: Mapping[str, Mapping[str, object]] = field(default_factory=dict)
 
 
 ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
@@ -57,6 +63,32 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
             BLACKOUT_CHANNEL_TYPE_EVENT,
         ),
     ),
+    "blackout_cell_space": RoomTemplate(
+        join_rule="invite",
+        power_levels={"events_default": 0, "state_default": 100},
+        allowed_event_types=(
+            "m.room.topic",
+            "m.space.child",
+            "m.space.parent",
+            BLACKOUT_CHANNEL_TYPE_EVENT,
+        ),
+        extra_state_events={
+            "m.room.guest_access": {"guest_access": "forbidden"},
+            "m.room.history_visibility": {"history_visibility": "joined"},
+        },
+    ),
+    "blackout_dead_drop_room": RoomTemplate(
+        join_rule="invite",
+        power_levels={"events_default": 0, "state_default": 100},
+        allowed_event_types=(
+            "m.room.message",
+            BLACKOUT_CHANNEL_TYPE_EVENT,
+        ),
+        extra_state_events={
+            "m.room.history_visibility": {"history_visibility": "joined"},
+            "m.room.guest_access": {"guest_access": "forbidden"},
+        },
+    ),
 }
 
 
@@ -70,11 +102,19 @@ class BlackoutServerSemantics:
 
         channel_type = creation_content.get("m.blackout.channel.type")
         if channel_type is None:
-            return
+            preset = config.get("preset")
+            if isinstance(preset, str):
+                channel_type = PRESET_TO_CHANNEL_TYPE.get(preset)
+            if channel_type is None:
+                return
 
         template = ROOM_TEMPLATES.get(str(channel_type))
         if template is None:
             raise ValueError(f"Unsupported blackout channel type: {channel_type}")
+
+        if "creation_content" not in config or not isinstance(config["creation_content"], MutableMapping):
+            config["creation_content"] = dict(creation_content)
+        config["creation_content"]["m.blackout.channel.type"] = channel_type
 
         initial_state = config.setdefault("initial_state", [])
         if not isinstance(initial_state, list):
@@ -96,6 +136,13 @@ class BlackoutServerSemantics:
             event_type=BLACKOUT_CHANNEL_TYPE_EVENT,
             content={"channel_type": channel_type},
         )
+
+        for event_type, content in template.extra_state_events.items():
+            self._upsert_initial_state(
+                initial_state,
+                event_type=event_type,
+                content=content,
+            )
 
     def check_event_allowed(
         self,

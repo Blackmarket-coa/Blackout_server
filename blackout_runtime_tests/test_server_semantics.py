@@ -11,7 +11,7 @@ from blackout_runtime.server_semantics import (
 )
 
 
-@pytest.mark.parametrize("channel_type", ["voice", "forum", "governance", "dispute"])
+@pytest.mark.parametrize("channel_type", ["voice", "forum", "governance", "dispute", "blackout_cell_space", "blackout_dead_drop_room"])
 def test_on_create_room_enforces_template(channel_type: str) -> None:
     semantics = BlackoutServerSemantics()
     config = {"creation_content": {"m.blackout.channel.type": channel_type}}
@@ -111,3 +111,30 @@ def test_extended_presence_endpoint_and_states() -> None:
 
     with pytest.raises(ValueError, match="Unsupported blackout presence state"):
         presence.set_presence("@alice:test", "online")
+
+
+def test_on_create_room_preset_wiring_for_cell_and_dead_drop() -> None:
+    semantics = BlackoutServerSemantics()
+
+    cell_config = {"preset": "blackout_cell_space"}
+    semantics.on_create_room(cell_config)
+    cell_state = {event["type"]: event["content"] for event in cell_config["initial_state"]}
+    assert cell_config["creation_content"]["m.blackout.channel.type"] == "blackout_cell_space"
+    assert cell_state["m.room.join_rules"]["join_rule"] == "invite"
+    assert cell_state["m.room.guest_access"]["guest_access"] == "forbidden"
+
+    dead_drop_config = {"preset": "blackout_dead_drop_room"}
+    semantics.on_create_room(dead_drop_config)
+    dead_drop_state = {event["type"]: event["content"] for event in dead_drop_config["initial_state"]}
+    assert dead_drop_config["creation_content"]["m.blackout.channel.type"] == "blackout_dead_drop_room"
+    assert dead_drop_state["m.room.join_rules"]["join_rule"] == "invite"
+    assert dead_drop_state["m.room.history_visibility"]["history_visibility"] == "joined"
+
+
+def test_dead_drop_template_blocks_unapproved_event_types() -> None:
+    semantics = BlackoutServerSemantics()
+
+    with pytest.raises(ValueError, match="not allowed"):
+        semantics.check_event_allowed(
+            "m.room.topic", {"topic": "not allowed"}, channel_type="blackout_dead_drop_room"
+        )
