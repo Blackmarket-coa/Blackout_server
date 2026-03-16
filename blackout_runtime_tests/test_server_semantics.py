@@ -11,7 +11,7 @@ from blackout_runtime.server_semantics import (
 )
 
 
-@pytest.mark.parametrize("channel_type", ["voice", "forum", "governance", "dispute", "blackout_cell_space", "blackout_dead_drop_room"])
+@pytest.mark.parametrize("channel_type", ["voice", "forum", "governance", "dispute", "blackout_cell_space", "blackout_dead_drop_room", "blackout_announcement_room"])
 def test_on_create_room_enforces_template(channel_type: str) -> None:
     semantics = BlackoutServerSemantics()
     config = {"creation_content": {"m.blackout.channel.type": channel_type}}
@@ -137,4 +137,18 @@ def test_dead_drop_template_blocks_unapproved_event_types() -> None:
     with pytest.raises(ValueError, match="not allowed"):
         semantics.check_event_allowed(
             "m.room.topic", {"topic": "not allowed"}, channel_type="blackout_dead_drop_room"
+        )
+
+
+def test_announcement_preset_history_visibility_and_event_allowlist() -> None:
+    semantics = BlackoutServerSemantics()
+    config = {"preset": "blackout_announcement_room"}
+    semantics.on_create_room(config)
+
+    by_type = {entry["type"]: entry["content"] for entry in config["initial_state"]}
+    assert by_type["m.room.history_visibility"]["history_visibility"] == "joined"
+
+    with pytest.raises(ValueError, match="not allowed"):
+        semantics.check_event_allowed(
+            "m.room.encrypted", {"ciphertext": "x"}, channel_type="blackout_announcement_room"
         )

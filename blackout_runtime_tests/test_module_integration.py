@@ -229,3 +229,98 @@ def test_presence_and_blackout_synapse_api_resources() -> None:
     code, body = asyncio.run(node_resource._async_render_GET(_DummyRequest()))
     assert code == 200
     assert body["node_id"] == "node-1"
+
+
+def test_dead_drop_retention_purge_schedules_and_purges_by_ttl() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_dead_drop_room"})}
+
+    asyncio.run(
+        module.on_new_event(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "expired"},
+                room_id="!dd:test",
+                sender="@alice:test",
+                event_id="$dd1",
+            ),
+            state_events,
+        )
+    )
+    asyncio.run(
+        module.on_new_event(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "fresh"},
+                room_id="!dd:test",
+                sender="@alice:test",
+                event_id="$dd2",
+            ),
+            state_events,
+        )
+    )
+
+    module._conn.execute(
+        "UPDATE blackout_dead_drop_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (1_000, "$dd1"),
+    )
+    module._conn.execute(
+        "UPDATE blackout_dead_drop_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (9_999_999, "$dd2"),
+    )
+    module._conn.commit()
+
+    purged = module.run_dead_drop_purge(now_ms=2_000)
+    assert [item["event_id"] for item in purged] == ["$dd1"]
+    assert purged[0]["tombstone_event_type"] == "m.room.tombstone"
+
+    dd1 = module.get_dead_drop_retention_record("$dd1")
+    dd2 = module.get_dead_drop_retention_record("$dd2")
+    assert dd1 is not None and dd1["purged_at_ms"] == 2_000
+    assert dd2 is not None and dd2["purged_at_ms"] is None
+
+
+def test_announcement_room_sender_restrictions_enforced() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    restricted_state = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_announcement_room"}),
+        ("m.room.power_levels", ""): _DummyStateEvent(
+            {
+                "events": {"m.room.message": 50},
+                "users": {"@announcer:test": 100, "@member:test": 0},
+            }
+        ),
+    }
+
+    with pytest.raises(SynapseError, match="not permitted"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.message",
+                    {"body": "unauthorized"},
+                    room_id="!announce:test",
+                    sender="@member:test",
+                    event_id="$msg1",
+                ),
+                restricted_state,
+            )
+        )
+
+    allowed, replacement_dict = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "authorized"},
+                room_id="!announce:test",
+                sender="@announcer:test",
+                event_id="$msg2",
+            ),
+            restricted_state,
+        )
+    )
+    assert allowed is True
+    assert replacement_dict is None

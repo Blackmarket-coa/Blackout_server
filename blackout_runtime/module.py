@@ -25,6 +25,11 @@ from .server_semantics import (
 )
 
 BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE = "m.blackout.presence"
+DEAD_DROP_CHANNEL_TYPE = "blackout_dead_drop_room"
+ANNOUNCEMENT_CHANNEL_TYPE = "blackout_announcement_room"
+DEAD_DROP_MESSAGE_EVENT_TYPE = "m.room.message"
+ANNOUNCEMENT_MESSAGE_EVENT_TYPE = "m.room.message"
+
 
 
 @dataclass
@@ -405,6 +410,8 @@ class BlackoutRuntimeModule:
         self._attestation_times: Dict[Tuple[str, str], int] = {}
         self._backfilled_rooms: Set[str] = set()
         self._backfilled_nodes: Set[str] = set()
+        self._dead_drop_ttl_hours = int(config.get("dead_drop_ttl_hours", 24))
+        self._dead_drop_purge_batch_size = int(config.get("dead_drop_purge_batch_size", 100))
 
         db_path = Path(str(config.get("persistence_path", "/tmp/blackout_runtime.sqlite3")))
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -414,6 +421,9 @@ class BlackoutRuntimeModule:
         )
         self._conn.execute(
             "CREATE TABLE IF NOT EXISTS blackout_reputation_updates (event_id TEXT PRIMARY KEY, node_id TEXT NOT NULL, delta REAL NOT NULL, reason TEXT NOT NULL, rating REAL, attestation_status TEXT, governance_standing TEXT)"
+        )
+        self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS blackout_dead_drop_retention (event_id TEXT PRIMARY KEY, room_id TEXT NOT NULL, expires_at_ms INTEGER NOT NULL, purged_at_ms INTEGER)"
         )
         self._conn.commit()
 
@@ -519,12 +529,106 @@ class BlackoutRuntimeModule:
                     raise SynapseError(429, "Attestation update cooldown active")
                 self._attestation_times[key] = now
 
+        if channel_type == ANNOUNCEMENT_CHANNEL_TYPE and event.type == ANNOUNCEMENT_MESSAGE_EVENT_TYPE:
+            if not isinstance(sender, str) or not sender:
+                raise SynapseError(403, "Announcement sender identity required")
+            sender_power = self._sender_power_level(sender, state_events)
+            required_power = self._required_event_power_level(event.type, state_events)
+            if sender_power < required_power:
+                raise SynapseError(403, "Sender is not permitted to post in announcement room")
+
         return True, None
 
     async def on_new_event(self, event: Any, state_events: StateMap[Any]) -> None:
-        del state_events
+        channel_type = self._extract_channel_type(state_events)
+        if channel_type == DEAD_DROP_CHANNEL_TYPE and event.type == DEAD_DROP_MESSAGE_EVENT_TYPE:
+            event_ts_ms = getattr(event, "origin_server_ts", None)
+            if not isinstance(event_ts_ms, int):
+                event_ts_ms = int(time.time() * 1000)
+            expires_at_ms = event_ts_ms + (self._dead_drop_ttl_hours * 3_600_000)
+            self._conn.execute(
+                "INSERT OR IGNORE INTO blackout_dead_drop_retention (event_id, room_id, expires_at_ms, purged_at_ms) VALUES (?, ?, ?, NULL)",
+                (event.event_id, event.room_id, expires_at_ms),
+            )
+            self._conn.commit()
+
         self._decisions.ingest_event(event)
         self._reputation.ingest_event(event)
+
+    def run_dead_drop_purge(self, *, now_ms: Optional[int] = None) -> List[JsonDict]:
+        if now_ms is None:
+            now_ms = int(time.time() * 1000)
+
+        rows = self._conn.execute(
+            "SELECT event_id, room_id, expires_at_ms FROM blackout_dead_drop_retention WHERE purged_at_ms IS NULL AND expires_at_ms <= ? ORDER BY expires_at_ms ASC LIMIT ?",
+            (now_ms, self._dead_drop_purge_batch_size),
+        ).fetchall()
+
+        purged: List[JsonDict] = []
+        for event_id, room_id, expires_at_ms in rows:
+            self._conn.execute(
+                "UPDATE blackout_dead_drop_retention SET purged_at_ms = ? WHERE event_id = ?",
+                (now_ms, event_id),
+            )
+            purged.append(
+                {
+                    "event_id": event_id,
+                    "room_id": room_id,
+                    "expires_at_ms": expires_at_ms,
+                    "purged_at_ms": now_ms,
+                    "tombstone_event_type": "m.room.tombstone",
+                }
+            )
+
+        if rows:
+            self._conn.commit()
+        return purged
+
+    def get_dead_drop_retention_record(self, event_id: str) -> Optional[JsonDict]:
+        row = self._conn.execute(
+            "SELECT event_id, room_id, expires_at_ms, purged_at_ms FROM blackout_dead_drop_retention WHERE event_id = ?",
+            (event_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {
+            "event_id": row[0],
+            "room_id": row[1],
+            "expires_at_ms": row[2],
+            "purged_at_ms": row[3],
+        }
+
+    @staticmethod
+    def _sender_power_level(sender: str, state_events: StateMap[Any]) -> int:
+        event = state_events.get(("m.room.power_levels", ""))
+        content = getattr(event, "content", None)
+        if not isinstance(content, Mapping):
+            return 0
+        users = content.get("users")
+        if isinstance(users, Mapping):
+            level = users.get(sender)
+            if isinstance(level, int):
+                return level
+        users_default = content.get("users_default")
+        if isinstance(users_default, int):
+            return users_default
+        return 0
+
+    @staticmethod
+    def _required_event_power_level(event_type: str, state_events: StateMap[Any]) -> int:
+        event = state_events.get(("m.room.power_levels", ""))
+        content = getattr(event, "content", None)
+        if not isinstance(content, Mapping):
+            return 50
+        events = content.get("events")
+        if isinstance(events, Mapping):
+            required = events.get(event_type)
+            if isinstance(required, int):
+                return required
+        events_default = content.get("events_default")
+        if isinstance(events_default, int):
+            return events_default
+        return 50
 
     @staticmethod
     def _extract_channel_type(state_events: StateMap[Any]) -> str | None:

@@ -20,6 +20,7 @@ _ALLOWED_PRESENCE = {
 PRESET_TO_CHANNEL_TYPE = {
     "blackout_cell_space": "blackout_cell_space",
     "blackout_dead_drop_room": "blackout_dead_drop_room",
+    "blackout_announcement_room": "blackout_announcement_room",
 }
 
 
@@ -82,6 +83,24 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
         power_levels={"events_default": 0, "state_default": 100},
         allowed_event_types=(
             "m.room.message",
+            BLACKOUT_CHANNEL_TYPE_EVENT,
+        ),
+        extra_state_events={
+            "m.room.history_visibility": {"history_visibility": "joined"},
+            "m.room.guest_access": {"guest_access": "forbidden"},
+            "m.room.retention": {"max_lifetime": 86_400_000},
+        },
+    ),
+    "blackout_announcement_room": RoomTemplate(
+        join_rule="invite",
+        power_levels={
+            "events_default": 50,
+            "state_default": 100,
+            "events": {"m.room.message": 50},
+        },
+        allowed_event_types=(
+            "m.room.message",
+            "m.room.topic",
             BLACKOUT_CHANNEL_TYPE_EVENT,
         ),
         extra_state_events={
