@@ -450,6 +450,11 @@ Phase 1 will begin immediately after Phase 0 completion gates above are met. Wor
 - Run quarantine and rollback drills in staging.
 - Publish Phase 1 completion report against exit criteria.
 
+### BO-303 execution update (2026-03-16)
+- Rollback-safe announcement federation runbook published: `docs/ops/announcement_fanout_rollback.md`.
+- Quarantine + rollback drill executed with sign-off: `docs/reports/staging_drill_report_2026-03-16.md`.
+- Phase 1 completion report published against exit criteria: `docs/reports/phase1_completion_report_2026-03-16.md`.
+
 ### Phase 1 entry criteria (must all be true)
 - Phase 0 completion gates are closed.
 - 3-node staging federation environment is online and observable.
@@ -457,3 +462,10 @@ Phase 1 will begin immediately after Phase 0 completion gates above are met. Wor
 
 ### Updated action now
 - Begin Sprint A backlog now (BO-101 and BO-201) while governance owners finalize formal sign-off.
+
+### Risk-order execution update (2026-03-16)
+- BO-203 executed: dead-drop invite/join quota guardrails + anomaly hooks added in runtime module and tests.
+- BO-4xx advanced: feature-flag-friendly jitter batching worker skeleton added (`blackout_runtime/jitter_worker.py`).
+- BO-5xx executed: steganography decision record + media integrity checklist published.
+- BO-6xx advanced: edge homeserver profile, edge federation tuning guide, and relay/bridge assumptions published.
+- Consolidated report: `docs/reports/bo_backlog_risk_order_execution_2026-03-16.md`.

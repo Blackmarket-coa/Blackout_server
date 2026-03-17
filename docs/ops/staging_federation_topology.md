@@ -33,3 +33,19 @@ Last updated: 2026-03-16
 
 - Validation report: `docs/reports/phase1_validation_report.md`
 - Go/no-go decision: `docs/reports/phase2_go_no_go_decision.md`
+- Drill evidence: `docs/reports/staging_drill_report_2026-03-16.md`
+- Phase completion: `docs/reports/phase1_completion_report_2026-03-16.md`
+
+
+## Federation compatibility test fixtures (BO-103/BO-302)
+
+- ACL trust-tier fixture matrix (run in staging):
+  - `local` tier: allows `*.local`, denies none.
+  - `partner` tier: allows `*.local` + `partner.example`, denies none.
+  - `restricted` tier: allows `*.local`, denies `*`.
+- Announcement fanout policy fixture matrix:
+  - role gating (`announcer`/`moderator` allowed, others rejected).
+  - delayed fanout bounds validation (`delay_ms` inside/outside policy window).
+- Runtime fixture references:
+  - `blackout_runtime_tests/test_module_integration.py::test_federation_acl_template_compatibility_fixture`
+  - `blackout_runtime_tests/test_module_integration.py::test_announcement_fanout_role_and_delay_policy_gating`
