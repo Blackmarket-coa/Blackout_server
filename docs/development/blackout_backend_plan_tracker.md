@@ -8,7 +8,15 @@ Legend:
 - [x] Complete
 - [!] Blocked / needs decision
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
+
+
+## Execution debt activation (2026-03-17)
+
+- Status: `[~] In progress` kickoff started for execution-debt burn-down instrumentation and owner-visible load reporting.
+- New artifact: `docs/reports/execution_debt_snapshot_2026-03-17.md` (generated from tracker metadata).
+- New utility: `scripts-dev/reporting/execution_debt_snapshot.py` to keep the snapshot reproducible.
+- Next governance action: convert the earliest due bucket (`2026-03-22`) from deferred-only tracking to explicit in-progress implementation PRs.
 
 ---
 

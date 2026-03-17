@@ -533,3 +533,9 @@ Remaining owner/date:
 - Refactor runtime package evidence for H4-H11 remains consistent with shipped
   modules under `blackout_runtime/` and passing unit tests under
   `blackout_runtime_tests/` when run with `PYTHONPATH=.`.
+
+### Execution debt instrumentation refresh (2026-03-17)
+
+- Added reproducible execution-debt snapshot tooling: `scripts-dev/reporting/execution_debt_snapshot.py`.
+- Published `docs/reports/execution_debt_snapshot_2026-03-17.md` with current open-load counts, owner concentration, and a 25-step activation plan focused on near-due buckets.
+- Current snapshot aligns with backend plan tracker open-load: `114` deferred-with-signoff items pending Wave-1 activation.
