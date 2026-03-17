@@ -2,11 +2,20 @@ from __future__ import annotations
 
 import asyncio
 import io
-import tempfile
 import os
+import tempfile
 
 import pytest
 
+from blackout_runtime.module import (
+    BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE,
+    BlackoutRuntimeModule,
+)
+from blackout_runtime.server_semantics import (
+    ANNOUNCEMENT_POLICY_EVENT,
+    BLACKOUT_CHANNEL_TYPE_EVENT,
+    GOVERNANCE_PROPOSAL_EVENT,
+)
 from synapse.api.errors import SynapseError
 
 from blackout_runtime.module import BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE, BlackoutRuntimeModule
@@ -72,11 +81,14 @@ class _FakeAccountDataManager:
 class _FakeDbPool:
     async def runInteraction(self, desc, func):
         del desc
+
         class T:
             def execute(self, sql, args):
                 self.rows = []
+
             def __iter__(self):
                 return iter([])
+
         return func(T())
 
 
@@ -165,7 +177,11 @@ def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote()
         asyncio.run(
             module.check_event_allowed(
                 _DummyEvent(GOVERNANCE_PROPOSAL_EVENT, {"proposal_id": "p1"}),
-                {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})},
+                {
+                    (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+                        {"channel_type": "governance"}
+                    )
+                },
             )
         )
 
@@ -192,7 +208,11 @@ def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote()
                     sender="@alice:test",
                     event_id="$vote2",
                 ),
-                {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})},
+                {
+                    (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+                        {"channel_type": "governance"}
+                    )
+                },
             )
         )
 
@@ -203,11 +223,17 @@ def test_presence_and_blackout_synapse_api_resources() -> None:
     root = api.resources["/_synapse/client/blackout"]
 
     presence = root.children[b"presence"]
-    code, body = asyncio.run(presence._async_render_PUT(_DummyRequest(b'{"state":"delivering"}')))
+    code, body = asyncio.run(
+        presence._async_render_PUT(_DummyRequest(b'{"state":"delivering"}'))
+    )
     assert code == 200
     assert body["state"] == "delivering"
 
-    stored = asyncio.run(api.account_data_manager.get_global("@alice:test", BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE))
+    stored = asyncio.run(
+        api.account_data_manager.get_global(
+            "@alice:test", BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE
+        )
+    )
     assert stored == {"state": "delivering"}
 
     asyncio.run(
@@ -224,7 +250,11 @@ def test_presence_and_blackout_synapse_api_resources() -> None:
     )
 
     decisions_resource = root.children[b"governance"].children[b"decisions"]
-    code, body = asyncio.run(decisions_resource._async_render_GET(_DummyRequest(args={b"room_id": [b"!gov:test"], b"since": [b"0"]})))
+    code, body = asyncio.run(
+        decisions_resource._async_render_GET(
+            _DummyRequest(args={b"room_id": [b"!gov:test"], b"since": [b"0"]})
+        )
+    )
     assert code == 200
     assert body["decisions"][0]["decision"] == "accepted"
 
@@ -239,7 +269,11 @@ def test_dead_drop_retention_purge_schedules_and_purges_by_ttl() -> None:
     api = _FakeModuleApi()
     module = _build_module(api)
 
-    state_events = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_dead_drop_room"})}
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_dead_drop_room"}
+        )
+    }
 
     asyncio.run(
         module.on_new_event(
@@ -291,7 +325,9 @@ def test_announcement_room_sender_restrictions_enforced() -> None:
     module = _build_module(api)
 
     restricted_state = {
-        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_announcement_room"}),
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_announcement_room"}
+        ),
         ("m.room.power_levels", ""): _DummyStateEvent(
             {
                 "events": {"m.room.message": 50},
@@ -335,7 +371,9 @@ def test_announcement_fanout_role_and_delay_policy_gating() -> None:
     module = _build_module(api)
 
     state_events = {
-        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_announcement_room"}),
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_announcement_room"}
+        ),
         (ANNOUNCEMENT_POLICY_EVENT, ""): _DummyStateEvent(
             {
                 "sender_roles": ["announcer"],
@@ -355,7 +393,11 @@ def test_announcement_fanout_role_and_delay_policy_gating() -> None:
             module.check_event_allowed(
                 _DummyEvent(
                     "m.room.message",
-                    {"body": "x", "blackout_sender_role": "member", "blackout_fanout": {"delay_ms": 6000}},
+                    {
+                        "body": "x",
+                        "blackout_sender_role": "member",
+                        "blackout_fanout": {"delay_ms": 6000},
+                    },
                     room_id="!announce:test",
                     sender="@announcer:test",
                     event_id="$f1",
@@ -369,7 +411,11 @@ def test_announcement_fanout_role_and_delay_policy_gating() -> None:
             module.check_event_allowed(
                 _DummyEvent(
                     "m.room.message",
-                    {"body": "x", "blackout_sender_role": "announcer", "blackout_fanout": {"delay_ms": 20000}},
+                    {
+                        "body": "x",
+                        "blackout_sender_role": "announcer",
+                        "blackout_fanout": {"delay_ms": 20000},
+                    },
                     room_id="!announce:test",
                     sender="@announcer:test",
                     event_id="$f2",
@@ -382,7 +428,11 @@ def test_announcement_fanout_role_and_delay_policy_gating() -> None:
         module.check_event_allowed(
             _DummyEvent(
                 "m.room.message",
-                {"body": "x", "blackout_sender_role": "announcer", "blackout_fanout": {"delay_ms": 7000}},
+                {
+                    "body": "x",
+                    "blackout_sender_role": "announcer",
+                    "blackout_fanout": {"delay_ms": 7000},
+                },
                 room_id="!announce:test",
                 sender="@announcer:test",
                 event_id="$f3",
@@ -418,7 +468,11 @@ def test_dead_drop_invite_join_quota_guardrails_and_anomaly_hook() -> None:
     module._dead_drop_invite_rate_limit_per_minute = 1
     module._dead_drop_join_rate_limit_per_minute = 1
 
-    state_events = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "blackout_dead_drop_room"})}
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_dead_drop_room"}
+        )
+    }
 
     allowed, _ = asyncio.run(
         module.check_event_allowed(

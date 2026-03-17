@@ -33,6 +33,6 @@ def test_flush_respects_batch_size() -> None:
 def test_invalid_jitter_bounds_fail() -> None:
     try:
         JitterBatchWorker(min_delay_ms=20, max_delay_ms=10)
-        assert False, "expected ValueError"
+        raise AssertionError("expected ValueError")
     except ValueError:
         pass

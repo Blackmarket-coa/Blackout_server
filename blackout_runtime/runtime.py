@@ -55,7 +55,9 @@ class BlackoutNodeRuntime:
                     start_index = index
                     break
             else:
-                raise ValueError("Unable to locate replay starting point from peer events")
+                raise ValueError(
+                    "Unable to locate replay starting point from peer events"
+                )
 
         expected_previous_hash = last_known_hash
         applied = 0

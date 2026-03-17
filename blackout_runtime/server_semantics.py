@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Mapping, MutableMapping, Sequence
+from typing import Dict, Iterable, List, Mapping, MutableMapping, Sequence, cast
 
 BLACKOUT_CHANNEL_TYPE_EVENT = "m.blackout.channel.type"
 GOVERNANCE_PROPOSAL_EVENT = "m.blackout.governance.proposal"
@@ -43,12 +43,20 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
     "voice": RoomTemplate(
         join_rule="invite",
         power_levels={"events_default": 50, "state_default": 100},
-        allowed_event_types=("m.room.message", "m.call.invite", BLACKOUT_CHANNEL_TYPE_EVENT),
+        allowed_event_types=(
+            "m.room.message",
+            "m.call.invite",
+            BLACKOUT_CHANNEL_TYPE_EVENT,
+        ),
     ),
     "forum": RoomTemplate(
         join_rule="public",
         power_levels={"events_default": 0, "state_default": 50},
-        allowed_event_types=("m.room.message", "m.room.topic", BLACKOUT_CHANNEL_TYPE_EVENT),
+        allowed_event_types=(
+            "m.room.message",
+            "m.room.topic",
+            BLACKOUT_CHANNEL_TYPE_EVENT,
+        ),
     ),
     "governance": RoomTemplate(
         join_rule="invite",
@@ -147,12 +155,22 @@ class BlackoutServerSemantics:
         if template is None:
             raise ValueError(f"Unsupported blackout channel type: {channel_type}")
 
-        if "creation_content" not in config or not isinstance(config["creation_content"], MutableMapping):
+        if "creation_content" not in config or not isinstance(
+            config["creation_content"], MutableMapping
+        ):
             config["creation_content"] = dict(creation_content)
-        config["creation_content"]["m.blackout.channel.type"] = channel_type
+        normalized_creation_content = cast(
+            MutableMapping[str, object], config["creation_content"]
+        )
+        normalized_creation_content["m.blackout.channel.type"] = channel_type
 
-        trust_tier = config["creation_content"].get("blackout.federation.trust_tier", "local")
-        if not isinstance(trust_tier, str) or trust_tier not in FEDERATION_TRUST_TIER_ACLS:
+        trust_tier = normalized_creation_content.get(
+            "blackout.federation.trust_tier", "local"
+        )
+        if (
+            not isinstance(trust_tier, str)
+            or trust_tier not in FEDERATION_TRUST_TIER_ACLS
+        ):
             raise ValueError("Unsupported federation trust tier")
 
         initial_state = config.setdefault("initial_state", [])
@@ -238,7 +256,8 @@ class BlackoutServerSemantics:
         for event in initial_state:
             if event.get("type") == event_type and event.get("state_key", "") == "":
                 if merge_content and isinstance(event.get("content"), Mapping):
-                    merged = dict(event["content"])
+                    existing_content = cast(Mapping[str, object], event["content"])
+                    merged = dict(existing_content)
                     merged.update(content)
                     event["content"] = merged
                 else:
@@ -253,7 +272,9 @@ class BlackoutServerSemantics:
     def _validate_channel_type(content: Mapping[str, object]) -> None:
         channel_type = content.get("channel_type")
         if channel_type not in ROOM_TEMPLATES:
-            raise ValueError("m.blackout.channel.type requires a supported channel_type")
+            raise ValueError(
+                "m.blackout.channel.type requires a supported channel_type"
+            )
 
     @staticmethod
     def _validate_governance_proposal(content: Mapping[str, object]) -> None:
@@ -264,7 +285,9 @@ class BlackoutServerSemantics:
 
         options = content["options"]
         if not isinstance(options, list) or len(options) < 2:
-            raise ValueError("governance proposal options must contain at least two entries")
+            raise ValueError(
+                "governance proposal options must contain at least two entries"
+            )
         if not all(isinstance(option, str) and option for option in options):
             raise ValueError("governance proposal options must be non-empty strings")
 
@@ -294,20 +317,33 @@ class BlackoutServerSemantics:
         if not isinstance(sender_roles, list) or not sender_roles:
             raise ValueError("announcement policy requires non-empty sender_roles")
         if not all(isinstance(role, str) and role for role in sender_roles):
-            raise ValueError("announcement policy sender_roles must be non-empty strings")
+            raise ValueError(
+                "announcement policy sender_roles must be non-empty strings"
+            )
 
         fanout_mode = content.get("fanout_mode")
         if fanout_mode not in {"immediate", "delayed_window"}:
-            raise ValueError("announcement policy fanout_mode must be immediate or delayed_window")
+            raise ValueError(
+                "announcement policy fanout_mode must be immediate or delayed_window"
+            )
 
         if fanout_mode == "delayed_window":
             min_ms = content.get("delayed_fanout_min_ms")
             max_ms = content.get("delayed_fanout_max_ms")
             rollback_ref = content.get("rollback_procedure_ref")
-            if not isinstance(min_ms, int) or not isinstance(max_ms, int) or min_ms < 1 or max_ms < min_ms:
-                raise ValueError("announcement policy delayed fanout bounds are invalid")
+            if (
+                not isinstance(min_ms, int)
+                or not isinstance(max_ms, int)
+                or min_ms < 1
+                or max_ms < min_ms
+            ):
+                raise ValueError(
+                    "announcement policy delayed fanout bounds are invalid"
+                )
             if not isinstance(rollback_ref, str) or not rollback_ref:
-                raise ValueError("announcement policy delayed fanout requires rollback_procedure_ref")
+                raise ValueError(
+                    "announcement policy delayed fanout requires rollback_procedure_ref"
+                )
 
 
 class BlackoutPresenceService:
@@ -323,4 +359,8 @@ class BlackoutPresenceService:
         return self._presence.get(user_id)
 
     def bulk_get(self, user_ids: Iterable[str]) -> Dict[str, str]:
-        return {user_id: state for user_id in user_ids if (state := self._presence.get(user_id))}
+        return {
+            user_id: state
+            for user_id in user_ids
+            if (state := self._presence.get(user_id))
+        }

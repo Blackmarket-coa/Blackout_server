@@ -7,9 +7,9 @@ from blackout_runtime.envelope import EventEnvelope
 
 
 def _payload(key: str, value: str) -> str:
-    return base64.b64encode(json.dumps({"key": key, "value": value}).encode("utf-8")).decode(
-        "ascii"
-    )
+    return base64.b64encode(
+        json.dumps({"key": key, "value": value}).encode("utf-8")
+    ).decode("ascii")
 
 
 def test_signed_hash_linked_envelope_verification() -> None:

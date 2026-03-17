@@ -20,7 +20,9 @@ class JitterBatchWorker:
     staged integration behind runtime feature flags.
     """
 
-    def __init__(self, *, min_delay_ms: int, max_delay_ms: int, max_batch_size: int = 100) -> None:
+    def __init__(
+        self, *, min_delay_ms: int, max_delay_ms: int, max_batch_size: int = 100
+    ) -> None:
         if min_delay_ms < 0 or max_delay_ms < min_delay_ms:
             raise ValueError("invalid jitter bounds")
         if max_batch_size < 1:

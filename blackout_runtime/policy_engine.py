@@ -4,7 +4,6 @@ import random
 from dataclasses import dataclass
 from typing import Dict, Literal, Mapping, MutableMapping, Optional, Sequence
 
-
 DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     "cell_governance_templates": False,
     "dead_drop_room_preset": False,
@@ -84,7 +83,9 @@ class BlackoutPolicyEngine:
             if fanout_mode == "delayed_window" and not self.feature_enabled(
                 "delayed_broadcast_fanout"
             ):
-                raise ValueError("delayed fanout requires delayed_broadcast_fanout feature")
+                raise ValueError(
+                    "delayed fanout requires delayed_broadcast_fanout feature"
+                )
 
             config: MutableMapping[str, object] = {
                 "name": preset_name,
@@ -96,9 +97,15 @@ class BlackoutPolicyEngine:
             }
 
             if fanout_mode == "delayed_window":
-                if delayed_fanout_min_seconds is None or delayed_fanout_max_seconds is None:
+                if (
+                    delayed_fanout_min_seconds is None
+                    or delayed_fanout_max_seconds is None
+                ):
                     raise ValueError("delayed fanout requires min and max seconds")
-                if delayed_fanout_min_seconds < 1 or delayed_fanout_min_seconds > delayed_fanout_max_seconds:
+                if (
+                    delayed_fanout_min_seconds < 1
+                    or delayed_fanout_min_seconds > delayed_fanout_max_seconds
+                ):
                     raise ValueError("invalid delayed fanout bounds")
                 if not rollback_procedure_ref:
                     raise ValueError("delayed fanout requires rollback_procedure_ref")
@@ -111,7 +118,9 @@ class BlackoutPolicyEngine:
 
         raise ValueError(f"Unsupported preset: {preset_name}")
 
-    def enforce_membership_boundary(self, *, chapter_id: str, member_chapter_id: str) -> bool:
+    def enforce_membership_boundary(
+        self, *, chapter_id: str, member_chapter_id: str
+    ) -> bool:
         return chapter_id == member_chapter_id
 
     def can_sender_broadcast(self, sender_role: str) -> bool:

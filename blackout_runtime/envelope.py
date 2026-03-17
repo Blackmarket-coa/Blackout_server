@@ -47,7 +47,9 @@ class EventEnvelope:
         crdt_site: str,
         crdt_counter: int,
     ) -> "EventEnvelope":
-        actor_public_key = base64.b64encode(signing_key.verify_key.encode()).decode("ascii")
+        actor_public_key = base64.b64encode(signing_key.verify_key.encode()).decode(
+            "ascii"
+        )
         event_id = generate_event_id()
         timestamp = int(time.time())
 
@@ -62,11 +64,22 @@ class EventEnvelope:
             "crdt_site": crdt_site,
             "crdt_counter": crdt_counter,
         }
-        signature = base64.b64encode(signing_key.sign(_canonical_json(body)).signature).decode(
-            "ascii"
-        )
+        signature = base64.b64encode(
+            signing_key.sign(_canonical_json(body)).signature
+        ).decode("ascii")
 
-        return cls(signature=signature, **body)
+        return cls(
+            event_id=event_id,
+            event_type=event_type,
+            timestamp=timestamp,
+            actor_public_key=actor_public_key,
+            encrypted_payload=encrypted_payload,
+            previous_hash=previous_hash,
+            room_id=room_id,
+            crdt_site=crdt_site,
+            crdt_counter=crdt_counter,
+            signature=signature,
+        )
 
     def body_dict(self) -> Mapping[str, object]:
         return {

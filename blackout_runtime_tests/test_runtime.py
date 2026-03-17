@@ -7,7 +7,9 @@ from blackout_runtime.envelope import EventEnvelope
 from blackout_runtime.runtime import BlackoutNodeRuntime
 
 
-def _event(signing_key: SigningKey, previous_hash: str, key: str, value: str, counter: int) -> EventEnvelope:
+def _event(
+    signing_key: SigningKey, previous_hash: str, key: str, value: str, counter: int
+) -> EventEnvelope:
     payload = base64.b64encode(
         json.dumps({"key": key, "value": value}).encode("utf-8")
     ).decode("ascii")
