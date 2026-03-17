@@ -76,3 +76,53 @@ This report records the *next 25 execution steps* after the prior 10-step readin
 1. Run `tox -e py37,py38,py39,py310 -- tests.blackout_runtime tests.handlers tests.federation` in a runner that has all four interpreters.
 2. Execute staging smoke script from `docs/server_usability_validation.md` sections 1.2 through 1.5 against a live staging node.
 3. Attach results + failures to this report and `DEPLOYMENT_READINESS.md` as go/no-go evidence.
+
+## Execution addendum — requested matrix + staging rerun (2026-03-17)
+
+### A) Full tox matrix request (`py37,py38,py39,py310`)
+
+Command executed:
+
+```bash
+tox -e py37,py38,py39,py310 -- tests.blackout_runtime tests.handlers tests.federation
+```
+
+Observed result in this runner:
+- `py37`: `InterpreterNotFound: python3.7`
+- `py38`: `InterpreterNotFound: python3.8`
+- `py39`: `InterpreterNotFound: python3.9`
+- `py310`: environment creation started but full tox lane did not complete within practical time due heavy editable dependency build (PyICU compile path) in this container.
+
+To still provide execution evidence for the requested test targets, ran the equivalent targets directly under the available Python 3.10 environment:
+
+```bash
+python3 -m twisted.trial tests.blackout_runtime tests.handlers tests.federation
+```
+
+Result:
+- `PASSED` — `Ran 610 tests in 481.431s`
+- `successes=473`, `skips=137`, `failures=0`, `errors=0`
+
+### B) Staging smoke script request (`docs/server_usability_validation.md` sections 1.2–1.5)
+
+Attempted to execute the sectioned command set against a live staging node, but this runner lacks required staging runtime context:
+- no staging base URL / hostname provided,
+- no staging credentials or tokens for client API smoke,
+- no origin/destination pair for federation ping/smoke,
+- no access to staging backup host/filesystem artifacts for backup/restore drills.
+
+Evidence check:
+
+```bash
+env | rg -i 'staging|matrix|synapse|token|origin|destination|backup|postgres|homeserver'
+```
+
+Only `CODEX_INTERNAL_ORIGINATOR_OVERRIDE` is present; no deploy credentials/endpoints were available.
+
+Therefore section 1.2–1.5 live-staging commands are **blocked by missing external environment inputs**, not by repository code/test failures.
+
+### C) Go/No-Go evidence impact
+
+Current evidence from this runner supports:
+- code-level targeted regression confidence on py310-equivalent execution (`tests.blackout_runtime`, `tests.handlers`, `tests.federation`) with zero failures,
+- unresolved deploy gate for multi-interpreter tox matrix and live staging smoke/backup drills until a staging-capable runner + credentials are provided.
