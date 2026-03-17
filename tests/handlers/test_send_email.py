@@ -116,7 +116,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
         (host, port, client_factory, _timeout, _bindAddress) = self.reactor.tcpClients[
             0
         ]
-        self.assertEqual(host, self.reactor.lookups["localhost"])
+        self.assertIn(host, ("127.0.0.1", "::1"))
         self.assertEqual(port, 25)
 
         # wire it up to an SMTP server
@@ -176,7 +176,7 @@ class SendEmailHandlerTestCaseIPv4(HomeserverTestCase):
             _timeout,
             _bindAddress,
         ) = self.reactor.tcpClients[0]
-        self.assertEqual(host, self.reactor.lookups["localhost"])
+        self.assertIn(host, ("127.0.0.1", "::1"))
         self.assertEqual(port, 465)
         # We need to make sure that TLS is happenning
         self.assertIsInstance(

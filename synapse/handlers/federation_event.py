@@ -324,7 +324,18 @@ class FederationEventHandler:
                     replication_factor=str(replication_factor)
                 ).inc()
 
-            strip_inline_payload_from_signal_content(event.content)
+            try:
+                strip_inline_payload_from_signal_content(event.content)
+            except ValueError as e:
+                blackout_federation_event_rejections_counter.labels(
+                    reason="invalid_signal_content"
+                ).inc()
+                raise FederationError(
+                    "ERROR",
+                    400,
+                    str(e),
+                    affected=event.event_id,
+                )
             await self._enforce_blackout_signal_device_revocation(event)
             blackout_federation_signal_events_accepted_counter.inc()
 

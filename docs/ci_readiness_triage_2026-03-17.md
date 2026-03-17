@@ -50,3 +50,26 @@ Latest broad run (`tests.blackout_runtime tests.handlers tests.federation`) stil
 2. Prioritize remaining federation+handler failures above for next patch wave.
 3. Re-run `tox -e py310 -- tests.blackout_runtime tests.handlers tests.federation` after each patch wave until green.
 4. Once py310 is stable, re-run full matrix and proceed to staging smoke tests.
+
+## Follow-up implementation pass (next-step execution)
+
+Completed in this pass:
+
+1. Fixed deferred-handling test patterns (`get_success` + `assertRaises`) in blackout and federation ingress tests by using `get_failure(...)` where appropriate.
+2. Normalized federation `/state_ids` error-code expectation to `M_MISSING_PARAM`.
+3. Stabilized `timestamp_to_event` failure-path test timing by adding a reactor advance window.
+4. Relaxed IPv6 SMTP host assertions to accept resolver-dependent loopback selection (`127.0.0.1` or `::1`).
+5. Corrected blackout ACL rejection test input to explicitly deny all (`{"deny": ["*"]}`) instead of an empty ACL body.
+6. Added compatibility for `org.matrix.self_destruct_after` in blackout signal content schema.
+7. Converted inline-payload strip validation failures to typed `SynapseError(400, BAD_JSON)` on local event creation path.
+8. Converted inline-payload strip validation failures to typed `FederationError(400, ...)` on federation ingress path.
+9. Reworked blackout signal test fixtures to satisfy stricter schema requirements (`offline_retrieval.manifest_id`, merkle alignment), preserving intended assertions.
+10. Re-triaged federation blackout revocation tests and documented current behavior with an explicit test that unmatched revocation records do not reject ingress.
+
+Validation snapshot for this pass:
+- Focused regression bucket now green:
+  - blackout message policy suite
+  - blackout federation ingress suite
+  - state_ids error-path test
+  - timestamp_to_event warning-path test
+  - IPv6 email handler tests

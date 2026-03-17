@@ -92,6 +92,7 @@ _BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
             "additionalProperties": False,
         },
         "self_destruct_after": {"type": "integer"},
+        "org.matrix.self_destruct_after": {"type": "integer"},
     },
 }
 
