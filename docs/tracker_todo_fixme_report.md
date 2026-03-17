@@ -1,33 +1,33 @@
 # Tracker / marker audit report
 
-Generated: **2026-02-28 20:43:03Z**
+Generated: **2026-03-16 21:28:58Z**
 
 ## Tracker checklist status
 
 | Tracker | Checked | Unchecked | Total |
 |---|---:|---:|---:|
-| `docs/development/blackout_backend_plan_tracker.md` | 8 | 115 | 123 |
-| `docs/development/blackout_weekly_tracker_update_template.md` | 0 | 4 | 4 |
-| `docs/project_completion_tracker.md` | 57 | 5 | 62 |
+| `docs/development/blackout_backend_plan_tracker.md` | 5 | 114 | 119 |
+| `docs/development/blackout_weekly_tracker_update_template.md` | 4 | 0 | 4 |
+| `docs/project_completion_tracker.md` | 63 | 0 | 63 |
 
 ## Incomplete-work markers
 
-- Total markers (excluding generated inventory/report files): **40**
+- Total markers (excluding generated inventory/report files): **45**
 
 ### By top-level path
 
-- `docs/`: 21
+- `docs/`: 26
 - `NOTIMPLEMENTED_AUDIT.md/`: 12
 - `docker/`: 2
 - `synapse/`: 2
 - `debian/`: 1
-- `pylint.cfg/`: 1
 - `tests/`: 1
+- `pylint.cfg/`: 1
 
 ### By keyword
 
-- `NotImplementedError`: 37
-- `TODO`: 7
+- `NotImplementedError`: 38
+- `TODO`: 9
 - `FIXME`: 3
 - `XXX`: 3
 - `TBD`: 2
@@ -40,21 +40,13 @@ Generated: **2026-02-28 20:43:03Z**
 - `docs/runtime_notimplemented_audit.md`: 10
 - `docs/notimplemented_audit_report.md`: 6
 - `docker/Dockerfile-dhvirtualenv`: 2
+- `docs/reports/weekly_completion_report_2026-03-21.md`: 2
+- `docs/reports/weekly_completion_report_2026-03-14.md`: 2
 - `docs/marker_budget_policy.md`: 2
+- `docs/project_completion_tracker.md`: 2
 - `synapse/http/federation/srv_resolver.py`: 2
-- `docs/project_completion_tracker.md`: 1
 - `debian/build_virtualenv`: 1
+- `tests/util/test_check_dependencies.py`: 1
 - `docs/scope_alignment_evidence.md`: 1
 - `docs/server_usability_validation.md`: 1
 - `pylint.cfg`: 1
-- `tests/util/test_check_dependencies.py`: 1
-
-## Commands used
-
-```bash
-rg -n "TODO|FIXME|TBD|XXX|HACK|NotImplementedError|TODO_test_" . \
-  -g "!docs/marker_inventory.csv" \
-  -g "!INCOMPLETE_WORK.md" \
-  -g "!docs/incomplete_work_line_by_line_fixes.md" \
-  -g "!docs/tracker_todo_fixme_report.md"
-```

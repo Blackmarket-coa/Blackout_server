@@ -2,15 +2,21 @@ from __future__ import annotations
 
 import asyncio
 import io
-import tempfile
 import os
+import tempfile
 
 import pytest
 
+from blackout_runtime.module import (
+    BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE,
+    BlackoutRuntimeModule,
+)
+from blackout_runtime.server_semantics import (
+    ANNOUNCEMENT_POLICY_EVENT,
+    BLACKOUT_CHANNEL_TYPE_EVENT,
+    GOVERNANCE_PROPOSAL_EVENT,
+)
 from synapse.api.errors import SynapseError
-
-from blackout_runtime.module import BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE, BlackoutRuntimeModule
-from blackout_runtime.server_semantics import BLACKOUT_CHANNEL_TYPE_EVENT, GOVERNANCE_PROPOSAL_EVENT
 
 
 class _DummyUser:
@@ -68,11 +74,14 @@ class _FakeAccountDataManager:
 class _FakeDbPool:
     async def runInteraction(self, desc, func):
         del desc
+
         class T:
             def execute(self, sql, args):
                 self.rows = []
+
             def __iter__(self):
                 return iter([])
+
         return func(T())
 
 
@@ -141,7 +150,27 @@ def test_on_create_room_callback_applies_template_state() -> None:
     assert by_type[BLACKOUT_CHANNEL_TYPE_EVENT]["channel_type"] == "governance"
 
 
-def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote() -> None:
+def test_on_create_room_callback_wires_dead_drop_preset() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    config = {"preset": "blackout_dead_drop_room"}
+    asyncio.run(module.on_create_room(api._requester, config, False))
+
+    assert (
+        config["creation_content"]["m.blackout.channel.type"]
+        == "blackout_dead_drop_room"
+    )
+    initial_state = {
+        entry["type"]: entry["content"] for entry in config["initial_state"]
+    }
+    assert initial_state["m.room.join_rules"]["join_rule"] == "invite"
+    assert initial_state["m.room.history_visibility"]["history_visibility"] == "joined"
+
+
+def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote() -> (
+    None
+):
     api = _FakeModuleApi()
     module = _build_module(api)
 
@@ -149,7 +178,11 @@ def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote()
         asyncio.run(
             module.check_event_allowed(
                 _DummyEvent(GOVERNANCE_PROPOSAL_EVENT, {"proposal_id": "p1"}),
-                {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})},
+                {
+                    (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+                        {"channel_type": "governance"}
+                    )
+                },
             )
         )
 
@@ -176,7 +209,11 @@ def test_check_event_allowed_rejects_bad_governance_payload_and_duplicate_vote()
                     sender="@alice:test",
                     event_id="$vote2",
                 ),
-                {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})},
+                {
+                    (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+                        {"channel_type": "governance"}
+                    )
+                },
             )
         )
 
@@ -187,11 +224,17 @@ def test_presence_and_blackout_synapse_api_resources() -> None:
     root = api.resources["/_synapse/client/blackout"]
 
     presence = root.children[b"presence"]
-    code, body = asyncio.run(presence._async_render_PUT(_DummyRequest(b'{"state":"delivering"}')))
+    code, body = asyncio.run(
+        presence._async_render_PUT(_DummyRequest(b'{"state":"delivering"}'))
+    )
     assert code == 200
     assert body["state"] == "delivering"
 
-    stored = asyncio.run(api.account_data_manager.get_global("@alice:test", BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE))
+    stored = asyncio.run(
+        api.account_data_manager.get_global(
+            "@alice:test", BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE
+        )
+    )
     assert stored == {"state": "delivering"}
 
     asyncio.run(
@@ -208,7 +251,11 @@ def test_presence_and_blackout_synapse_api_resources() -> None:
     )
 
     decisions_resource = root.children[b"governance"].children[b"decisions"]
-    code, body = asyncio.run(decisions_resource._async_render_GET(_DummyRequest(args={b"room_id": [b"!gov:test"], b"since": [b"0"]})))
+    code, body = asyncio.run(
+        decisions_resource._async_render_GET(
+            _DummyRequest(args={b"room_id": [b"!gov:test"], b"since": [b"0"]})
+        )
+    )
     assert code == 200
     assert body["decisions"][0]["decision"] == "accepted"
 
@@ -217,3 +264,272 @@ def test_presence_and_blackout_synapse_api_resources() -> None:
     code, body = asyncio.run(node_resource._async_render_GET(_DummyRequest()))
     assert code == 200
     assert body["node_id"] == "node-1"
+
+
+def test_dead_drop_retention_purge_schedules_and_purges_by_ttl() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_dead_drop_room"}
+        )
+    }
+
+    asyncio.run(
+        module.on_new_event(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "expired"},
+                room_id="!dd:test",
+                sender="@alice:test",
+                event_id="$dd1",
+            ),
+            state_events,
+        )
+    )
+    asyncio.run(
+        module.on_new_event(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "fresh"},
+                room_id="!dd:test",
+                sender="@alice:test",
+                event_id="$dd2",
+            ),
+            state_events,
+        )
+    )
+
+    module._conn.execute(
+        "UPDATE blackout_dead_drop_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (1_000, "$dd1"),
+    )
+    module._conn.execute(
+        "UPDATE blackout_dead_drop_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (9_999_999, "$dd2"),
+    )
+    module._conn.commit()
+
+    purged = module.run_dead_drop_purge(now_ms=2_000)
+    assert [item["event_id"] for item in purged] == ["$dd1"]
+    assert purged[0]["tombstone_event_type"] == "m.room.tombstone"
+
+    dd1 = module.get_dead_drop_retention_record("$dd1")
+    dd2 = module.get_dead_drop_retention_record("$dd2")
+    assert dd1 is not None and dd1["purged_at_ms"] == 2_000
+    assert dd2 is not None and dd2["purged_at_ms"] is None
+
+
+def test_announcement_room_sender_restrictions_enforced() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    restricted_state = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_announcement_room"}
+        ),
+        ("m.room.power_levels", ""): _DummyStateEvent(
+            {
+                "events": {"m.room.message": 50},
+                "users": {"@announcer:test": 100, "@member:test": 0},
+            }
+        ),
+    }
+
+    with pytest.raises(SynapseError, match="not permitted"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.message",
+                    {"body": "unauthorized", "blackout_sender_role": "member"},
+                    room_id="!announce:test",
+                    sender="@member:test",
+                    event_id="$msg1",
+                ),
+                restricted_state,
+            )
+        )
+
+    allowed, replacement_dict = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.message",
+                {"body": "authorized", "blackout_sender_role": "announcer"},
+                room_id="!announce:test",
+                sender="@announcer:test",
+                event_id="$msg2",
+            ),
+            restricted_state,
+        )
+    )
+    assert allowed is True
+    assert replacement_dict is None
+
+
+def test_announcement_fanout_role_and_delay_policy_gating() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_announcement_room"}
+        ),
+        (ANNOUNCEMENT_POLICY_EVENT, ""): _DummyStateEvent(
+            {
+                "sender_roles": ["announcer"],
+                "fanout_mode": "delayed_window",
+                "delayed_fanout_min_ms": 5000,
+                "delayed_fanout_max_ms": 10000,
+                "rollback_procedure_ref": "docs/ops/announcement_fanout_rollback.md",
+            }
+        ),
+        ("m.room.power_levels", ""): _DummyStateEvent(
+            {"events": {"m.room.message": 50}, "users": {"@announcer:test": 100}}
+        ),
+    }
+
+    with pytest.raises(SynapseError, match="Sender role"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.message",
+                    {
+                        "body": "x",
+                        "blackout_sender_role": "member",
+                        "blackout_fanout": {"delay_ms": 6000},
+                    },
+                    room_id="!announce:test",
+                    sender="@announcer:test",
+                    event_id="$f1",
+                ),
+                state_events,
+            )
+        )
+
+    with pytest.raises(SynapseError, match="outside policy bounds"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.message",
+                    {
+                        "body": "x",
+                        "blackout_sender_role": "announcer",
+                        "blackout_fanout": {"delay_ms": 20000},
+                    },
+                    room_id="!announce:test",
+                    sender="@announcer:test",
+                    event_id="$f2",
+                ),
+                state_events,
+            )
+        )
+
+    allowed, replacement_dict = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.message",
+                {
+                    "body": "x",
+                    "blackout_sender_role": "announcer",
+                    "blackout_fanout": {"delay_ms": 7000},
+                },
+                room_id="!announce:test",
+                sender="@announcer:test",
+                event_id="$f3",
+            ),
+            state_events,
+        )
+    )
+    assert allowed is True
+    assert replacement_dict is None
+
+
+def test_federation_acl_template_compatibility_fixture() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    config = {
+        "preset": "blackout_cell_space",
+        "creation_content": {"blackout.federation.trust_tier": "partner"},
+    }
+    asyncio.run(module.on_create_room(api._requester, config, False))
+
+    by_type = {entry["type"]: entry["content"] for entry in config["initial_state"]}
+    acl = by_type["m.room.server_acl"]
+    assert "partner.example" in acl["allow"]
+    assert acl["deny"] == []
+    assert acl["allow_ip_literals"] is False
+
+
+def test_dead_drop_invite_join_quota_guardrails_and_anomaly_hook() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    module._dead_drop_invite_rate_limit_per_minute = 1
+    module._dead_drop_join_rate_limit_per_minute = 1
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent(
+            {"channel_type": "blackout_dead_drop_room"}
+        )
+    }
+
+    allowed, _ = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.member",
+                {"membership": "invite"},
+                room_id="!dd:test",
+                sender="@alice:test",
+                event_id="$i1",
+            ),
+            state_events,
+        )
+    )
+    assert allowed is True
+
+    with pytest.raises(SynapseError, match="invite rate limit"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.member",
+                    {"membership": "invite"},
+                    room_id="!dd:test",
+                    sender="@alice:test",
+                    event_id="$i2",
+                ),
+                state_events,
+            )
+        )
+
+    anomalies = module.drain_anomaly_events()
+    assert anomalies and anomalies[0]["type"] == "dead_drop_membership_rate_exceeded"
+
+    allowed, _ = asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                "m.room.member",
+                {"membership": "join"},
+                room_id="!dd:test",
+                sender="@bob:test",
+                event_id="$j1",
+            ),
+            state_events,
+        )
+    )
+    assert allowed is True
+
+    with pytest.raises(SynapseError, match="join rate limit"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    "m.room.member",
+                    {"membership": "join"},
+                    room_id="!dd:test",
+                    sender="@bob:test",
+                    event_id="$j2",
+                ),
+                state_events,
+            )
+        )

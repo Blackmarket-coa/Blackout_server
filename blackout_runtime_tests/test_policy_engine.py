@@ -44,7 +44,9 @@ def test_delayed_announcement_requires_explicit_rollback_and_window() -> None:
     )
 
     with pytest.raises(ValueError, match="min and max"):
-        engine.build_room_preset("blackout_announcement_room", fanout_mode="delayed_window")
+        engine.build_room_preset(
+            "blackout_announcement_room", fanout_mode="delayed_window"
+        )
 
     delayed = engine.build_room_preset(
         "blackout_announcement_room",
@@ -68,7 +70,9 @@ def test_dead_drop_retention_bounds() -> None:
 def test_membership_visibility_boundary_enforcement() -> None:
     engine = BlackoutPolicyEngine({"cell_governance_templates": True})
 
-    assert engine.enforce_membership_boundary(chapter_id="cell-a", member_chapter_id="cell-a")
+    assert engine.enforce_membership_boundary(
+        chapter_id="cell-a", member_chapter_id="cell-a"
+    )
     assert not engine.enforce_membership_boundary(
         chapter_id="cell-a", member_chapter_id="cell-b"
     )
@@ -89,7 +93,9 @@ def test_trust_tier_acl_templates() -> None:
     assert restricted["deny"] == ["*"]
 
     restricted["allow"].append("should-not-mutate-default")
-    assert "should-not-mutate-default" not in engine.trust_tier_acl("restricted")["allow"]
+    assert (
+        "should-not-mutate-default" not in engine.trust_tier_acl("restricted")["allow"]
+    )
 
 
 def test_experimental_timing_delay_and_rollback_criteria() -> None:
