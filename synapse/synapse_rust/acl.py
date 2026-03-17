@@ -13,7 +13,12 @@ class ServerAclEvaluator:
     deny: Sequence[str]
 
     def server_matches_acl_event(self, server_name: str) -> bool:
-        host = server_name.split(":", 1)[0]
+        # ACL matching is case-insensitive for DNS names.
+        if server_name.startswith("[") and "]" in server_name:
+            host = server_name.split("]", 1)[0] + "]"
+        else:
+            host = server_name.split(":", 1)[0]
+        host = host.lower()
 
         if not self.allow_ip_literals:
             try:
@@ -22,10 +27,10 @@ class ServerAclEvaluator:
             except ValueError:
                 pass
 
-        if any(fnmatch.fnmatchcase(host, denied) for denied in self.deny):
+        if any(fnmatch.fnmatchcase(host, denied.lower()) for denied in self.deny):
             return False
 
         if not self.allow:
             return True
 
-        return any(fnmatch.fnmatchcase(host, allowed) for allowed in self.allow)
+        return any(fnmatch.fnmatchcase(host, allowed.lower()) for allowed in self.allow)

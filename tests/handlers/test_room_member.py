@@ -5,11 +5,13 @@ from twisted.test.proto_helpers import MemoryReactor
 import synapse.rest.admin
 import synapse.rest.client.login
 import synapse.rest.client.room
+from synapse import event_auth
 from synapse.api.constants import EventTypes, Membership
 from synapse.api.errors import LimitExceededError, SynapseError
 from synapse.crypto.event_signing import add_hashes_and_signatures
 from synapse.events import FrozenEventV3
 from synapse.federation.federation_client import SendJoinResult
+from synapse.handlers import federation_event
 from synapse.server import HomeServer
 from synapse.types import UserID, create_requester
 from synapse.util import Clock
@@ -118,29 +120,33 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
             )
         )
 
-        self.patch_object(
-            self.handler.federation_handler.federation_client,
-            "make_membership_event",
+        self.handler.federation_handler.federation_client.make_membership_event = (
             AsyncMock(
                 return_value=(
                     self.OTHER_SERVER_NAME,
                     join_event,
                     self.hs.config.server.default_room_version,
                 )
-            ),
+            )
         )
-        self.patch_object(
-            self.handler.federation_handler.federation_client,
-            "send_join",
-            mock_send_join,
+        self.handler.federation_handler.federation_client.send_join = mock_send_join
+        original_membership_check = event_auth._is_membership_change_allowed
+        original_state_check = federation_event.check_state_dependent_auth_rules
+        event_auth._is_membership_change_allowed = lambda *args, **kwargs: None
+        federation_event.check_state_dependent_auth_rules = (
+            lambda *args, **kwargs: None
         )
-        self.patch(
-            "synapse.event_auth._is_membership_change_allowed",
-            return_value=None,
+        self.addCleanup(
+            setattr,
+            event_auth,
+            "_is_membership_change_allowed",
+            original_membership_check,
         )
-        self.patch(
-            "synapse.handlers.federation_event.check_state_dependent_auth_rules",
-            return_value=None,
+        self.addCleanup(
+            setattr,
+            federation_event,
+            "check_state_dependent_auth_rules",
+            original_state_check,
         )
 
 
