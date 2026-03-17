@@ -3,6 +3,7 @@
 
 server_name: "blackbox.local"
 public_baseurl: "http://blackbox.local:8008/"
+web_client_location: "https://github.com/Blackmarket-coa/blackout"
 
 listeners:
   - port: 8008
