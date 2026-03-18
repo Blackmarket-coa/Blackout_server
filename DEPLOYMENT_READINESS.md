@@ -54,3 +54,74 @@ Additional rerun evidence gathered for the requested readiness actions:
   - Result: blocked due missing staging endpoint/credentials/runtime artifacts in this runner (no staging URL, API tokens, federation origin/destination, or backup-host filesystem access).
 
 Updated assessment: **Still not ready for deployment from this runner alone**, because live-staging smoke evidence and full multi-interpreter tox matrix evidence are still incomplete despite py310-equivalent target suites passing.
+
+## 2026-03-18 execution update (requested readiness gate run)
+
+### Scope of this run
+
+Executed the requested gate sequence on this branch:
+
+1. Install/enable `tox`.
+2. Ensure local availability of Python `3.7`, `3.8`, `3.9`, and `3.10`.
+3. Run matrix command from `tox.ini` and archive output logs.
+4. Attempt staging smoke checks (health + auth/room/federation) using environment-provided credentials/endpoints.
+5. Attempt backup/restore drill commands against real backup sets.
+
+### Evidence artifacts (local)
+
+Saved under:
+
+- `artifacts/readiness/2026-03-18/tox-matrix.log`
+- `artifacts/readiness/2026-03-18/tox-matrix-after-pyenv-global.log`
+- `artifacts/readiness/2026-03-18/staging-smoke.log`
+- `artifacts/readiness/2026-03-18/backup-drill.log`
+
+### Matrix execution result
+
+Command executed:
+
+```bash
+python3.10 -m tox -e py37,py38,py39,py310 -- tests.blackout_runtime tests.handlers tests.federation
+```
+
+Outcome:
+
+- `py310`: passed (`Ran 612 tests`, `PASSED (skips=86, successes=526)`).
+- `py37`: failed during dependency resolution (`No matching distribution found for Pillow>=10.0.1`).
+- `py38`: test import/type evaluation failure (`TypeError: 'type' object is not subscriptable` in `tests/handlers/test_room_member.py`).
+- `py39`: environment import failures (`ModuleNotFoundError: No module named 'pkg_resources'` across many suites).
+
+Matrix summary from tox:
+
+- `ERROR: py37 ...`
+- `ERROR: py38 ...`
+- `ERROR: py39 ...`
+- `py310: commands succeeded`
+
+### Staging smoke result
+
+Status: **blocked in this runner**.
+
+`staging-smoke.log` reports missing required `STAGING_*` variables (no staging base URL, token, or federation endpoints were available in environment), so live staging health/auth/room/federation checks could not be executed here.
+
+### Backup/restore drill result
+
+Status: **blocked in this runner**.
+
+`backup-drill.log` reports `/var/backups/postgres` missing, so no real backup artifacts were available for `backup_run.sh`, `backup_verify.sh`, or `quarterly_restore_drill.sh`.
+
+## Deployment sign-off (as of 2026-03-18)
+
+**GO/NO-GO: NO-GO for production deployment from this evidence set.**
+
+Rationale:
+
+1. The required tox matrix is not green (`py37`/`py38`/`py39` failing).
+2. Staging smoke gates were not executed with real endpoint/credentials.
+3. Backup/restore drills were not executed against real backup sets.
+
+### Required remaining gates
+
+1. Resolve cross-version failures (`py37` dependency floor, `py38` typing compatibility issue, `py39` missing `pkg_resources`/setuptools issue) and rerun matrix until all required envs pass.
+2. Re-run staging smoke with valid staging configuration (`STAGING_*` inputs) and capture command outputs.
+3. Run backup/restore drills on host/environment with production-like backup artifacts and PostgreSQL tooling, and attach verification reports.
