@@ -11,7 +11,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1 PYTHONDONTWRITEBYTECODE=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential libffi-dev libssl-dev pkg-config git gettext-base \
     && rm -rf /var/lib/apt/lists/*
-COPY pyproject.toml poetry.lock README.rst ./
+COPY pyproject.toml poetry.lock README.rst build_rust.py ./
 COPY synapse ./synapse
 COPY scripts-dev ./scripts-dev
 COPY rust ./rust
