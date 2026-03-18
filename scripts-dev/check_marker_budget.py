@@ -8,10 +8,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-MARKER_KEYWORDS = ("TO" "DO", "FIX" "ME", "TB" "D", "XX" "X", "HA" "CK", "NotImplemented" "Error", "TO" "DO_test_")
+MARKER_KEYWORDS = (
+    "TO" "DO",
+    "FIX" "ME",
+    "TB" "D",
+    "XX" "X",
+    "HA" "CK",
+    "NotImplemented" "Error",
+    "TO" "DO_test_",
+)
 MARKER_REGEX = "|".join(MARKER_KEYWORDS)
-BUDGET_FILE = Path('.ci/marker_budget.json')
-EXCLUDED_PATHS = {"INCOMPLETE_WORK.md", "docs/marker_inventory.csv", "docs/tracker_todo_fixme_report.md", "scripts-dev/check_trackers_and_markers.py"}
+BUDGET_FILE = Path(".ci/marker_budget.json")
+EXCLUDED_PATHS = {
+    "INCOMPLETE_WORK.md",
+    "docs/marker_inventory.csv",
+    "docs/tracker_todo_fixme_report.md",
+    "scripts-dev/check_trackers_and_markers.py",
+}
 
 
 def _marker_count() -> int:

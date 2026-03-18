@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import collections.abc
 import base64
+import collections.abc
 import re
 from typing import TYPE_CHECKING, List, Type, Union, cast
 
@@ -49,7 +49,6 @@ from synapse.util.blackout import (
     BlackoutSignalValidationResult,
     validate_blackout_signal_content as validate_blackout_signal_content_util,
 )
-
 
 _HEX_256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 _BASE64_256_RE = re.compile(r"^[A-Za-z0-9+/]{43}=$|^[A-Za-z0-9+/]{44}$")
@@ -93,14 +92,21 @@ def validate_blackout_signal_content(
     ice_candidates = content.get("ice_candidates")
     if ice_candidates is not None:
         if not isinstance(ice_candidates, list):
-            raise ValueError("invalid m.blackout.signal content: ice_candidates must be a list")
+            raise ValueError(
+                "invalid m.blackout.signal content: ice_candidates must be a list"
+            )
 
         for idx, candidate in enumerate(ice_candidates):
             prefix = "ice_candidates[%d]" % (idx,)
             if not isinstance(candidate, dict):
-                raise ValueError(f"invalid m.blackout.signal content: {prefix} must be an object")
+                raise ValueError(
+                    f"invalid m.blackout.signal content: {prefix} must be an object"
+                )
 
-            if not isinstance(candidate.get("candidate"), str) or not candidate["candidate"].strip():
+            if (
+                not isinstance(candidate.get("candidate"), str)
+                or not candidate["candidate"].strip()
+            ):
                 raise ValueError(
                     "invalid m.blackout.signal content: %s.candidate must be a non-empty string"
                     % (prefix,)
@@ -115,7 +121,8 @@ def validate_blackout_signal_content(
                 )
 
             if "sdpMid" in candidate and (
-                not isinstance(candidate["sdpMid"], str) or not candidate["sdpMid"].strip()
+                not isinstance(candidate["sdpMid"], str)
+                or not candidate["sdpMid"].strip()
             ):
                 raise ValueError(
                     "invalid m.blackout.signal content: %s.sdpMid must be a non-empty string"
@@ -132,7 +139,9 @@ def validate_blackout_signal_content(
         for idx, chunk in enumerate(chunk_announcements):
             prefix = "chunk_announcements[%d]" % (idx,)
             if not isinstance(chunk, dict):
-                raise ValueError(f"invalid m.blackout.signal content: {prefix} must be an object")
+                raise ValueError(
+                    f"invalid m.blackout.signal content: {prefix} must be an object"
+                )
 
             if not _is_fixed_length_hash(chunk.get("chunk_hash")):
                 raise ValueError(
@@ -148,9 +157,6 @@ def validate_blackout_signal_content(
                 )
 
     return result
-
-
-
 
 
 class EventValidator:

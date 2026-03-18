@@ -69,9 +69,7 @@ class PresenceTestCase(unittest.HomeserverTestCase):
             )
         )
 
-        channel = self.make_request(
-            "GET", "/presence/%s/status" % ("@other:red",)
-        )
+        channel = self.make_request("GET", "/presence/%s/status" % ("@other:red",))
 
         self.assertEqual(channel.code, HTTPStatus.SERVICE_UNAVAILABLE, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN")

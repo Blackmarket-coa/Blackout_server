@@ -20,7 +20,6 @@ from twisted.internet import defer
 from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import Direction
-from synapse.api.errors import SynapseError
 from synapse.api.room_versions import RoomVersions
 from synapse.events import EventBase
 from synapse.federation.federation_client import InvalidResponseError
@@ -241,9 +240,7 @@ class FederationClientTest(FederatingHomeserverTestCase):
             FakeResponse(code=502)
         )
 
-        with mock.patch(
-            "synapse.federation.federation_client.logger"
-        ) as mock_logger:
+        with mock.patch("synapse.federation.federation_client.logger") as mock_logger:
             result = self.get_success(
                 self.hs.get_federation_client().timestamp_to_event(
                     destinations=["yet.another.server"],

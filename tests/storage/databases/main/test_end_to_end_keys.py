@@ -139,9 +139,7 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
         self.get_success(self.store.delete_e2e_keys_by_device(user_id, device_id))
 
         revoked_ts = self.get_success(
-            self.store.get_revoked_device_key_timestamp(
-                user_id, "ed25519:ALICEDEVICE"
-            )
+            self.store.get_revoked_device_key_timestamp(user_id, "ed25519:ALICEDEVICE")
         )
         self.assertIsNotNone(revoked_ts)
 
@@ -183,6 +181,7 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
         self.assertCountEqual(revoked_by_device.keys(), ["A", "B"])
         self.assertIsInstance(revoked_by_device["A"], int)
         self.assertIsInstance(revoked_by_device["B"], int)
+
     def test_rejects_setting_device_keys_after_device_revocation(self) -> None:
         user_id = "@alice:test"
         device_id = "ALICEDEVICE"
@@ -202,7 +201,9 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
                 self.store.set_e2e_device_keys(user_id, device_id, 2_000, key_json)
             )
 
-    def test_upsert_device_key_revocations_records_key_identifier_and_value(self) -> None:
+    def test_upsert_device_key_revocations_records_key_identifier_and_value(
+        self,
+    ) -> None:
         user_id = "@alice:test"
         device_id = "ALICEDEVICE"
         revoked_ts = 7_777
@@ -234,6 +235,7 @@ class EndToEndKeyWorkerStoreTestCase(HomeserverTestCase):
             ),
             revoked_ts,
         )
+
     def test_federation_query_includes_revoked_deleted_devices(self) -> None:
         user_id = "@alice:test"
         device_id = "ALICEDEVICE"

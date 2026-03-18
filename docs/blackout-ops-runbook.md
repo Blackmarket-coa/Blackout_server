@@ -219,3 +219,37 @@ Use this flow before broad rollback whenever rejection-rate alerts fire:
 For concrete E1-E4 implementation details (backup schedule, verification pipeline,
 quarterly drill command, and alert rules), follow
 [`docs/backup_and_dr_operations.md`](./backup_and_dr_operations.md).
+
+
+## Wave-1 infra/TURN baseline (2026-03-25 bucket)
+
+### Secure coturn baseline
+
+Use an external coturn sidecar/service with the following minimum controls:
+
+- Long-term credentials enabled (`lt-cred-mech`) with rotating shared secret.
+- TLS enabled for TURN-over-TLS endpoints.
+- Explicit relay IP configuration (`external-ip`) on NATed hosts.
+- Allowed peer ACLs restricted to required ranges only.
+- Verbose audit logging enabled and shipped to central log pipeline.
+
+### Dependency health checks
+
+- coturn process liveness (`systemctl status coturn` or container healthcheck).
+- TURN allocate/success probe from staging client.
+- DNS + certificate expiry checks for TURN hostname.
+
+### Metrics contract
+
+Track these per 5m and 15m windows:
+
+- setup success rate (offer/answer completion)
+- ICE candidate failure rate
+- relay fallback rate
+
+### Abuse-control defaults for signaling storms
+
+- Rate-limit repeated signaling attempts per sender/device pair.
+- Cap concurrent active signaling sessions per room.
+- Trigger temporary backoff when per-room rejection spikes exceed alert thresholds.
+- Escalate to incident workflow if sustained storm behavior exceeds two windows.

@@ -136,7 +136,6 @@ class DeviceStoreTestCase(HomeserverTestCase):
         # Check original device_ids are contained within these updates
         self._check_devices_in_updates(device_ids, device_updates)
 
-
     def test_get_device_updates_by_remote_includes_revocation_metadata(self) -> None:
         user_id = "@user_id:test"
         device_id = "device_id1"

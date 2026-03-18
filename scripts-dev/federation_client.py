@@ -101,8 +101,6 @@ def sign_json(
     return json_object
 
 
-
-
 def _lookup_srv_record(server_name: str, service: str) -> Optional[Tuple[str, int]]:
     """Resolve a matrix federation SRV record using available resolver backends."""
 
@@ -130,6 +128,7 @@ def _lookup_srv_record(server_name: str, service: str) -> Optional[Tuple[str, in
     selected = sorted_records[0]
     host = str(selected.target).rstrip(".")
     return host, int(selected.port)
+
 
 def request(
     method: Optional[str],

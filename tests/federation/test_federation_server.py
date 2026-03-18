@@ -131,7 +131,6 @@ class StateQueryTests(unittest.FederatingHomeserverTestCase):
         self.assertEqual(HTTPStatus.FORBIDDEN, channel.code, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_FORBIDDEN")
 
-
     def test_state_ids_requires_event_id(self) -> None:
         """/v1/state_ids/<room_id> requires an event_id query parameter"""
         u1 = self.register_user("u1", "pass")
@@ -145,6 +144,7 @@ class StateQueryTests(unittest.FederatingHomeserverTestCase):
         )
         self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, channel.result)
         self.assertEqual(channel.json_body["errcode"], "M_MISSING_PARAM")
+
 
 class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
     servlets = [
@@ -348,9 +348,7 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
         # The creator's membership is an auth dependency of power_levels
         # (and transitively of join_rules etc.) but is not in reduced state,
         # so it must appear in auth_chain.
-        self.assertIn(
-            ("m.room.member", "@waldorf:test"), returned_auth_chain_events
-        )
+        self.assertIn(("m.room.member", "@waldorf:test"), returned_auth_chain_events)
         self.assertGreaterEqual(
             len(returned_auth_chain_events),
             1,
@@ -364,9 +362,7 @@ class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
         )
 
         # Verify the join was persisted.
-        r = self.get_success(
-            self._storage_controllers.state.get_current_state(room_id)
-        )
+        r = self.get_success(self._storage_controllers.state.get_current_state(room_id))
         self.assertEqual(r[("m.room.member", joining_user)].membership, "join")
 
     @override_config({"rc_joins_per_room": {"per_second": 0, "burst_count": 3}})

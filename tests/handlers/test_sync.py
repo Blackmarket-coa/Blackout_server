@@ -188,7 +188,6 @@ class SyncTestCase(tests.unittest.HomeserverTestCase):
         self.assertNotIn(invite_room, [r.room_id for r in result.invited])
         self.assertNotIn(knock_room, [r.room_id for r in result.knocked])
 
-
     def test_generate_sync_result_rejects_appservice_user(self) -> None:
         sync_config = generate_sync_config("@appservice:test")
 

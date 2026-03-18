@@ -136,7 +136,9 @@ def _validate_instance_against_schema(
 def _validate_cross_field_rules(name: str, instance: Dict[str, Any]) -> None:
     if name == "blackout_dead_drop_room":
         if instance.get("retention_ttl_hours", 0) <= 0:
-            raise ValidationError("blackout_dead_drop_room: retention_ttl_hours must be > 0")
+            raise ValidationError(
+                "blackout_dead_drop_room: retention_ttl_hours must be > 0"
+            )
 
     if name == "blackout_announcement_room":
         if instance.get("fanout_mode") == "delayed_window":

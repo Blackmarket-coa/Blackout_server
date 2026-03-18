@@ -873,7 +873,9 @@ class RestServlet:
                     )
 
         else:
-            raise TypeError("RestServlet subclasses must define PATTERNS or override register().")
+            raise TypeError(
+                "RestServlet subclasses must define PATTERNS or override register()."
+            )
 
 
 class ResolveRoomIdMixin:

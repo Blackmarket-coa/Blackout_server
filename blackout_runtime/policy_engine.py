@@ -13,6 +13,23 @@ DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     "edge_federation_profile": False,
 }
 
+PERSISTED_EVENT_TYPES: Dict[str, str] = {
+    "m.room.member": "membership_auth_state",
+    "m.room.power_levels": "membership_auth_state",
+    "m.room.join_rules": "membership_auth_state",
+    "m.room.history_visibility": "membership_auth_state",
+    "m.room.create": "membership_auth_state",
+    "m.room.server_acl": "membership_auth_state",
+    "m.blackout.signal": "signaling_ttl",
+}
+
+NON_PERSISTED_EVENT_TYPES: Dict[str, str] = {
+    "m.room.message": "blocked_payload",
+    "m.room.encrypted": "blocked_payload",
+    "m.room.redaction": "unsupported_timeline",
+    "m.reaction": "unsupported_timeline",
+}
+
 FEDERATION_TRUST_TIER_ACLS: Dict[str, Dict[str, Sequence[str]]] = {
     "local": {"allow": ["*.local"], "deny": []},
     "partner": {"allow": ["*.local", "partner.example"], "deny": []},
@@ -117,6 +134,29 @@ class BlackoutPolicyEngine:
             return config
 
         raise ValueError(f"Unsupported preset: {preset_name}")
+
+    def classify_event_persistence(
+        self, event_type: str, *, is_state_event: bool
+    ) -> str:
+        """Classify event persistence behavior in blackout signaling-only mode.
+
+        Returns one of:
+        - ``persisted`` for auth-critical state + ``m.blackout.signal`` metadata.
+        - ``blocked`` for known blocked payload timeline event types.
+        - ``unsupported`` for timeline events outside the signaling allow-list.
+        - ``state_persisted`` for generic state events not explicitly listed.
+        """
+
+        if event_type in PERSISTED_EVENT_TYPES:
+            return "persisted"
+
+        if event_type in NON_PERSISTED_EVENT_TYPES:
+            return "blocked"
+
+        if is_state_event:
+            return "state_persisted"
+
+        return "unsupported"
 
     def enforce_membership_boundary(
         self, *, chapter_id: str, member_chapter_id: str

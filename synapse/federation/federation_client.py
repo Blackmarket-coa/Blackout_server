@@ -16,8 +16,8 @@
 
 import copy
 import itertools
-from asyncio import CancelledError
 import logging
+from asyncio import CancelledError
 from typing import (
     TYPE_CHECKING,
     AbstractSet,

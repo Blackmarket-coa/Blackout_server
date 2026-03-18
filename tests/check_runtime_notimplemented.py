@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Static regression check for runtime Not-Implemented raises in synapse/.
 
 This check is intentionally import-free: it parses Python source via ``ast`` to avoid
