@@ -14,16 +14,7 @@ from socket import (
     gaierror,
     getaddrinfo,
 )
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Callable, List, Optional, Sequence, Tuple, Type, Union
 
 from zope.interface import implementer
 

@@ -165,7 +165,6 @@ class TestBulkPushRuleEvaluator(HomeserverTestCase):
         )
         self.assertEqual(len(highlighted_actions), int(should_permit))
 
-
     @override_config(
         {
             "blackout": {

@@ -201,9 +201,7 @@ class DeactivateAccountTestCase(HomeserverTestCase):
         ), mock.patch(
             "synapse.handlers.deactivate_account.logger"
         ) as mock_logger:
-            self.get_success(
-                handler._reject_pending_invites_for_user(self.user)
-            )
+            self.get_success(handler._reject_pending_invites_for_user(self.user))
 
         # Find the summary log call.
         summary_calls = [

@@ -26,7 +26,16 @@ from synapse.api.constants import (
     ReceiptTypes,
     RelationTypes,
 )
-from synapse.rest.client import devices, keys, knock, login, read_marker, receipts, room, sync
+from synapse.rest.client import (
+    devices,
+    keys,
+    knock,
+    login,
+    read_marker,
+    receipts,
+    room,
+    sync,
+)
 from synapse.server import HomeServer
 from synapse.types import JsonDict
 from synapse.util import Clock

@@ -1235,7 +1235,9 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
             )
         )
 
-    def test_federation_ingress_strips_inline_payload_when_offline_markers_present(self) -> None:
+    def test_federation_ingress_strips_inline_payload_when_offline_markers_present(
+        self,
+    ) -> None:
         remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
 
         pdu = make_event_from_dict(
@@ -1272,7 +1274,9 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
 
         self.assertNotIn("sdp_offer", pdu.content)
 
-    def test_federation_ingress_rejects_inline_payload_without_offline_markers(self) -> None:
+    def test_federation_ingress_rejects_inline_payload_without_offline_markers(
+        self,
+    ) -> None:
         remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
 
         pdu = make_event_from_dict(
@@ -1305,8 +1309,9 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
         )
         self.assertIn("offline_retrieval", str(failure.value))
 
-
-    def test_federation_ingress_rejects_invalid_chunk_merkle(self) -> None:
+    def test_federation_ingress_rejects_invalid_chunk_merkle_with_replication_factor(
+        self,
+    ) -> None:
         remote_user_id = f"@mallory:{self.OTHER_SERVER_NAME}"
 
         pdu = make_event_from_dict(

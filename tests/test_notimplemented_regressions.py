@@ -1,7 +1,6 @@
 import ast
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 NOT_IMPLEMENTED_ERROR_NAME = "NotImplemented" "Error"
 
@@ -24,7 +23,10 @@ def _find_notimplemented_raises(path: Path) -> list[int]:
 
         if isinstance(target, ast.Name) and target.id == NOT_IMPLEMENTED_ERROR_NAME:
             hits.append(node.lineno)
-        elif isinstance(target, ast.Attribute) and target.attr == NOT_IMPLEMENTED_ERROR_NAME:
+        elif (
+            isinstance(target, ast.Attribute)
+            and target.attr == NOT_IMPLEMENTED_ERROR_NAME
+        ):
             hits.append(node.lineno)
 
     return hits

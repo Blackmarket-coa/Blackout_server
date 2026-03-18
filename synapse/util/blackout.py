@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Tuple
 
 import jsonschema
 
-
 _HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
 _INLINE_SIGNAL_PAYLOAD_FIELDS = ("sdp_offer", "sdp_answer", "ice_candidates")
 
@@ -126,7 +125,10 @@ def _validate_message_metadata(metadata: Any) -> Dict[str, Any]:
         raise ValueError("message_metadata must be a JSON object")
 
     for required in ("message_id", "sender_key_id"):
-        if not isinstance(metadata.get(required), str) or not metadata[required].strip():
+        if (
+            not isinstance(metadata.get(required), str)
+            or not metadata[required].strip()
+        ):
             raise ValueError(f"message_metadata.{required} must be a non-empty string")
 
     sender_key = metadata.get("sender_key")
@@ -145,7 +147,9 @@ def _validate_message_metadata(metadata: Any) -> Dict[str, Any]:
     return metadata
 
 
-def _validate_chunk_announcements(chunk_announcements: Any) -> BlackoutSignalValidationResult:
+def _validate_chunk_announcements(
+    chunk_announcements: Any,
+) -> BlackoutSignalValidationResult:
     if chunk_announcements is None:
         return BlackoutSignalValidationResult()
 

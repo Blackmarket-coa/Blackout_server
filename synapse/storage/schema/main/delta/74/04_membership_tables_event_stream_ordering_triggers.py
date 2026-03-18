@@ -76,4 +76,6 @@ def run_create(cur: LoggingTransaction, database_engine: BaseDatabaseEngine) -> 
                 """
             )
     else:
-        raise RuntimeError(f"Unsupported database engine for migration: {type(database_engine).__name__}")
+        raise RuntimeError(
+            f"Unsupported database engine for migration: {type(database_engine).__name__}"
+        )

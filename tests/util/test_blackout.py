@@ -9,7 +9,9 @@ from tests import unittest
 class BlackoutSignalSchemaValidationTestCase(unittest.TestCase):
     def test_rejects_missing_message_metadata(self) -> None:
         with self.assertRaises(ValueError):
-            validate_blackout_signal_content({"sdp_offer": {"type": "offer", "sdp": "v=0"}})
+            validate_blackout_signal_content(
+                {"sdp_offer": {"type": "offer", "sdp": "v=0"}}
+            )
 
     def test_rejects_unknown_fields(self) -> None:
         with self.assertRaises(ValueError):

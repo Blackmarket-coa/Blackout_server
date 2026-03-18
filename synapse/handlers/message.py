@@ -74,13 +74,13 @@ from synapse.types import (
 from synapse.types.state import StateFilter
 from synapse.util import json_decoder, json_encoder, log_failure, unwrapFirstError
 from synapse.util.async_helpers import Linearizer, gather_results
-from synapse.util.caches.expiringcache import ExpiringCache
-from synapse.util.metrics import measure_func
-from synapse.visibility import get_effective_room_visibility_from_state
 from synapse.util.blackout import (
     extract_sender_key_identifiers_from_signal_content,
     strip_inline_payload_from_signal_content,
 )
+from synapse.util.caches.expiringcache import ExpiringCache
+from synapse.util.metrics import measure_func
+from synapse.visibility import get_effective_room_visibility_from_state
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
@@ -601,7 +601,9 @@ class EventCreationHandler:
         try:
             result = validate_blackout_signal_content(content)
         except ValueError as e:
-            blackout_event_rejections_counter.labels(reason="invalid_signal_content").inc()
+            blackout_event_rejections_counter.labels(
+                reason="invalid_signal_content"
+            ).inc()
             raise SynapseError(400, str(e))
 
         if result.missing_redundancy_metadata:
@@ -618,7 +620,9 @@ class EventCreationHandler:
     async def _enforce_blackout_signal_device_revocation(
         self, sender: str, content: JsonDict
     ) -> None:
-        for key_identifier in extract_sender_key_identifiers_from_signal_content(content):
+        for key_identifier in extract_sender_key_identifiers_from_signal_content(
+            content
+        ):
             revoked_ts = await self.store.get_revoked_device_key_timestamp(
                 sender, key_identifier
             )
@@ -644,7 +648,9 @@ class EventCreationHandler:
             EventTypes.Message,
             EventTypes.Encrypted,
         ):
-            blackout_event_rejections_counter.labels(reason="blocked_payload_event_type").inc()
+            blackout_event_rejections_counter.labels(
+                reason="blocked_payload_event_type"
+            ).inc()
             raise SynapseError(
                 403,
                 "%s events are blocked in blackout signaling-only mode" % (event_type,),
@@ -655,10 +661,13 @@ class EventCreationHandler:
             EventTypes.BlackoutSignal,
             EventTypes.Dummy,
         ):
-            blackout_event_rejections_counter.labels(reason="unsupported_timeline_type").inc()
+            blackout_event_rejections_counter.labels(
+                reason="unsupported_timeline_type"
+            ).inc()
             raise SynapseError(
                 403,
-                "%s events are disabled in blackout signaling-only mode" % (event_type,),
+                "%s events are disabled in blackout signaling-only mode"
+                % (event_type,),
                 Codes.FORBIDDEN,
             )
 

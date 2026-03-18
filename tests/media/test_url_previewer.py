@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from asyncio import CancelledError
 import os
+from asyncio import CancelledError
 from unittest import mock
 
 from twisted.test.proto_helpers import MemoryReactor
 
-from synapse.server import HomeServer
 from synapse.api.errors import Codes, SynapseError
+from synapse.server import HomeServer
 from synapse.types import UserID
 from synapse.util import Clock
 
@@ -130,7 +130,9 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         now_s = self.clock.time_msec() // 1000
         expires = now_s + 90
 
-        with mock.patch("synapse.media.url_previewer.parsedate_to_datetime") as parse_dt:
+        with mock.patch(
+            "synapse.media.url_previewer.parsedate_to_datetime"
+        ) as parse_dt:
             parse_dt.return_value = datetime.datetime.fromtimestamp(
                 expires, tz=datetime.timezone.utc
             )
@@ -218,9 +220,7 @@ class URLPreviewTests(unittest.HomeserverTestCase):
         headers = {
             b"Content-Type": [b"text/html; charset=\xff"],
         }
-        result = self.get_success(
-            self._download_with_headers(headers)
-        )
+        result = self.get_success(self._download_with_headers(headers))
         # The replacement character should appear instead of the invalid byte.
         self.assertIn("\ufffd", result.media_type)
 
@@ -230,13 +230,11 @@ class URLPreviewTests(unittest.HomeserverTestCase):
             b"Content-Type": [b"text/html"],
             b"ETag": [b"\x80invalid"],
         }
-        result = self.get_success(
-            self._download_with_headers(headers)
-        )
+        result = self.get_success(self._download_with_headers(headers))
         self.assertIsNotNone(result.etag)
         self.assertIn("\ufffd", result.etag)
 
-    async def _download_with_headers(self, response_headers: dict) -> "DownloadResult":
+    async def _download_with_headers(self, response_headers: dict):
         """Helper that exercises _download_url's header parsing with given
         response headers."""
         with mock.patch.object(

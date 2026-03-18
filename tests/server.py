@@ -490,7 +490,9 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
         super().__init__()
 
     def installNameResolver(self, resolver: IHostnameResolver) -> IHostnameResolver:
-        raise RuntimeError("ThreadedMemoryReactorClock.installNameResolver is not needed in tests")
+        raise RuntimeError(
+            "ThreadedMemoryReactorClock.installNameResolver is not needed in tests"
+        )
 
     def listenUDP(
         self,
@@ -518,10 +520,14 @@ class ThreadedMemoryReactorClock(MemoryReactorClock):
     def callInThread(
         self, callable: Callable[..., Any], *args: object, **kwargs: object
     ) -> None:
-        raise RuntimeError("ThreadedMemoryReactorClock.callInThread is not implemented in tests")
+        raise RuntimeError(
+            "ThreadedMemoryReactorClock.callInThread is not implemented in tests"
+        )
 
     def suggestThreadPoolSize(self, size: int) -> None:
-        raise RuntimeError("ThreadedMemoryReactorClock.suggestThreadPoolSize is not implemented in tests")
+        raise RuntimeError(
+            "ThreadedMemoryReactorClock.suggestThreadPoolSize is not implemented in tests"
+        )
 
     def getThreadPool(self) -> "threadpool.ThreadPool":
         # Cast to match super-class.

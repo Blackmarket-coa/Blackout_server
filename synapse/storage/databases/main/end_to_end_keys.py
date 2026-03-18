@@ -110,7 +110,6 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
             self.hs.config.federation.allow_device_name_lookup_over_federation
         )
 
-
     def _upsert_device_key_revocations_txn(
         self,
         txn: LoggingTransaction,
@@ -301,8 +300,10 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
         # "unsigned" section
         rv: Dict[str, Dict[str, JsonDict]] = {}
         for user_id, device_keys in results.items():
-            revoked_by_device = await self.get_revoked_device_key_timestamps_for_devices(
-                user_id, device_keys.keys()
+            revoked_by_device = (
+                await self.get_revoked_device_key_timestamps_for_devices(
+                    user_id, device_keys.keys()
+                )
             )
             rv[user_id] = {}
             for device_id, device_info in device_keys.items():
@@ -490,14 +491,16 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
                 " GROUP BY device_id"
             ) % (device_clause,)
             txn.execute(sql, [user_id] + device_args)
-            return {device_id: revoked_ts for device_id, revoked_ts in txn}
+            return dict(txn)
 
         return await self.db_pool.runInteraction(
             "get_revoked_device_key_timestamps_for_devices",
             _get_revoked_device_key_timestamps_for_devices_txn,
         )
 
-    async def get_revoked_device_key_timestamps_for_user(self, user_id: str) -> Dict[str, int]:
+    async def get_revoked_device_key_timestamps_for_user(
+        self, user_id: str
+    ) -> Dict[str, int]:
         def _get_revoked_device_key_timestamps_for_user_txn(
             txn: LoggingTransaction,
         ) -> Dict[str, int]:
@@ -516,7 +519,6 @@ class EndToEndKeyWorkerStore(EndToEndKeyBackgroundStore, CacheInvalidationWorker
             "get_revoked_device_key_timestamps_for_user",
             _get_revoked_device_key_timestamps_for_user_txn,
         )
-
 
     async def _get_e2e_device_keys(
         self,
