@@ -3,9 +3,7 @@
 FROM rust:1.76-bookworm AS rust-builder
 WORKDIR /src
 COPY rust ./rust
-RUN --mount=type=cache,id=blackout-cargo-registry,target=/usr/local/cargo/registry \
-    --mount=type=cache,id=blackout-rust-target,target=/src/rust/target \
-    cd rust && cargo build --release || true
+RUN cd rust && cargo build --release || true
 
 FROM python:3.11-slim-bookworm AS py-builder
 WORKDIR /src
