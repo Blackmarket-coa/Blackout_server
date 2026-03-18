@@ -21,6 +21,7 @@ Last updated: 2026-03-18
   - `tests/handlers/test_message.py`
   - `tests/handlers/test_federation_event.py`
 - Canonical execution artifact with per-ticket evidence + PR links: `docs/reports/wave1_activation_plan_2026-03-18.md`.
+- Next-25 tranche execution log: `docs/reports/wave1_next25_execution_2026-03-18.md`.
 - Staging smoke execution gate after each bucket closure: startup + federation + worker health checks; results tracked in `docs/reports/wave1_activation_plan_2026-03-18.md`.
 
 ---

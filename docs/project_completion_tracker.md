@@ -546,3 +546,4 @@ Remaining owner/date:
 - Frozen near-due execution buckets with DRI + sprint-ticket + implementation-PR metadata: `docs/reports/wave1_activation_plan_2026-03-18.md`.
 - Tracker activation converted due buckets (`2026-03-22`, `2026-03-24`, `2026-03-25`, `2026-03-26`) from deferred-only rows to explicit `[required-now]` in-progress execution rows.
 - Deployment go/no-go now includes per-bucket evidence linkage table for these four buckets.
+- Next-25 tranche execution evidence recorded in `docs/reports/wave1_next25_execution_2026-03-18.md`.
