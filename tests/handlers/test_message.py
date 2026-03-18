@@ -371,7 +371,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(exc.code, 403)
-        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
+        self.assertEqual(exc.errcode, Codes.BLACKOUT_EVENT_TYPE_BLOCKED)
         self.assertIn("blocked in blackout signaling-only mode", exc.msg)
 
     def test_room_encrypted_blocked_in_blackout_mode(self) -> None:
@@ -385,7 +385,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(exc.code, 403)
-        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
+        self.assertEqual(exc.errcode, Codes.BLACKOUT_EVENT_TYPE_BLOCKED)
         self.assertIn("blocked in blackout signaling-only mode", exc.msg)
 
     def test_non_signal_timeline_event_blocked(self) -> None:
@@ -405,7 +405,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(exc.code, 403)
-        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
+        self.assertEqual(exc.errcode, Codes.BLACKOUT_UNSUPPORTED_TIMELINE_TYPE)
 
     def test_blackout_signal_gets_ttl(self) -> None:
         event, _ = self.get_success(
@@ -416,6 +416,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                     "room_id": self.room_id,
                     "sender": self.user_id,
                     "content": {
+                        "schema_version": 2,
                         "sdp_offer": {"type": "offer", "sdp": "v=0"},
                         "offline_retrieval": {
                             "manifest_id": "manifest-ttl",
@@ -424,6 +425,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                         "message_metadata": {
                             "message_id": "msg-ttl",
                             "sender_key_id": "ed25519:dev-1",
+                            "content_class": "webrtc-session",
                         },
                     },
                 },
@@ -460,9 +462,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     }
                 },
             }
@@ -477,7 +481,10 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "type": EventTypes.BlackoutSignal,
                 "room_id": self.room_id,
                 "sender": self.user_id,
-                "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                    "content": {
+                        "schema_version": 2,
+                        "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                    },
             }
         )
 
@@ -490,9 +497,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     },
                     "chunk_announcements": [
                         {"chunk_id": "chunk-1", "chunk_hash": "not-a-hash"}
@@ -510,9 +519,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     },
                     "chunk_announcements": [
                         {"chunk_id": "chunk-1", "chunk_hash": "a" * 96}
@@ -530,9 +541,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     },
                     "ice_candidates": [{"sdpMid": "0"}],
                 },
@@ -548,9 +561,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     },
                     "chunk_announcements": [
                         {
@@ -589,9 +604,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                     "room_id": self.room_id,
                     "sender": self.user_id,
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-2",
                             "sender_key_id": "ed25519:dev-1",
+                        "content_class": "webrtc-session",
                         },
                         "chunk_announcements": [
                             {
@@ -639,9 +656,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                     "room_id": self.room_id,
                     "sender": self.user_id,
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-1",
                             "sender_key_id": "ed25519:dev-1",
+                            "content_class": "webrtc-session",
                             "topology_hints": ["relay:a", "relay:b"],
                         },
                         "offline_retrieval": {
@@ -680,9 +699,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     },
                     "sdp_offer": {"type": "offer", "sdp": "v=0"},
                 },
@@ -700,9 +721,11 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                 "room_id": self.room_id,
                 "sender": self.user_id,
                 "content": {
+                    "schema_version": 2,
                     "message_metadata": {
                         "message_id": "msg-1",
                         "sender_key_id": "ed25519:dev-1",
+                    "content_class": "webrtc-session",
                     },
                     "offline_retrieval": {
                         "manifest_id": "manifest-1",
@@ -730,3 +753,28 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(exc.code, 400)
+
+    def test_blackout_signal_rate_limited(self) -> None:
+        self.handler._blackout_signal_rate_limit_per_minute = 1
+
+        event_body = {
+            "type": EventTypes.BlackoutSignal,
+            "room_id": self.room_id,
+            "sender": self.user_id,
+            "content": {
+                "schema_version": 2,
+                "message_metadata": {
+                    "message_id": "msg-rate-1",
+                    "sender_key_id": "ed25519:dev-1",
+                    "content_class": "control",
+                },
+            },
+        }
+        self.get_success(
+            self.handler.create_and_send_nonmember_event(self.requester, event_body)
+        )
+
+        event_body["content"]["message_metadata"]["message_id"] = "msg-rate-2"
+        exc = self._assert_blackout_send_fails(event_body)
+        self.assertEqual(exc.code, 429)
+        self.assertEqual(exc.errcode, Codes.LIMIT_EXCEEDED)

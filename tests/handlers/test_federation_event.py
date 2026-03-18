@@ -1167,9 +1167,11 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
                     "prev_events": [],
                     "auth_events": [],
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-1",
                             "sender_key_id": "ed25519:remote-device",
+                        "content_class": "webrtc-session",
                         },
                         "chunk_announcements": [
                             {
@@ -1220,9 +1222,11 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
                     "prev_events": [],
                     "auth_events": [],
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-1",
                             "sender_key_id": "ed25519:remote-device",
+                        "content_class": "webrtc-session",
                         }
                     },
                 }
@@ -1252,9 +1256,11 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
                     "prev_events": [],
                     "auth_events": [],
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-1",
                             "sender_key_id": "ed25519:remote-device",
+                        "content_class": "webrtc-session",
                         },
                         "offline_retrieval": {
                             "manifest_id": "manifest-1",
@@ -1291,9 +1297,11 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
                     "prev_events": [],
                     "auth_events": [],
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-1",
                             "sender_key_id": "ed25519:remote-device",
+                        "content_class": "webrtc-session",
                         },
                         "sdp_answer": {"type": "answer", "sdp": "v=0"},
                     },
@@ -1326,9 +1334,11 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
                     "prev_events": [],
                     "auth_events": [],
                     "content": {
+                        "schema_version": 2,
                         "message_metadata": {
                             "message_id": "msg-1",
                             "sender_key_id": "ed25519:remote-device",
+                        "content_class": "webrtc-session",
                         },
                         "chunk_announcements": [
                             {

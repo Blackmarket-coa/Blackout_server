@@ -3,14 +3,21 @@
 Date: 2026-02-27  
 Owner: Protocol Engineer
 
-## Minimum required content
+## Minimum required content (schema_version = 2)
 
 Federated and local acceptance requires:
 
 - Top-level event type: `m.blackout.signal`
+- `content.schema_version` must equal `2`
 - `content.message_metadata.message_id` (non-empty string)
 - `content.message_metadata.sender_key_id` (non-empty string)
+- `content.message_metadata.content_class` in:
+  - `webrtc-session`
+  - `chunk-announcement`
+  - `offline-retrieval`
+  - `control`
 
+Max serialized payload size: **64 KiB**.  
 All other supported sections are optional (`ice_candidates`, `sdp_offer`, `sdp_answer`, `chunk_announcements`, `offline_retrieval`, `self_destruct_after`) and are validated if present.
 
 ## Rejection rules

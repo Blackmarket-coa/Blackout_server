@@ -122,6 +122,11 @@ class Codes(str, Enum):
     # MSC2677
     DUPLICATE_ANNOTATION = "M_DUPLICATE_ANNOTATION"
 
+    # Blackout signaling-only enforcement errors.
+    BLACKOUT_EVENT_TYPE_BLOCKED = "ORG.BLACKOUT.EVENT_TYPE_BLOCKED"
+    BLACKOUT_UNSUPPORTED_TIMELINE_TYPE = "ORG.BLACKOUT.UNSUPPORTED_TIMELINE_TYPE"
+    BLACKOUT_INVALID_SIGNAL_CONTENT = "ORG.BLACKOUT.INVALID_SIGNAL_CONTENT"
+
 
 class CodeMessageException(RuntimeError):
     """An exception with integer code, a message string attributes and optional headers.

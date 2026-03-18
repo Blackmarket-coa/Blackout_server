@@ -1,4 +1,5 @@
 import base64
+import json
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
@@ -7,12 +8,21 @@ import jsonschema
 
 _HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
 _INLINE_SIGNAL_PAYLOAD_FIELDS = ("sdp_offer", "sdp_answer", "ice_candidates")
+BLACKOUT_SIGNAL_SCHEMA_VERSION = 2
+BLACKOUT_SIGNAL_MAX_PAYLOAD_BYTES = 64 * 1024
+_ALLOWED_SIGNAL_CONTENT_CLASSES = (
+    "webrtc-session",
+    "chunk-announcement",
+    "offline-retrieval",
+    "control",
+)
 
 _BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["message_metadata"],
+    "required": ["schema_version", "message_metadata"],
     "properties": {
+        "schema_version": {"const": BLACKOUT_SIGNAL_SCHEMA_VERSION},
         "ice_candidates": {
             "type": "array",
             "items": {
@@ -46,10 +56,11 @@ _BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
         },
         "message_metadata": {
             "type": "object",
-            "required": ["message_id", "sender_key_id"],
+            "required": ["message_id", "sender_key_id", "content_class"],
             "properties": {
                 "message_id": {"type": "string", "minLength": 1},
                 "sender_key_id": {"type": "string", "minLength": 1},
+                "content_class": {"enum": list(_ALLOWED_SIGNAL_CONTENT_CLASSES)},
                 "sender_key": {"type": "string"},
                 "topology_hints": {
                     "type": "array",
@@ -200,12 +211,37 @@ def _validate_chunk_announcements(
 
 
 def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationResult:
+    payload_bytes = len(
+        json.dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    )
+    if payload_bytes > BLACKOUT_SIGNAL_MAX_PAYLOAD_BYTES:
+        raise ValueError(
+            "invalid m.blackout.signal content: payload exceeds %d bytes"
+            % (BLACKOUT_SIGNAL_MAX_PAYLOAD_BYTES,)
+        )
+
     try:
         jsonschema.validate(content, _BLACKOUT_SIGNAL_CONTENT_SCHEMA)
     except jsonschema.ValidationError as e:
         raise ValueError(f"invalid m.blackout.signal content: {e.message}")
 
     _validate_message_metadata(content.get("message_metadata"))
+    if content.get("sdp_offer") is not None and content.get("sdp_answer") is not None:
+        raise ValueError(
+            "invalid m.blackout.signal content: only one of sdp_offer or sdp_answer is allowed"
+        )
+
+    ice_candidates = content.get("ice_candidates")
+    if isinstance(ice_candidates, list):
+        for idx, candidate in enumerate(ice_candidates):
+            sdp_mid = candidate.get("sdpMid")
+            if sdp_mid is not None and (
+                not isinstance(sdp_mid, str) or not sdp_mid.strip()
+            ):
+                raise ValueError(
+                    "invalid m.blackout.signal content: ice_candidates[%d].sdpMid must be a non-empty string"
+                    % (idx,)
+                )
 
     return _validate_chunk_announcements(content.get("chunk_announcements"))
 
@@ -263,3 +299,9 @@ def extract_sender_key_identifiers_from_signal_content(content: Any) -> List[str
         key_identifiers.append(sender_key)
 
     return key_identifiers
+    content_class = metadata.get("content_class")
+    if content_class not in _ALLOWED_SIGNAL_CONTENT_CLASSES:
+        raise ValueError(
+            "message_metadata.content_class must be one of: %s"
+            % (", ".join(_ALLOWED_SIGNAL_CONTENT_CLASSES),)
+        )
