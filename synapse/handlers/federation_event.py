@@ -205,6 +205,11 @@ class FederationEventHandler:
         self._config = hs.config
         self._ephemeral_messages_enabled = hs.config.server.enable_ephemeral_messages
         self._blackout_enabled = hs.config.server.blackout_enabled
+        self._blackout_signal_event_ttl = hs.config.server.blackout_signal_event_ttl
+        self._blackout_signal_rate_limit_per_minute = (
+            hs.config.server.blackout_signal_rate_limit_per_minute
+        )
+        self._blackout_signal_sender_window: Dict[str, Tuple[int, int]] = {}
         self._send_events = ReplicationFederationSendEventsRestServlet.make_client(hs)
         if hs.config.worker.worker_app:
             self._multi_user_device_resync = (
@@ -296,6 +301,27 @@ class FederationEventHandler:
             )
 
         if event.type == EventTypes.BlackoutSignal:
+            now_seconds = self._clock.time()
+            window = int(now_seconds // 60)
+            sender = event.sender
+            prev_window, count = self._blackout_signal_sender_window.get(
+                sender, (window, 0)
+            )
+            if prev_window != window:
+                count = 0
+            count += 1
+            self._blackout_signal_sender_window[sender] = (window, count)
+            if count > self._blackout_signal_rate_limit_per_minute:
+                blackout_federation_event_rejections_counter.labels(
+                    reason="signal_rate_limited"
+                ).inc()
+                raise FederationError(
+                    "ERROR",
+                    429,
+                    "Too many m.blackout.signal events in the current minute",
+                    affected=event.event_id,
+                )
+
             try:
                 result = validate_blackout_signal_content(event.content)
             except ValueError as e:
@@ -340,6 +366,10 @@ class FederationEventHandler:
                     affected=event.event_id,
                 )
             await self._enforce_blackout_signal_device_revocation(event)
+            event.content.setdefault(
+                EventContentFields.SELF_DESTRUCT_AFTER,
+                self._clock.time_msec() + self._blackout_signal_event_ttl,
+            )
             blackout_federation_signal_events_accepted_counter.inc()
 
     async def on_receive_pdu(self, origin: str, pdu: EventBase) -> None:

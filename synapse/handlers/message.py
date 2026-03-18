@@ -584,6 +584,10 @@ class EventCreationHandler:
         self._ephemeral_events_enabled = hs.config.server.enable_ephemeral_messages
         self._blackout_enabled = hs.config.server.blackout_enabled
         self._blackout_signal_event_ttl = hs.config.server.blackout_signal_event_ttl
+        self._blackout_signal_rate_limit_per_minute = (
+            hs.config.server.blackout_signal_rate_limit_per_minute
+        )
+        self._blackout_signal_sender_window: Dict[str, Tuple[int, int]] = {}
         self._external_cache = hs.get_external_cache()
 
         # Stores the state groups we've recently added to the joined hosts
@@ -604,7 +608,7 @@ class EventCreationHandler:
             blackout_event_rejections_counter.labels(
                 reason="invalid_signal_content"
             ).inc()
-            raise SynapseError(400, str(e))
+            raise SynapseError(400, str(e), Codes.BLACKOUT_INVALID_SIGNAL_CONTENT)
 
         if result.missing_redundancy_metadata:
             blackout_signal_redundancy_metadata_missing_counter.inc()
@@ -654,7 +658,7 @@ class EventCreationHandler:
             raise SynapseError(
                 403,
                 "%s events are blocked in blackout signaling-only mode" % (event_type,),
-                Codes.FORBIDDEN,
+                Codes.BLACKOUT_EVENT_TYPE_BLOCKED,
             )
 
         if not is_state_event and event_type not in (
@@ -668,10 +672,30 @@ class EventCreationHandler:
                 403,
                 "%s events are disabled in blackout signaling-only mode"
                 % (event_type,),
-                Codes.FORBIDDEN,
+                Codes.BLACKOUT_UNSUPPORTED_TIMELINE_TYPE,
             )
 
         if event_type == EventTypes.BlackoutSignal:
+            now_seconds = self.clock.time()
+            window = int(now_seconds // 60)
+            sender = event_dict["sender"]
+            prev_window, count = self._blackout_signal_sender_window.get(
+                sender, (window, 0)
+            )
+            if prev_window != window:
+                count = 0
+            count += 1
+            self._blackout_signal_sender_window[sender] = (window, count)
+            if count > self._blackout_signal_rate_limit_per_minute:
+                blackout_event_rejections_counter.labels(
+                    reason="signal_rate_limited"
+                ).inc()
+                raise SynapseError(
+                    429,
+                    "Too many m.blackout.signal events in the current minute",
+                    Codes.LIMIT_EXCEEDED,
+                )
+
             content = event_dict.setdefault("content", {})
             self._validate_blackout_signal_content(content)
             try:

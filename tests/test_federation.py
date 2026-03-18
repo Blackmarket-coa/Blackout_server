@@ -446,7 +446,19 @@ class BlackoutFederationCrossServerTests(unittest.HomeserverTestCase):
                 "origin_server_ts": 2,
                 "type": EventTypes.BlackoutSignal,
                 "origin": "test.serv",
-                "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+                "content": {
+                    "schema_version": 2,
+                    "message_metadata": {
+                        "message_id": "fed-msg-1",
+                        "sender_key_id": "ed25519:federation-dev-1",
+                        "content_class": "webrtc-session",
+                    },
+                    "offline_retrieval": {
+                        "manifest_id": "manifest-fed-1",
+                        "external_fetch_required": True,
+                    },
+                    "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                },
                 "auth_events": [],
                 "prev_events": [(most_recent, {})],
             }

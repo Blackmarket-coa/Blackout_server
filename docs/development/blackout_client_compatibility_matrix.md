@@ -5,7 +5,7 @@ Owners: Client Liaison + Backend Lead
 
 ## Scope
 
-This matrix defines expected behavior for clients when `blackout_signaling_only_mode` is enabled.
+This matrix defines expected behavior for clients when blackout mode is enabled.
 
 ## Compatibility matrix
 
@@ -14,6 +14,15 @@ This matrix defines expected behavior for clients when `blackout_signaling_only_
 | Blackout-native client | Yes | No | Fully compatible. Signaling accepted and retained with TTL policy. | Preferred target profile. |
 | Hybrid client (feature-flagged) | Yes | Sometimes | Partial compatibility. Legacy payload events rejected with `403 M_FORBIDDEN`. | Enable blackout transport flag by default before cutover. |
 | Legacy Matrix chat client | No | Yes | Incompatible for room timeline payloads under blackout policy. | Keep blackout disabled for these tenants or route to non-blackout homeserver. |
+
+## Client fallback behavior
+
+When clients receive blackout blocking errors (`ORG.BLACKOUT.EVENT_TYPE_BLOCKED`,
+`ORG.BLACKOUT.UNSUPPORTED_TIMELINE_TYPE`), clients should:
+
+1. Stop retrying the blocked payload event type.
+2. Switch transport to `m.blackout.signal` metadata envelopes.
+3. Surface a local UX notice that payload delivery requires blackout-compatible transport.
 
 ## Migration recommendation
 
