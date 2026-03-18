@@ -10,15 +10,27 @@ TEMPLATE_PATH="/templates/homeserver.yaml.template"
 SERVER_NAME="${SERVER_NAME:-${SYNAPSE_SERVER_NAME:-localhost}}"
 export SERVER_NAME
 
-: "${DATABASE_HOST:?DATABASE_HOST is required}"
-: "${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}"
-: "${REDIS_HOST:?REDIS_HOST is required}"
-: "${REGISTRATION_SHARED_SECRET:?REGISTRATION_SHARED_SECRET is required}"
+HAS_EXTERNAL_BACKING_SERVICES=true
+for required_var in DATABASE_HOST DATABASE_PASSWORD REDIS_HOST REGISTRATION_SHARED_SECRET; do
+  if [[ -z "${!required_var:-}" ]]; then
+    HAS_EXTERNAL_BACKING_SERVICES=false
+    break
+  fi
+done
 
 mkdir -p /data
 
 if [[ ! -f "$CONFIG_PATH" ]]; then
-  envsubst < "$TEMPLATE_PATH" > "$CONFIG_PATH"
+  if [[ "$HAS_EXTERNAL_BACKING_SERVICES" == "true" ]]; then
+    envsubst < "$TEMPLATE_PATH" > "$CONFIG_PATH"
+  else
+    echo "[entrypoint] DATABASE_HOST / DATABASE_PASSWORD / REDIS_HOST / REGISTRATION_SHARED_SECRET not fully set; generating standalone sqlite config"
+    python -m synapse.app.homeserver \
+      --generate-config \
+      -H "$SERVER_NAME" \
+      -c "$CONFIG_PATH" \
+      --report-stats=no
+  fi
 fi
 
 if [[ ! -f "/data/${SERVER_NAME}.signing.key" ]]; then
