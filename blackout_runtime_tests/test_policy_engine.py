@@ -2,6 +2,8 @@ import pytest
 
 from blackout_runtime.policy_engine import (
     DEFAULT_FEATURE_FLAGS,
+    NON_PERSISTED_EVENT_TYPES,
+    PERSISTED_EVENT_TYPES,
     BlackoutPolicyEngine,
     RollbackCriteria,
 )
@@ -140,3 +142,32 @@ def test_rollback_criteria_requires_runbook_reference() -> None:
                 runbook_ref="",
             ),
         )
+
+
+def test_policy_matrix_persisted_surfaces_are_classified_as_persisted() -> None:
+    engine = BlackoutPolicyEngine()
+
+    for event_type in PERSISTED_EVENT_TYPES:
+        assert (
+            engine.classify_event_persistence(event_type, is_state_event=True)
+            == "persisted"
+        )
+
+
+def test_policy_matrix_non_persisted_surfaces_are_not_persisted() -> None:
+    engine = BlackoutPolicyEngine()
+
+    for event_type in NON_PERSISTED_EVENT_TYPES:
+        assert (
+            engine.classify_event_persistence(event_type, is_state_event=False)
+            == "blocked"
+        )
+
+
+def test_policy_matrix_unknown_timeline_events_are_marked_unsupported() -> None:
+    engine = BlackoutPolicyEngine()
+
+    assert (
+        engine.classify_event_persistence("m.room.topic", is_state_event=False)
+        == "unsupported"
+    )

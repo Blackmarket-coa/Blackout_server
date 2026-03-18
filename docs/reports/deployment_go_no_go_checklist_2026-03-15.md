@@ -54,3 +54,15 @@ Scale: `0` = minimal risk, `100` = extreme release risk.
 2. Triage and fix `tests/app/test_openid_listener.py` failures (`UpgradeDatabaseException` path for worker startup).
 3. Re-run strict checklist with full CI matrix (including missing interpreter lanes) and attach green evidence.
 4. Burn down `required-now` execution backlog and explicitly close listed blockers in weekly report/tracker.
+
+
+## Wave-1 bucket evidence links (2026-03-18 activation addendum)
+
+| Bucket | Scope date | Activation evidence | Test/contract evidence | Staging smoke evidence | Go/No-Go impact |
+|---|---|---|---|---|---|
+| Storage/persistence | 2026-03-22 | `docs/reports/wave1_activation_plan_2026-03-18.md` (Wave-1 table rows) | `docs/signaling_only_persistence_policy.md`; `blackout_runtime_tests/test_policy_engine.py`; `tests/handlers/test_message.py` | Pending external staging runner + creds | Cannot move to GO until smoke evidence is attached. |
+| Protocol (`m.blackout.signal`) | 2026-03-24 | `docs/reports/wave1_activation_plan_2026-03-18.md` (Protocol table rows) | `synapse/events/validator.py`; `tests/handlers/test_federation_event.py`; `tests/handlers/test_message.py` | Pending external staging runner + creds | Hold NO-GO until protocol bucket smoke passes. |
+| Infra/TURN | 2026-03-25 | `docs/reports/wave1_activation_plan_2026-03-18.md` (Infra/TURN table rows) | `docs/blackout-ops-runbook.md`; `docs/setup/turn/coturn.md`; `docs/reliability_slo_instrumentation.md` | Pending external staging runner + creds | Hold NO-GO until TURN health and metrics smoke passes. |
+| Retention/purge | 2026-03-26 | `docs/reports/wave1_activation_plan_2026-03-18.md` (Retention table rows) | `docs/signaling_only_persistence_policy.md`; `tests/storage/databases/main/test_end_to_end_keys.py`; purge-related API tests | Pending external staging runner + creds | Hold NO-GO until purge irretrievability and safety checks pass. |
+
+Current recommendation remains **NO-GO** pending staging smoke evidence completion for all four buckets.

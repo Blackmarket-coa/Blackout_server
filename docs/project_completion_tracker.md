@@ -539,3 +539,13 @@ Remaining owner/date:
 - Added reproducible execution-debt snapshot tooling: `scripts-dev/reporting/execution_debt_snapshot.py`.
 - Published `docs/reports/execution_debt_snapshot_2026-03-17.md` with current open-load counts, owner concentration, and a 25-step activation plan focused on near-due buckets.
 - Current snapshot aligns with backend plan tracker open-load: `114` deferred-with-signoff items pending Wave-1 activation.
+
+
+### Wave-1 execution activation snapshot (2026-03-18)
+
+- Frozen near-due execution buckets with DRI + sprint-ticket + implementation-PR metadata: `docs/reports/wave1_activation_plan_2026-03-18.md`.
+- Tracker activation converted due buckets (`2026-03-22`, `2026-03-24`, `2026-03-25`, `2026-03-26`) from deferred-only rows to explicit `[required-now]` in-progress execution rows.
+- Deployment go/no-go now includes per-bucket evidence linkage table for these four buckets.
+- Next-25 tranche execution evidence recorded in `docs/reports/wave1_next25_execution_2026-03-18.md`.
+
+- W1-22 closure evidence artifact: `docs/reports/w1_22_closure_evidence_2026-03-18.md` (policy/enforcement/integration evidence and closed ticket mapping).

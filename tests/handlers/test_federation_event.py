@@ -1184,12 +1184,13 @@ class FederationEventBlackoutRevocationTests(unittest.FederatingHomeserverTestCa
             room_version=RoomVersions.V10,
         )
 
-        with self.assertRaisesRegex(FederationError, "merkle_root"):
-            self.get_success(
-                self.hs.get_federation_event_handler().on_receive_pdu(
-                    self.OTHER_SERVER_NAME, pdu
-                )
-            )
+        failure = self.get_failure(
+            self.hs.get_federation_event_handler().on_receive_pdu(
+                self.OTHER_SERVER_NAME, pdu
+            ),
+            FederationError,
+        )
+        self.assertIn("merkle_root", str(failure.value))
 
     def test_federation_ingress_allows_unmatched_revocation_records(self) -> None:
         store = self.hs.get_datastores().main
