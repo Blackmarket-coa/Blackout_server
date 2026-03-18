@@ -250,7 +250,8 @@ class FederationClientTest(FederatingHomeserverTestCase):
                     room_id="!room:test",
                     timestamp=1000,
                     direction=Direction.FORWARDS,
-                )
+                ),
+                by=0.1,
             )
 
         # timestamp_to_event returns None on complete failure.

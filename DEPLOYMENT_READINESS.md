@@ -39,3 +39,18 @@ Reasoning:
 ## Strategic follow-up
 
 A dedicated execution backlog for BMC-specific server work is now tracked in `docs/bmc_server_execution_plan.md`. That plan sequences runtime stabilization, upstream sync policy, governance/logistics integration APIs, and blackbox/Railway hardening milestones before deployment sign-off.
+
+## 2026-03-17 validation addendum (requested rerun)
+
+Additional rerun evidence gathered for the requested readiness actions:
+
+- Attempted matrix command:
+  - `tox -e py37,py38,py39,py310 -- tests.blackout_runtime tests.handlers tests.federation`
+  - Result: `py37/py38/py39` blocked with `InterpreterNotFound` (`python3.7`, `python3.8`, `python3.9`).
+- Executed equivalent py310 target suites directly with available interpreter:
+  - `python3 -m twisted.trial tests.blackout_runtime tests.handlers tests.federation`
+  - Result: `PASSED` (`Ran 610 tests in 481.431s`, `successes=473`, `skips=137`, no failures/errors).
+- Attempted to run staging smoke sections 1.2–1.5 from `docs/server_usability_validation.md` against live staging.
+  - Result: blocked due missing staging endpoint/credentials/runtime artifacts in this runner (no staging URL, API tokens, federation origin/destination, or backup-host filesystem access).
+
+Updated assessment: **Still not ready for deployment from this runner alone**, because live-staging smoke evidence and full multi-interpreter tox matrix evidence are still incomplete despite py310-equivalent target suites passing.

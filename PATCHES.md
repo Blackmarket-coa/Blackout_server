@@ -46,3 +46,18 @@ Current non-`blackout_runtime` deltas kept intentionally:
 - `PATCHES.md`: upstream merge discipline and fork delta log.
 
 One direct core Synapse source edit is currently tracked in this phase (`synapse/storage/_base.py`) and should be monitored during upstream merges.
+
+## 2026-03-17 readiness wave patch-log refresh
+
+To keep upstream reconciliation explicit, the following non-`blackout_runtime/` deltas are currently present from readiness/CI hardening work:
+
+- `synapse/handlers/federation_event.py`: convert blackout payload-strip validation failures into typed federation protocol errors.
+- `synapse/handlers/message.py`: convert blackout payload-strip validation failures into typed client errors during local event creation.
+- `synapse/synapse_rust/acl.py`: normalize ACL matching for case-insensitive host handling and bracketed-IPv6 parsing.
+- `synapse/util/blackout.py`: accept `org.matrix.self_destruct_after` as schema-compatible TTL metadata.
+- `tox.ini`: set explicit test-phase `PYTHONPATH={toxinidir}` for trial import reliability.
+- `tests/federation/test_federation_client.py`, `tests/federation/test_federation_server.py`, `tests/handlers/test_federation_event.py`, `tests/handlers/test_message.py`, `tests/handlers/test_room_member.py`, `tests/handlers/test_send_email.py`: test harness and expectation updates aligned with stricter blackout/runtime behavior.
+- `tests/blackout_runtime/__init__.py`: explicit package marker to stabilize trial module discovery.
+- `docs/ci_readiness_triage_2026-03-17.md`, `docs/reports/readiness_next_25_steps_2026-03-17.md`: readiness execution logs and blocker tracking.
+
+These files should be explicitly reviewed during any future upstream rebase/reconciliation effort.

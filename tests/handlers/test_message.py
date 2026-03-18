@@ -309,7 +309,7 @@ class ServerAclValidationTestCase(unittest.HomeserverTestCase):
         self.helper.send_state(
             self.room_id,
             EventTypes.ServerACL,
-            body={},
+            body={"deny": ["*"]},
             tok=self.access_token,
             expect_code=400,
         )
@@ -353,65 +353,60 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(self.user_id, tok=self.access_token)
         self.requester = create_requester(self.user_id, device_id="dev-1")
 
-    def test_room_message_blocked_in_blackout_mode(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.Message,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {"msgtype": "m.text", "body": "hello"},
-                    },
-                )
-            )
+    def _assert_blackout_send_fails(self, event: dict) -> SynapseError:
+        failure = self.get_failure(
+            self.handler.create_and_send_nonmember_event(self.requester, event),
+            SynapseError,
+        )
+        return failure.value
 
-        self.assertEqual(exc.exception.code, 403)
-        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
-        self.assertIn("blocked in blackout signaling-only mode", exc.exception.msg)
+    def test_room_message_blocked_in_blackout_mode(self) -> None:
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.Message,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {"msgtype": "m.text", "body": "hello"},
+            }
+        )
+
+        self.assertEqual(exc.code, 403)
+        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
+        self.assertIn("blocked in blackout signaling-only mode", exc.msg)
 
     def test_room_encrypted_blocked_in_blackout_mode(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.Encrypted,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {"algorithm": "m.megolm.v1.aes-sha2", "ciphertext": {}},
-                    },
-                )
-            )
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.Encrypted,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {"algorithm": "m.megolm.v1.aes-sha2", "ciphertext": {}},
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 403)
-        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
-        self.assertIn("blocked in blackout signaling-only mode", exc.exception.msg)
+        self.assertEqual(exc.code, 403)
+        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
+        self.assertIn("blocked in blackout signaling-only mode", exc.msg)
 
 
     def test_non_signal_timeline_event_blocked(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.Reaction,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "m.relates_to": {
-                                "event_id": "$dummy",
-                                "rel_type": "m.annotation",
-                                "key": "👍",
-                            }
-                        },
-                    },
-                )
-            )
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.Reaction,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "m.relates_to": {
+                        "event_id": "$dummy",
+                        "rel_type": "m.annotation",
+                        "key": "👍",
+                    }
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 403)
-        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+        self.assertEqual(exc.code, 403)
+        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
 
     def test_blackout_signal_gets_ttl(self) -> None:
         event, _ = self.get_success(
@@ -421,7 +416,17 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                     "type": EventTypes.BlackoutSignal,
                     "room_id": self.room_id,
                     "sender": self.user_id,
-                    "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}, "message_metadata": {"message_id": "msg-ttl", "sender_key_id": "ed25519:dev-1"}},
+                    "content": {
+                        "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                        "offline_retrieval": {
+                            "manifest_id": "manifest-ttl",
+                            "external_fetch_required": True,
+                        },
+                        "message_metadata": {
+                            "message_id": "msg-ttl",
+                            "sender_key_id": "ed25519:dev-1",
+                        },
+                    },
                 },
             )
         )
@@ -450,141 +455,117 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
             )
         )
 
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            }
-                        },
-                    },
-                )
-            )
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
+                    }
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 403)
-        self.assertEqual(exc.exception.errcode, Codes.FORBIDDEN)
+        self.assertEqual(exc.code, 403)
+        self.assertEqual(exc.errcode, Codes.FORBIDDEN)
 
     def test_blackout_signal_rejects_missing_message_metadata(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
-                    },
-                )
-            )
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {"sdp_offer": {"type": "offer", "sdp": "v=0"}},
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
     def test_blackout_signal_rejects_invalid_chunk_hash(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            },
-                            "chunk_announcements": [
-                                {"chunk_id": "chunk-1", "chunk_hash": "not-a-hash"}
-                            ],
-                        },
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
                     },
-                )
-            )
+                    "chunk_announcements": [
+                        {"chunk_id": "chunk-1", "chunk_hash": "not-a-hash"}
+                    ],
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
     def test_blackout_signal_rejects_non_sha256_chunk_hash(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            },
-                            "chunk_announcements": [
-                                {"chunk_id": "chunk-1", "chunk_hash": "a" * 96}
-                            ],
-                        },
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
                     },
-                )
-            )
+                    "chunk_announcements": [
+                        {"chunk_id": "chunk-1", "chunk_hash": "a" * 96}
+                    ],
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
     def test_blackout_signal_rejects_invalid_ice_candidate_shape(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            },
-                            "ice_candidates": [{"sdpMid": "0"}],
-                        },
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
                     },
-                )
-            )
+                    "ice_candidates": [{"sdpMid": "0"}],
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
     def test_blackout_signal_rejects_invalid_merkle_root(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            },
-                            "chunk_announcements": [
-                                {
-                                    "chunk_id": "chunk-1",
-                                    "chunk_hash": "a" * 64,
-                                    "merkle_root": "invalid-merkle",
-                                    "replication_factor": 2,
-                                }
-                            ],
-                        },
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
                     },
-                )
-            )
+                    "chunk_announcements": [
+                        {
+                            "chunk_id": "chunk-1",
+                            "chunk_hash": "a" * 64,
+                            "merkle_root": "invalid-merkle",
+                            "replication_factor": 2,
+                        }
+                    ],
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
 
     def test_blackout_signal_records_invalid_redundancy_metadata_metric(self) -> None:
@@ -672,7 +653,7 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
                             {
                                 "chunk_id": "chunk-1",
                                 "chunk_hash": "a" * 64,
-                                "merkle_root": "b" * 64,
+                                "merkle_root": "a" * 64,
                                 "replication_factor": 2,
                                 "replica_hints": ["peer-1", "peer-2"],
                             }
@@ -687,69 +668,57 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.assertNotIn("sdp_offer", event.content)
 
     def test_blackout_signal_rejects_inline_payload_without_offline_retrieval(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            },
-                            "sdp_offer": {"type": "offer", "sdp": "v=0"},
-                        },
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
                     },
-                )
-            )
+                    "sdp_offer": {"type": "offer", "sdp": "v=0"},
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
     def test_blackout_signal_rejects_inline_payload_without_external_fetch(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {
-                            "message_metadata": {
-                                "message_id": "msg-1",
-                                "sender_key_id": "ed25519:dev-1",
-                            },
-                            "offline_retrieval": {
-                                "manifest_id": "manifest-1",
-                                "external_fetch_required": False,
-                            },
-                            "ice_candidates": [
-                                {
-                                    "candidate": "candidate:1 1 UDP 2122260223 10.0.0.1 5000 typ host"
-                                }
-                            ],
-                        },
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {
+                    "message_metadata": {
+                        "message_id": "msg-1",
+                        "sender_key_id": "ed25519:dev-1",
                     },
-                )
-            )
+                    "offline_retrieval": {
+                        "manifest_id": "manifest-1",
+                        "external_fetch_required": False,
+                    },
+                    "ice_candidates": [
+                        {
+                            "candidate": "candidate:1 1 UDP 2122260223 10.0.0.1 5000 typ host"
+                        }
+                    ],
+                },
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)
 
     def test_blackout_signal_rejects_unknown_fields(self) -> None:
-        with self.assertRaises(SynapseError) as exc:
-            self.get_success(
-                self.handler.create_and_send_nonmember_event(
-                    self.requester,
-                    {
-                        "type": EventTypes.BlackoutSignal,
-                        "room_id": self.room_id,
-                        "sender": self.user_id,
-                        "content": {"unexpected": "value"},
-                    },
-                )
-            )
+        exc = self._assert_blackout_send_fails(
+            {
+                "type": EventTypes.BlackoutSignal,
+                "room_id": self.room_id,
+                "sender": self.user_id,
+                "content": {"unexpected": "value"},
+            }
+        )
 
-        self.assertEqual(exc.exception.code, 400)
+        self.assertEqual(exc.code, 400)

@@ -144,7 +144,7 @@ class StateQueryTests(unittest.FederatingHomeserverTestCase):
             "GET", f"/_matrix/federation/v1/state_ids/{room_1}"
         )
         self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, channel.result)
-        self.assertEqual(channel.json_body["errcode"], "M_UNKNOWN")
+        self.assertEqual(channel.json_body["errcode"], "M_MISSING_PARAM")
 
 class SendJoinFederationTests(unittest.FederatingHomeserverTestCase):
     servlets = [

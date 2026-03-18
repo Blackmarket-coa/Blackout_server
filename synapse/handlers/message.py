@@ -665,7 +665,10 @@ class EventCreationHandler:
         if event_type == EventTypes.BlackoutSignal:
             content = event_dict.setdefault("content", {})
             self._validate_blackout_signal_content(content)
-            strip_inline_payload_from_signal_content(content)
+            try:
+                strip_inline_payload_from_signal_content(content)
+            except ValueError as exc:
+                raise SynapseError(400, str(exc), Codes.BAD_JSON)
             await self._enforce_blackout_signal_device_revocation(
                 event_dict["sender"], content
             )

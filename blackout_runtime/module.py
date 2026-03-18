@@ -467,6 +467,12 @@ class BlackoutRuntimeModule:
         self._module_api = module_api
         self._store = module_api._store
         self._semantics = BlackoutServerSemantics()
+        self._local_server_name = str(
+            config.get(
+                "local_server_name",
+                getattr(getattr(module_api, "_hs", None), "hostname", ""),
+            )
+        )
         self._presence = BlackoutPresenceService()
         self._proposal_rate_window_s = int(config.get("proposal_rate_window_s", 3600))
         self._proposal_rate_limit = int(config.get("proposal_rate_limit", 5))
@@ -561,7 +567,10 @@ class BlackoutRuntimeModule:
     ) -> None:
         del is_requester_admin
         try:
-            self._semantics.on_create_room(config)
+            self._semantics.on_create_room(
+                config,
+                local_server_name=self._local_server_name,
+            )
         except ValueError as exc:
             raise SynapseError(403, str(exc))
 

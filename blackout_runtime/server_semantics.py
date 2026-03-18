@@ -138,7 +138,12 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
 class BlackoutServerSemantics:
     """Pure-python helper for module callback logic and schema validation."""
 
-    def on_create_room(self, config: MutableMapping[str, object]) -> None:
+    def on_create_room(
+        self,
+        config: MutableMapping[str, object],
+        *,
+        local_server_name: str | None = None,
+    ) -> None:
         creation_content = config.get("creation_content", {})
         if not isinstance(creation_content, Mapping):
             raise ValueError("creation_content must be an object")
@@ -193,11 +198,15 @@ class BlackoutServerSemantics:
             event_type=BLACKOUT_CHANNEL_TYPE_EVENT,
             content={"channel_type": channel_type},
         )
+        allow = list(FEDERATION_TRUST_TIER_ACLS[trust_tier]["allow"])
+        if local_server_name:
+            allow.append(local_server_name)
+
         self._upsert_initial_state(
             initial_state,
             event_type="m.room.server_acl",
             content={
-                "allow": list(FEDERATION_TRUST_TIER_ACLS[trust_tier]["allow"]),
+                "allow": allow,
                 "deny": list(FEDERATION_TRUST_TIER_ACLS[trust_tier]["deny"]),
                 "allow_ip_literals": False,
             },
