@@ -547,3 +547,5 @@ Remaining owner/date:
 - Tracker activation converted due buckets (`2026-03-22`, `2026-03-24`, `2026-03-25`, `2026-03-26`) from deferred-only rows to explicit `[required-now]` in-progress execution rows.
 - Deployment go/no-go now includes per-bucket evidence linkage table for these four buckets.
 - Next-25 tranche execution evidence recorded in `docs/reports/wave1_next25_execution_2026-03-18.md`.
+
+- W1-22 closure evidence artifact: `docs/reports/w1_22_closure_evidence_2026-03-18.md` (policy/enforcement/integration evidence and closed ticket mapping).
