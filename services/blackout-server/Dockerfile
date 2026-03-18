@@ -8,10 +8,13 @@ RUN cd rust && cargo build --release || true
 FROM python:3.11-slim-bookworm AS py-builder
 WORKDIR /src
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1 PYTHONDONTWRITEBYTECODE=1
+ENV RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo PATH=/usr/local/cargo/bin:$PATH
 RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential libffi-dev libssl-dev pkg-config git gettext-base \
     && rm -rf /var/lib/apt/lists/*
-COPY pyproject.toml poetry.lock README.rst ./
+COPY --from=rust-builder /usr/local/cargo /usr/local/cargo
+COPY --from=rust-builder /usr/local/rustup /usr/local/rustup
+COPY pyproject.toml poetry.lock README.rst build_rust.py ./
 COPY synapse ./synapse
 COPY scripts-dev ./scripts-dev
 COPY rust ./rust
