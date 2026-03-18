@@ -275,9 +275,7 @@ class GeneratorArgumentTestCase(unittest.HomeserverTestCase):
         def _noop_txn(txn: LoggingTransaction, rows: object) -> None:
             pass
 
-        self.get_success(
-            self.db_pool.runInteraction("list_arg", _noop_txn, [1, 2, 3])
-        )
+        self.get_success(self.db_pool.runInteraction("list_arg", _noop_txn, [1, 2, 3]))
 
 
 class CancellationTestCase(unittest.HomeserverTestCase):

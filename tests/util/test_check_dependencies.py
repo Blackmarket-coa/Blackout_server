@@ -25,7 +25,6 @@ from synapse.util.check_dependencies import (
 
 from tests.unittest import TestCase
 
-
 INTENTIONAL_TEST_STUB_ERROR = NotImplementedError
 
 

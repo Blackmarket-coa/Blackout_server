@@ -494,9 +494,7 @@ class ServerConfig(Config):
         # In blackout mode, force-disable heavyweight components.
         if self.blackout_enabled:
             if requested_enable_media_repo:
-                logger.warning(
-                    "blackout mode enabled: forcing enable_media_repo=False"
-                )
+                logger.warning("blackout mode enabled: forcing enable_media_repo=False")
             if requested_enable_search:
                 logger.warning("blackout mode enabled: forcing enable_search=False")
             self.enable_media_repo = False
@@ -1042,15 +1040,13 @@ def parse_listener_def(num: int, listener: Any) -> ListenerConfig:
         socket_dir = os.path.dirname(socket_path) or "."
         if not os.path.isdir(socket_dir):
             raise ConfigError(
-                "Listener UNIX socket directory does not exist: %s"
-                % (socket_dir,),
+                "Listener UNIX socket directory does not exist: %s" % (socket_dir,),
                 ("listeners", str(num), "path"),
             )
 
         if not os.access(socket_dir, os.W_OK):
             raise ConfigError(
-                "Listener UNIX socket directory is not writable: %s"
-                % (socket_dir,),
+                "Listener UNIX socket directory is not writable: %s" % (socket_dir,),
                 ("listeners", str(num), "path"),
             )
 

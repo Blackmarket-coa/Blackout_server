@@ -415,7 +415,7 @@ class SynapseCmd(cmd.Cmd):
 
             if "mxid" in json_res and "signatures" in json_res:
                 # Follow-up (tracked in https://github.com/element-hq/synapse/issues/17609):
-            # migrate this call to the v2 Identity Service API endpoint
+                # migrate this call to the v2 Identity Service API endpoint
                 url = (
                     self._identityServerUrl()
                     + "/_matrix/identity/api/v1/pubkey/ed25519"

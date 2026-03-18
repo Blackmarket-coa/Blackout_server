@@ -7,9 +7,9 @@ counts by scope/status, owner, and due date.
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from pathlib import Path
-import re
 
 TRACKER = Path("docs/development/blackout_backend_plan_tracker.md")
 

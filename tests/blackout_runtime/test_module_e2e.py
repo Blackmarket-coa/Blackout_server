@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from blackout_runtime.module import BlackoutRuntimeModule
 from synapse.rest import admin
 from synapse.rest.client import login, register, room
 
-from blackout_runtime.module import BlackoutRuntimeModule
 from tests.unittest import HomeserverTestCase
 
 
@@ -16,7 +16,10 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
     ]
 
     def create_resource_dict(self):
-        BlackoutRuntimeModule({"persistence_path": "/tmp/blackout_runtime_e2e.sqlite3"}, self.hs.get_module_api())
+        BlackoutRuntimeModule(
+            {"persistence_path": "/tmp/blackout_runtime_e2e.sqlite3"},
+            self.hs.get_module_api(),
+        )
         resources = super().create_resource_dict()
         resources.update(self.hs._module_web_resources)
         return resources
@@ -30,7 +33,9 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             self.user_id,
             tok=self.tok,
             is_public=False,
-            extra_content={"creation_content": {"m.blackout.channel.type": "governance"}},
+            extra_content={
+                "creation_content": {"m.blackout.channel.type": "governance"}
+            },
         )
 
         vote = self.make_request(
@@ -52,7 +57,12 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
         rep = self.make_request(
             "PUT",
             f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.reputation.update/2",
-            {"node_id": "node-1", "delta": 2, "reason": "delivery_success", "rating": 4},
+            {
+                "node_id": "node-1",
+                "delta": 2,
+                "reason": "delivery_success",
+                "rating": 4,
+            },
             access_token=self.tok,
         )
         self.assertEqual(rep.code, 200, rep.result)
@@ -70,7 +80,9 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             self.user_id,
             tok=self.tok,
             is_public=False,
-            extra_content={"creation_content": {"m.blackout.channel.type": "governance"}},
+            extra_content={
+                "creation_content": {"m.blackout.channel.type": "governance"}
+            },
         )
 
         first_vote = self.make_request(

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Audit tracker checklists and incomplete-work markers.
 
 This script is intentionally lightweight so it can be run in CI or locally to
@@ -14,10 +13,23 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-MARKER_KEYWORDS = ("TO" "DO", "FIX" "ME", "TB" "D", "XX" "X", "HA" "CK", "NotImplemented" "Error", "TO" "DO_test_")
+MARKER_KEYWORDS = (
+    "TO" "DO",
+    "FIX" "ME",
+    "TB" "D",
+    "XX" "X",
+    "HA" "CK",
+    "NotImplemented" "Error",
+    "TO" "DO_test_",
+)
 MARKER_REGEX = "|".join(MARKER_KEYWORDS)
 TRACKER_GLOB = "*tracker*.md"
-EXCLUDED_MARKER_PATHS = {"INCOMPLETE_WORK.md", "docs/marker_inventory.csv", "docs/tracker_todo_fixme_report.md", "scripts-dev/check_trackers_and_markers.py"}
+EXCLUDED_MARKER_PATHS = {
+    "INCOMPLETE_WORK.md",
+    "docs/marker_inventory.csv",
+    "docs/tracker_todo_fixme_report.md",
+    "scripts-dev/check_trackers_and_markers.py",
+}
 REPORT_PATH = Path("docs/tracker_todo_fixme_report.md")
 
 
@@ -44,7 +56,9 @@ def _tracker_summaries() -> list[TrackerSummary]:
                 checked += 1
             elif UNCHECKED_RE.match(line):
                 unchecked += 1
-        summaries.append(TrackerSummary(path=path, checked=checked, unchecked=unchecked))
+        summaries.append(
+            TrackerSummary(path=path, checked=checked, unchecked=unchecked)
+        )
     return summaries
 
 
@@ -74,7 +88,9 @@ def main() -> int:
         if keyword in text
     )
 
-    top_marker_files = collections.Counter(path for path, _, _ in markers).most_common(15)
+    top_marker_files = collections.Counter(path for path, _, _ in markers).most_common(
+        15
+    )
 
     report_lines: list[str] = [
         "# Tracker / marker audit report",

@@ -325,8 +325,9 @@ class DeviceTestCase(unittest.HomeserverTestCase):
             )
             self.reactor.advance(1000)
 
-
-    def test_on_federation_query_user_devices_includes_revoked_deleted_device(self) -> None:
+    def test_on_federation_query_user_devices_includes_revoked_deleted_device(
+        self,
+    ) -> None:
         local_user = "@boris:" + self.hs.hostname
         device_id = "abc"
 
@@ -363,9 +364,7 @@ class DeviceTestCase(unittest.HomeserverTestCase):
         res = self.get_success(
             self.handler.on_federation_query_user_devices(local_user)
         )
-        revoked_device = next(
-            d for d in res["devices"] if d["device_id"] == device_id
-        )
+        revoked_device = next(d for d in res["devices"] if d["device_id"] == device_id)
         self.assertTrue(revoked_device["deleted"])
         self.assertTrue(revoked_device["org.matrix.msc_blackout_device_revoked"])
         self.assertIsInstance(
