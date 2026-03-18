@@ -1089,7 +1089,6 @@ class DeviceListUpdater(DeviceListWorkerUpdater):
             desc="_maybe_retry_device_resync",
         )
 
-
     def _extract_device_key_map_from_device_update(
         self, device: JsonMapping
     ) -> Dict[str, object]:

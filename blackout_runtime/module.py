@@ -32,7 +32,6 @@ from .server_semantics import (
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
     REPUTATION_UPDATE_EVENT,
-    ANNOUNCEMENT_POLICY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
 )

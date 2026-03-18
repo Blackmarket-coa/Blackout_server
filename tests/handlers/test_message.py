@@ -388,7 +388,6 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(exc.errcode, Codes.FORBIDDEN)
         self.assertIn("blocked in blackout signaling-only mode", exc.msg)
 
-
     def test_non_signal_timeline_event_blocked(self) -> None:
         exc = self._assert_blackout_send_fails(
             {
@@ -567,7 +566,6 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(exc.code, 400)
 
-
     def test_blackout_signal_records_invalid_redundancy_metadata_metric(self) -> None:
         before = REGISTRY.get_sample_value(
             "synapse_blackout_signal_redundancy_metadata_invalid_total"
@@ -630,7 +628,9 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
         assert rf_after is not None
         self.assertGreaterEqual(rf_after, rf_baseline + 1.0)
 
-    def test_blackout_signal_accepts_offline_retrieval_and_redundancy_metadata(self) -> None:
+    def test_blackout_signal_accepts_offline_retrieval_and_redundancy_metadata(
+        self,
+    ) -> None:
         event, _ = self.get_success(
             self.handler.create_and_send_nonmember_event(
                 self.requester,
@@ -663,11 +663,17 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
             )
         )
 
-        self.assertEqual(event.content["offline_retrieval"]["manifest_id"], "manifest-1")
-        self.assertEqual(event.content["chunk_announcements"][0]["replication_factor"], 2)
+        self.assertEqual(
+            event.content["offline_retrieval"]["manifest_id"], "manifest-1"
+        )
+        self.assertEqual(
+            event.content["chunk_announcements"][0]["replication_factor"], 2
+        )
         self.assertNotIn("sdp_offer", event.content)
 
-    def test_blackout_signal_rejects_inline_payload_without_offline_retrieval(self) -> None:
+    def test_blackout_signal_rejects_inline_payload_without_offline_retrieval(
+        self,
+    ) -> None:
         exc = self._assert_blackout_send_fails(
             {
                 "type": EventTypes.BlackoutSignal,
@@ -685,7 +691,9 @@ class BlackoutEventCreationTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(exc.code, 400)
 
-    def test_blackout_signal_rejects_inline_payload_without_external_fetch(self) -> None:
+    def test_blackout_signal_rejects_inline_payload_without_external_fetch(
+        self,
+    ) -> None:
         exc = self._assert_blackout_send_fails(
             {
                 "type": EventTypes.BlackoutSignal,

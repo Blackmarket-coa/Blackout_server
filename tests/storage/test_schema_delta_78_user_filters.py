@@ -18,7 +18,6 @@ from typing import Set
 
 from tests import unittest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DELTA_78_FILE = (
     REPO_ROOT
@@ -36,7 +35,9 @@ PREPARE_DATABASE_FILE = REPO_ROOT / "synapse" / "storage" / "prepare_database.py
 def _functions_in_file(path: Path) -> Set[str]:
     module = ast.parse(path.read_text())
     return {
-        node.name for node in module.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        node.name
+        for node in module.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
 
 

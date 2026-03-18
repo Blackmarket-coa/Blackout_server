@@ -3,7 +3,7 @@ from __future__ import annotations
 import fnmatch
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Mapping, Sequence, Tuple
+from typing import Any, Iterable, List, Mapping, Sequence, Tuple
 
 
 @dataclass(frozen=True)
@@ -86,10 +86,10 @@ class PushRuleEvaluator:
                 return list(rule.actions)
         return []
 
-    def _rule_matches(
-        self, rule: PushRule, uid: str, display_name: str | None
-    ) -> bool:
-        return all(self._condition_matches(cond, uid, display_name) for cond in rule.conditions)
+    def _rule_matches(self, rule: PushRule, uid: str, display_name: str | None) -> bool:
+        return all(
+            self._condition_matches(cond, uid, display_name) for cond in rule.conditions
+        )
 
     def _condition_matches(
         self, cond: Mapping[str, Any], uid: str, display_name: str | None

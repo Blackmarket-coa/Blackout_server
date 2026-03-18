@@ -172,7 +172,8 @@ class ServerNoticeTestCase(unittest.HomeserverTestCase):
         """If avatar url in homeserver.yaml is invalid and
         "check avatar size and mime type" is set, an error is returned.
         Configuration-time validation would be preferable; this test documents
-        runtime behavior for the current code path (tracked in matrix-org/synapse#10951)."""
+        runtime behavior for the current code path (tracked in matrix-org/synapse#10951).
+        """
         channel = self.make_request(
             "POST",
             self.url,

@@ -49,7 +49,6 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
 
         self.intially_unjoined_room_id = f"!example:{self.OTHER_SERVER_NAME}"
 
-
     def _build_remote_join_event(
         self, sender: str
     ) -> tuple[FrozenEventV3, FrozenEventV3]:
@@ -133,9 +132,7 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
         original_membership_check = event_auth._is_membership_change_allowed
         original_state_check = federation_event.check_state_dependent_auth_rules
         event_auth._is_membership_change_allowed = lambda *args, **kwargs: None
-        federation_event.check_state_dependent_auth_rules = (
-            lambda *args, **kwargs: None
-        )
+        federation_event.check_state_dependent_auth_rules = lambda *args, **kwargs: None
         self.addCleanup(
             setattr,
             event_auth,
@@ -148,7 +145,6 @@ class TestJoinsLimitedByPerRoomRateLimiter(FederatingHomeserverTestCase):
             "check_state_dependent_auth_rules",
             original_state_check,
         )
-
 
     @override_config({"rc_joins_per_room": {"per_second": 0, "burst_count": 2}})
     def test_local_user_local_joins_contribute_to_limit_and_are_limited(self) -> None:

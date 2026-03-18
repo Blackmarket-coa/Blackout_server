@@ -60,6 +60,7 @@ from synapse.event_auth import (
 )
 from synapse.events import EventBase
 from synapse.events.snapshot import EventContext, UnpersistedEventContextBase
+from synapse.events.validator import validate_blackout_signal_content
 from synapse.federation.federation_client import InvalidResponseError, PulledPduInfo
 from synapse.logging.context import nested_logging_context
 from synapse.logging.opentracing import (
@@ -88,14 +89,13 @@ from synapse.types import (
 )
 from synapse.types.state import StateFilter
 from synapse.util.async_helpers import Linearizer, concurrently_execute
-from synapse.util.iterutils import batch_iter, partition, sorted_topologically_batched
-from synapse.util.retryutils import NotRetryingDestination
-from synapse.util.stringutils import shortstr
-from synapse.events.validator import validate_blackout_signal_content
 from synapse.util.blackout import (
     extract_sender_key_identifiers_from_signal_content,
     strip_inline_payload_from_signal_content,
 )
+from synapse.util.iterutils import batch_iter, partition, sorted_topologically_batched
+from synapse.util.retryutils import NotRetryingDestination
+from synapse.util.stringutils import shortstr
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
@@ -221,8 +221,12 @@ class FederationEventHandler:
 
         self._room_pdu_linearizer = Linearizer("fed_room_pdu")
 
-    async def _enforce_blackout_signal_device_revocation(self, event: EventBase) -> None:
-        for key_identifier in extract_sender_key_identifiers_from_signal_content(event.content):
+    async def _enforce_blackout_signal_device_revocation(
+        self, event: EventBase
+    ) -> None:
+        for key_identifier in extract_sender_key_identifiers_from_signal_content(
+            event.content
+        ):
             revoked_ts = await self._store.get_revoked_device_key_timestamp(
                 event.sender, key_identifier
             )
@@ -265,8 +269,7 @@ class FederationEventHandler:
             raise FederationError(
                 "ERROR",
                 403,
-                "%s events are blocked in blackout signaling-only mode"
-                % (event.type,),
+                "%s events are blocked in blackout signaling-only mode" % (event.type,),
                 affected=event.event_id,
             )
 
