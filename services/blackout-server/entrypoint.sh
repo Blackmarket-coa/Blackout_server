@@ -30,6 +30,21 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
       -H "$SERVER_NAME" \
       -c "$CONFIG_PATH" \
       --report-stats=no
+    python - <<'PY' "$CONFIG_PATH"
+from pathlib import Path
+import sys
+
+import yaml
+
+config_path = Path(sys.argv[1])
+with config_path.open("r", encoding="utf-8") as f:
+    config = yaml.safe_load(f)
+
+config.setdefault("suppress_key_server_warning", True)
+
+with config_path.open("w", encoding="utf-8") as f:
+    yaml.safe_dump(config, f, sort_keys=False)
+PY
   fi
 fi
 
