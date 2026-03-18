@@ -3,6 +3,7 @@ set -euo pipefail
 
 CONFIG_PATH="/data/homeserver.yaml"
 TEMPLATE_PATH="/templates/homeserver.yaml.template"
+PORT="${PORT:-8008}"
 
 # Prefer an explicit SERVER_NAME, then Railway-style SYNAPSE_SERVER_NAME, and
 # finally a localhost default so container boot doesn't immediately crash-loop
@@ -30,15 +31,34 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
       -H "$SERVER_NAME" \
       -c "$CONFIG_PATH" \
       --report-stats=no
-    python - <<'PY' "$CONFIG_PATH"
+    python - <<'PY' "$CONFIG_PATH" "$PORT" "${SYNAPSE_PUBLIC_BASEURL:-}"
 from pathlib import Path
 import sys
 
 import yaml
 
 config_path = Path(sys.argv[1])
+port = int(sys.argv[2])
+public_baseurl = sys.argv[3]
 with config_path.open("r", encoding="utf-8") as f:
     config = yaml.safe_load(f)
+
+listeners = config.setdefault("listeners", [])
+if listeners:
+    listener = listeners[0]
+else:
+    listener = {}
+    listeners.append(listener)
+
+listener["port"] = port
+listener["bind_addresses"] = ["0.0.0.0"]
+listener["tls"] = False
+listener["type"] = "http"
+listener["x_forwarded"] = True
+listener.setdefault("resources", [{"names": ["client", "federation"], "compress": False}])
+
+if public_baseurl:
+    config["public_baseurl"] = public_baseurl
 
 config.setdefault("suppress_key_server_warning", True)
 
