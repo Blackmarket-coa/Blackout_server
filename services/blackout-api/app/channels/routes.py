@@ -19,6 +19,22 @@ class CreateChannelRequest(BaseModel):
     topic: str = ""
 
 
+@router.get("/{server_id}/channels")
+async def list_channels(server_id: str, user: CurrentUser = Depends(get_current_user)):
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        membership = await conn.fetchrow("SELECT 1 FROM blackout_server_members WHERE server_id = $1 AND user_id = $2", server_id, user.id)
+        if not membership:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
+
+        channels = await conn.fetch(
+            "SELECT id, name, topic, channel_type, position FROM blackout_channels WHERE server_id = $1 ORDER BY position",
+            server_id,
+        )
+
+    return [{"id": c["id"], "name": c["name"], "topic": c["topic"], "type": c["channel_type"], "position": c["position"]} for c in channels]
+
+
 @router.post("/{server_id}/channels")
 async def create_channel(server_id: str, body: CreateChannelRequest, user: CurrentUser = Depends(get_current_user)):
     pool = get_pool()

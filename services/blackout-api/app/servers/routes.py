@@ -25,6 +25,15 @@ class JoinServerRequest(BaseModel):
     invite_code: str
 
 
+class UpdateServerRequest(BaseModel):
+    name: str | None = None
+    icon_url: str | None = None
+
+
+class UpdateRoleRequest(BaseModel):
+    role: str
+
+
 @router.post("")
 async def create_server(body: CreateServerRequest, user: CurrentUser = Depends(get_current_user)):
     pool = get_pool()
@@ -120,6 +129,64 @@ async def get_server(server_id: str, user: CurrentUser = Depends(get_current_use
     }
 
 
+@router.get("/{server_id}/members")
+async def list_members(server_id: str, user: CurrentUser = Depends(get_current_user)):
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        membership = await conn.fetchrow("SELECT 1 FROM blackout_server_members WHERE server_id = $1 AND user_id = $2", server_id, user.id)
+        if not membership:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
+
+        members = await conn.fetch("""
+            SELECT u.id, u.username, u.display_name, u.avatar_url, sm.role
+            FROM blackout_server_members sm
+            JOIN blackout_users u ON u.id = sm.user_id
+            WHERE sm.server_id = $1
+        """, server_id)
+
+    return [{"id": m["id"], "username": m["username"], "display_name": m["display_name"], "avatar_url": m["avatar_url"], "role": m["role"]} for m in members]
+
+
+@router.patch("/{server_id}")
+async def update_server(server_id: str, body: UpdateServerRequest, user: CurrentUser = Depends(get_current_user)):
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        membership = await conn.fetchrow("SELECT role FROM blackout_server_members WHERE server_id = $1 AND user_id = $2", server_id, user.id)
+        if not membership or membership["role"] not in ("owner", "admin"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only owner or admin can update server settings")
+
+        server = await conn.fetchrow("SELECT id, name, icon_url, matrix_space_id FROM blackout_servers WHERE id = $1", server_id)
+        if not server:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Server not found")
+
+        new_name = body.name if body.name is not None else server["name"]
+        new_icon = body.icon_url if body.icon_url is not None else server["icon_url"]
+
+        await conn.execute("UPDATE blackout_servers SET name = $1, icon_url = $2 WHERE id = $3", new_name, new_icon, server_id)
+
+    # Sync name change to Matrix Space
+    if body.name is not None and body.name != server["name"]:
+        try:
+            await matrix.set_room_name(user.matrix_access_token, server["matrix_space_id"], body.name)
+        except MatrixError:
+            pass  # DB is source of truth; Matrix sync is best-effort
+
+    return {"id": server_id, "name": new_name, "icon_url": new_icon}
+
+
+@router.delete("/{server_id}")
+async def delete_server(server_id: str, user: CurrentUser = Depends(get_current_user)):
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        membership = await conn.fetchrow("SELECT role FROM blackout_server_members WHERE server_id = $1 AND user_id = $2", server_id, user.id)
+        if not membership or membership["role"] != "owner":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the server owner can delete a server")
+
+        await conn.execute("DELETE FROM blackout_servers WHERE id = $1", server_id)
+
+    return {"deleted": True}
+
+
 @router.post("/{server_id}/join")
 async def join_server(server_id: str, body: JoinServerRequest, user: CurrentUser = Depends(get_current_user)):
     pool = get_pool()
@@ -170,8 +237,8 @@ async def leave_server(server_id: str, user: CurrentUser = Depends(get_current_u
 
 
 @router.put("/{server_id}/members/{member_id}/role")
-async def update_member_role(server_id: str, member_id: str, body: dict, user: CurrentUser = Depends(get_current_user)):
-    new_role = body.get("role", "")
+async def update_member_role(server_id: str, member_id: str, body: UpdateRoleRequest, user: CurrentUser = Depends(get_current_user)):
+    new_role = body.role
     if new_role not in ("admin", "moderator", "member"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Role must be admin, moderator, or member")
 

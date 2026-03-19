@@ -134,6 +134,15 @@ class MatrixClient:
     async def whoami(self, access_token: str) -> dict:
         return await self._request("GET", "/_matrix/client/v3/account/whoami", access_token=access_token)
 
+    async def set_room_name(self, access_token: str, room_id: str, name: str) -> None:
+        """Update the display name of a room (or space)."""
+        await self._request(
+            "PUT",
+            f"/_matrix/client/v3/rooms/{room_id}/state/m.room.name",
+            access_token=access_token,
+            json={"name": name},
+        )
+
     # --- Sync ---
 
     async def sync(self, access_token: str, since: str | None = None, timeout: int = 30000) -> dict:
