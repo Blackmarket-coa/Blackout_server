@@ -22,6 +22,7 @@ Each release train must include two checked-in artifacts:
 
 * `release/train/checklist.md`
 * `release/train/changelog.md`
+* `release/train/image_provenance.json`
 
 CI release gate enforces both file existence and required section headings.
 

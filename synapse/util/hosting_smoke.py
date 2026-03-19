@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
-from typing import List, Tuple
+from typing import List
 from unittest.mock import Mock
 
 from synapse.util.blackout_profiles import apply_profile_overrides

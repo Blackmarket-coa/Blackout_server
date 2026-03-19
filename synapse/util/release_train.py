@@ -13,6 +13,7 @@ from typing import List
 REQUIRED_RELEASE_FILES = (
     "release/train/checklist.md",
     "release/train/changelog.md",
+    "release/train/image_provenance.json",
 )
 
 REQUIRED_CHECKLIST_SECTIONS = (
@@ -62,5 +63,29 @@ def validate_release_train_artifacts(repo_root: Path) -> List[str]:
                 "release/train/changelog.md missing upstream patched commit IDs "
                 "(expected at least one backticked git commit hash in Security Backports)"
             )
+
+    provenance_path = repo_root / "release/train/image_provenance.json"
+    if provenance_path.exists():
+        import json
+
+        try:
+            provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"release/train/image_provenance.json is invalid JSON: {exc}")
+            return errors
+
+        required_fields = (
+            "source_revision",
+            "upstream_base_revision",
+            "build_timestamp_utc",
+            "sbom_artifact_uri",
+            "provenance_artifact_uri",
+        )
+        for field in required_fields:
+            value = str(provenance.get(field, "")).strip()
+            if not value:
+                errors.append(
+                    f"release/train/image_provenance.json missing required field: {field}"
+                )
 
     return errors
