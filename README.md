@@ -127,6 +127,7 @@ Useful technical entry points:
 ## Development and testing
 
 - Contributing guide: [`docs/development/contributing_guide.md`](docs/development/contributing_guide.md)
+- Product fork plan: [`docs/development/product_fork_execution_plan.md`](docs/development/product_fork_execution_plan.md)
 - Top-level contributing pointer: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Changelog: [`CHANGES.md`](CHANGES.md)
 - Developer docs root: [`docs/development/`](docs/development/)
