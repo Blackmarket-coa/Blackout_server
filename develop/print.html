@@ -1843,6 +1843,76 @@ back safely to v1.57.0, but starting with v1.62.0 it is only safe to rollback to
 v1.61.0.</p>
 <table><thead><tr><th>Versions</th><th>Compatible version</th></tr></thead><tbody>
 </tbody></table>
+<h1 id="upgrading-to-deterministic-blackout_profile-startup-handling-post-2026-03-19"><a class="header" href="#upgrading-to-deterministic-blackout_profile-startup-handling-post-2026-03-19">Upgrading to deterministic <code>BLACKOUT_PROFILE</code> startup handling (post-2026-03-19)</a></h1>
+<h2 id="explicit-profile-selection-for-blackout-server"><a class="header" href="#explicit-profile-selection-for-blackout-server">Explicit profile selection for <code>blackout-server</code></a></h2>
+<p>Startup now uses deterministic profile selection:</p>
+<ul>
+<li><code>managed</code></li>
+<li><code>standalone</code></li>
+<li><code>constrained</code></li>
+<li>or auto mode when <code>BLACKOUT_PROFILE</code> is unset.</li>
+</ul>
+<p><code>managed</code> now fails fast with actionable errors unless the required dependency env vars are set:
+<code>DATABASE_HOST</code>, <code>DATABASE_PASSWORD</code>, <code>REDIS_HOST</code>, <code>REGISTRATION_SHARED_SECRET</code>.</p>
+<p><code>standalone</code> and <code>constrained</code> generate sqlite-safe config and enforce a healthcheck-compatible
+listener with <code>client</code>, <code>federation</code>, and <code>health</code> resources.</p>
+<p><code>constrained</code> additionally applies conservative low-resource defaults.</p>
+<h3 id="migration-notes"><a class="header" href="#migration-notes">Migration notes</a></h3>
+<ul>
+<li>For deterministic behavior in production, explicitly set <code>BLACKOUT_PROFILE=managed</code>.</li>
+<li>For local/dev standalone runs, set <code>BLACKOUT_PROFILE=standalone</code>.</li>
+<li>For low-resource environments, set <code>BLACKOUT_PROFILE=constrained</code>.</li>
+<li>Matrix protocol endpoints are unchanged.</li>
+</ul>
+<h3 id="rollback-notes"><a class="header" href="#rollback-notes">Rollback notes</a></h3>
+<ul>
+<li>Unset <code>BLACKOUT_PROFILE</code> to return to auto-selection behavior.</li>
+<li>Or set <code>BLACKOUT_PROFILE=standalone</code> to avoid managed dependency requirements.</li>
+<li>No database schema changes are required for this profile-startup change.</li>
+</ul>
+<h1 id="upgrading-to-blackout-monetization-phase-0-foundations-post-2026-03-19"><a class="header" href="#upgrading-to-blackout-monetization-phase-0-foundations-post-2026-03-19">Upgrading to Blackout monetization phase-0 foundations (post-2026-03-19)</a></h1>
+<h2 id="new-additive-schema--config-for-entitlementwebhook-plumbing"><a class="header" href="#new-additive-schema--config-for-entitlementwebhook-plumbing">New additive schema + config for entitlement/webhook plumbing</a></h2>
+<p>This update introduces additive monetization foundation tables and configuration:</p>
+<ul>
+<li><code>blackout_user_entitlements</code></li>
+<li><code>blackout_billing_webhook_events</code></li>
+<li><code>monetization.*</code> config section</li>
+</ul>
+<p>No Matrix protocol behavior changes are introduced by this phase.</p>
+<h3 id="migration-notes-1"><a class="header" href="#migration-notes-1">Migration notes</a></h3>
+<ul>
+<li>Schema version moves to <code>84</code>.</li>
+<li>Set <code>monetization.enabled: true</code> only when you are ready to accept billing webhooks.</li>
+<li>Configure <code>billing_provider_api_key</code> and <code>billing_webhook_secret</code> via config or environment.</li>
+</ul>
+<h3 id="rollback-notes-1"><a class="header" href="#rollback-notes-1">Rollback notes</a></h3>
+<ul>
+<li>Disable monetization webhook handling by setting <code>monetization.enabled: false</code>.</li>
+<li>The new tables are additive and can remain in place for rollback to older behavior.</li>
+</ul>
+<h1 id="upgrading-to-blackout-fork-builds-post-2026-03-19"><a class="header" href="#upgrading-to-blackout-fork-builds-post-2026-03-19">Upgrading to Blackout fork builds (post-2026-03-19)</a></h1>
+<h2 id="optional-versions-fork-capability-advertisement"><a class="header" href="#optional-versions-fork-capability-advertisement">Optional <code>/versions</code> fork capability advertisement</a></h2>
+<p>Blackout fork builds add a new <em>opt-in</em> configuration flag:</p>
+<pre><code class="language-yaml">experimental_features:
+  blackout_versions_feature_flag: true
+</code></pre>
+<p>When enabled, Synapse adds the following key to <code>/_matrix/client/versions</code>:
+<code>unstable_features[&quot;io.blackout.product_fork&quot;] = true</code>.</p>
+<p>This change is protocol-compatible and additive; all existing Matrix/Synapse
+<code>versions</code> and MSC capability keys continue to be returned unchanged.</p>
+<h3 id="migration-notes-2"><a class="header" href="#migration-notes-2">Migration notes</a></h3>
+<ul>
+<li>Default behavior is unchanged (<code>blackout_versions_feature_flag</code> defaults to <code>false</code>).</li>
+<li>Enable the flag only if your downstream clients or product integrations need an explicit
+Blackout capability signal.</li>
+<li>No database migration is required.</li>
+</ul>
+<h3 id="rollback-notes-2"><a class="header" href="#rollback-notes-2">Rollback notes</a></h3>
+<ul>
+<li>Set <code>experimental_features.blackout_versions_feature_flag</code> to <code>false</code> (or remove it).</li>
+<li>Restart Synapse to stop advertising <code>io.blackout.product_fork</code>.</li>
+<li>No schema rollback or data migration is required.</li>
+</ul>
 <h1 id="upgrading-to-v1930"><a class="header" href="#upgrading-to-v1930">Upgrading to v1.93.0</a></h1>
 <h2 id="minimum-supported-rust-version"><a class="header" href="#minimum-supported-rust-version">Minimum supported Rust version</a></h2>
 <p>The minimum supported Rust version has been increased from v1.60.0 to v1.61.0.
@@ -7692,6 +7762,20 @@ media_store_path: DATADIR/media_store
 signing_key_path: &quot;CONFDIR/SERVERNAME.signing.key&quot;
 trusted_key_servers:
   - server_name: &quot;matrix.org&quot;
+
+# Optional Blackout fork capability advertisement. This is disabled by default
+# so /_matrix/client/versions remains byte-for-byte compatible with upstream
+# Synapse unless you explicitly opt in.
+#
+# Migration note:
+#   Enabling this adds an extra key to /_matrix/client/versions:
+#   unstable_features[&quot;io.blackout.product_fork&quot;] = true
+#
+# Rollback note:
+#   Set experimental_features.blackout_versions_feature_flag back to false (or
+#   remove the key) and restart Synapse. No database changes are involved.
+# experimental_features:
+#   blackout_versions_feature_flag: true
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="logging-sample-configuration-file"><a class="header" href="#logging-sample-configuration-file">Logging Sample Configuration File</a></h1>
 <p>Below is a sample logging configuration file. This file can be tweaked to control how your

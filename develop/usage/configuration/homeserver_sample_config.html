@@ -212,6 +212,20 @@ media_store_path: DATADIR/media_store
 signing_key_path: &quot;CONFDIR/SERVERNAME.signing.key&quot;
 trusted_key_servers:
   - server_name: &quot;matrix.org&quot;
+
+# Optional Blackout fork capability advertisement. This is disabled by default
+# so /_matrix/client/versions remains byte-for-byte compatible with upstream
+# Synapse unless you explicitly opt in.
+#
+# Migration note:
+#   Enabling this adds an extra key to /_matrix/client/versions:
+#   unstable_features[&quot;io.blackout.product_fork&quot;] = true
+#
+# Rollback note:
+#   Set experimental_features.blackout_versions_feature_flag back to false (or
+#   remove the key) and restart Synapse. No database changes are involved.
+# experimental_features:
+#   blackout_versions_feature_flag: true
 </code></pre>
 
                     </main>
