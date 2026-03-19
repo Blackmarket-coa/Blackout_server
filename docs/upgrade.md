@@ -97,6 +97,36 @@ v1.61.0.
 
 <!-- REPLACE_WITH_SCHEMA_VERSIONS -->
 
+# Upgrading to Blackout fork builds (post-2026-03-19)
+
+## Optional `/versions` fork capability advertisement
+
+Blackout fork builds add a new *opt-in* configuration flag:
+
+```yaml
+experimental_features:
+  blackout_versions_feature_flag: true
+```
+
+When enabled, Synapse adds the following key to `/_matrix/client/versions`:
+`unstable_features["io.blackout.product_fork"] = true`.
+
+This change is protocol-compatible and additive; all existing Matrix/Synapse
+`versions` and MSC capability keys continue to be returned unchanged.
+
+### Migration notes
+
+* Default behavior is unchanged (`blackout_versions_feature_flag` defaults to `false`).
+* Enable the flag only if your downstream clients or product integrations need an explicit
+  Blackout capability signal.
+* No database migration is required.
+
+### Rollback notes
+
+* Set `experimental_features.blackout_versions_feature_flag` to `false` (or remove it).
+* Restart Synapse to stop advertising `io.blackout.product_fork`.
+* No schema rollback or data migration is required.
+
 # Upgrading to v1.93.0
 
 ## Minimum supported Rust version

@@ -423,3 +423,10 @@ class ExperimentalConfig(Config):
         self.msc4069_profile_inhibit_propagation = experimental.get(
             "msc4069_profile_inhibit_propagation", False
         )
+
+        # Blackout fork: advertise the fork capability via /_matrix/client/versions.
+        # Disabled by default to keep output identical to upstream Synapse unless
+        # operators intentionally enable it.
+        self.blackout_versions_feature_flag = experimental.get(
+            "blackout_versions_feature_flag", False
+        )
