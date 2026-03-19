@@ -1,0 +1,22 @@
+name: Release train gate
+
+on:
+  pull_request:
+  push:
+    branches: ["develop", "release-*"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  verify-release-train-artifacts:
+    name: Verify release checklist/changelog artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install local package
+        run: pip install .
+      - name: Run release train gate
+        run: python scripts-dev/check_release_train_gate.py
