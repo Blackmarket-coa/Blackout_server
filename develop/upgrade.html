@@ -252,6 +252,35 @@ back safely to v1.57.0, but starting with v1.62.0 it is only safe to rollback to
 v1.61.0.</p>
 <table><thead><tr><th>Versions</th><th>Compatible version</th></tr></thead><tbody>
 </tbody></table>
+<h1 id="upgrading-to-managed-hosting-readiness-controls-post-2026-03-19"><a class="header" href="#upgrading-to-managed-hosting-readiness-controls-post-2026-03-19">Upgrading to managed-hosting readiness controls (post-2026-03-19)</a></h1>
+<h2 id="managed-profile-startup-preflight-checks-and-verification-hooks"><a class="header" href="#managed-profile-startup-preflight-checks-and-verification-hooks">Managed profile startup preflight checks and verification hooks</a></h2>
+<p>When <code>BLACKOUT_PROFILE=managed</code>, startup now executes:</p>
+<ul>
+<li>managed dependency readiness checks (Postgres + Redis TCP checks)</li>
+<li>optional backup/restore verification hooks</li>
+</ul>
+<h3 id="migration-notes"><a class="header" href="#migration-notes">Migration notes</a></h3>
+<ul>
+<li>Default managed readiness checks are enabled (<code>BLACKOUT_MANAGED_READINESS_CHECKS=true</code>).</li>
+<li>Optional hook env vars:
+<ul>
+<li><code>BLACKOUT_BACKUP_VERIFY_HOOK</code></li>
+<li><code>BLACKOUT_RESTORE_VERIFY_HOOK</code></li>
+</ul>
+</li>
+<li>Optional required-failure controls:
+<ul>
+<li><code>BLACKOUT_BACKUP_HOOK_REQUIRED=true|false</code></li>
+<li><code>BLACKOUT_RESTORE_HOOK_REQUIRED=true|false</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="rollback-notes"><a class="header" href="#rollback-notes">Rollback notes</a></h3>
+<ul>
+<li>Disable managed preflight checks by setting <code>BLACKOUT_MANAGED_READINESS_CHECKS=false</code>.</li>
+<li>Remove hook env vars to disable backup/restore verification hooks.</li>
+<li>No schema or protocol changes are involved.</li>
+</ul>
 <h1 id="upgrading-to-deterministic-blackout_profile-startup-handling-post-2026-03-19"><a class="header" href="#upgrading-to-deterministic-blackout_profile-startup-handling-post-2026-03-19">Upgrading to deterministic <code>BLACKOUT_PROFILE</code> startup handling (post-2026-03-19)</a></h1>
 <h2 id="explicit-profile-selection-for-blackout-server"><a class="header" href="#explicit-profile-selection-for-blackout-server">Explicit profile selection for <code>blackout-server</code></a></h2>
 <p>Startup now uses deterministic profile selection:</p>
@@ -266,14 +295,14 @@ v1.61.0.</p>
 <p><code>standalone</code> and <code>constrained</code> generate sqlite-safe config and enforce a healthcheck-compatible
 listener with <code>client</code>, <code>federation</code>, and <code>health</code> resources.</p>
 <p><code>constrained</code> additionally applies conservative low-resource defaults.</p>
-<h3 id="migration-notes"><a class="header" href="#migration-notes">Migration notes</a></h3>
+<h3 id="migration-notes-1"><a class="header" href="#migration-notes-1">Migration notes</a></h3>
 <ul>
 <li>For deterministic behavior in production, explicitly set <code>BLACKOUT_PROFILE=managed</code>.</li>
 <li>For local/dev standalone runs, set <code>BLACKOUT_PROFILE=standalone</code>.</li>
 <li>For low-resource environments, set <code>BLACKOUT_PROFILE=constrained</code>.</li>
 <li>Matrix protocol endpoints are unchanged.</li>
 </ul>
-<h3 id="rollback-notes"><a class="header" href="#rollback-notes">Rollback notes</a></h3>
+<h3 id="rollback-notes-1"><a class="header" href="#rollback-notes-1">Rollback notes</a></h3>
 <ul>
 <li>Unset <code>BLACKOUT_PROFILE</code> to return to auto-selection behavior.</li>
 <li>Or set <code>BLACKOUT_PROFILE=standalone</code> to avoid managed dependency requirements.</li>
@@ -288,13 +317,13 @@ listener with <code>client</code>, <code>federation</code>, and <code>health</co
 <li><code>monetization.*</code> config section</li>
 </ul>
 <p>No Matrix protocol behavior changes are introduced by this phase.</p>
-<h3 id="migration-notes-1"><a class="header" href="#migration-notes-1">Migration notes</a></h3>
+<h3 id="migration-notes-2"><a class="header" href="#migration-notes-2">Migration notes</a></h3>
 <ul>
 <li>Schema version moves to <code>84</code>.</li>
 <li>Set <code>monetization.enabled: true</code> only when you are ready to accept billing webhooks.</li>
 <li>Configure <code>billing_provider_api_key</code> and <code>billing_webhook_secret</code> via config or environment.</li>
 </ul>
-<h3 id="rollback-notes-1"><a class="header" href="#rollback-notes-1">Rollback notes</a></h3>
+<h3 id="rollback-notes-2"><a class="header" href="#rollback-notes-2">Rollback notes</a></h3>
 <ul>
 <li>Disable monetization webhook handling by setting <code>monetization.enabled: false</code>.</li>
 <li>The new tables are additive and can remain in place for rollback to older behavior.</li>
@@ -309,14 +338,14 @@ listener with <code>client</code>, <code>federation</code>, and <code>health</co
 <code>unstable_features[&quot;io.blackout.product_fork&quot;] = true</code>.</p>
 <p>This change is protocol-compatible and additive; all existing Matrix/Synapse
 <code>versions</code> and MSC capability keys continue to be returned unchanged.</p>
-<h3 id="migration-notes-2"><a class="header" href="#migration-notes-2">Migration notes</a></h3>
+<h3 id="migration-notes-3"><a class="header" href="#migration-notes-3">Migration notes</a></h3>
 <ul>
 <li>Default behavior is unchanged (<code>blackout_versions_feature_flag</code> defaults to <code>false</code>).</li>
 <li>Enable the flag only if your downstream clients or product integrations need an explicit
 Blackout capability signal.</li>
 <li>No database migration is required.</li>
 </ul>
-<h3 id="rollback-notes-2"><a class="header" href="#rollback-notes-2">Rollback notes</a></h3>
+<h3 id="rollback-notes-3"><a class="header" href="#rollback-notes-3">Rollback notes</a></h3>
 <ul>
 <li>Set <code>experimental_features.blackout_versions_feature_flag</code> to <code>false</code> (or remove it).</li>
 <li>Restart Synapse to stop advertising <code>io.blackout.product_fork</code>.</li>
