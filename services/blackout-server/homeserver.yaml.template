@@ -8,13 +8,10 @@ listeners:
     x_forwarded: true
     bind_addresses: ["0.0.0.0"]
     resources:
-      - names: [client, federation, health]
-  - port: 8448
-    tls: false
-    type: http
-    x_forwarded: true
-    resources:
-      - names: [federation]
+      - names: [client, health]
+
+# Disable federation for centralized MVP deployment
+federation_domain_whitelist: []
 
 database:
   name: psycopg2
@@ -31,8 +28,13 @@ redis:
   port: ${REDIS_PORT:-6379}
 
 registration_shared_secret: "${REGISTRATION_SHARED_SECRET}"
-enable_registration: false
+enable_registration: ${ENABLE_REGISTRATION:-false}
 report_stats: false
+
+jwt_config:
+  enabled: ${JWT_ENABLED:-false}
+  secret: "${JWT_SECRET:-}"
+  algorithm: "HS256"
 
 turn_uris:
   - "${TURN_URIS:-turn:turn.example.org:3478?transport=udp}"

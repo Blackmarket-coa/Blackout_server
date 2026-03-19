@@ -22,6 +22,18 @@ Owner: `@maintainer`
 - [ ] Applied and tested backports:
 - [ ] Captured rollback/mitigation notes for deferred backports:
 
+## Divergence Risk Markers
+
+- [ ] If this PR changes risky paths (`auth/signing/federation`), add checked marker entries:
+  - [x] `synapse/federation/...` - rationale + interoperability check link
+  - [x] `synapse/api/auth/...` - rationale + interoperability check link
+
+## Image Provenance & SBOM
+
+- [ ] Updated `release/train/image_provenance.json`
+- [ ] `source_revision` and `upstream_base_revision` set
+- [ ] `sbom_artifact_uri` and `provenance_artifact_uri` point to published artifacts
+
 ## Sign-off
 
 - [ ] Release owner approval

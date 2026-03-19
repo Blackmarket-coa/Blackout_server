@@ -54,6 +54,19 @@ class BlackoutProfileSelectionTestCase(TestCase):
 
 
 class BlackoutProfileConfigMutationTestCase(TestCase):
+    def test_profile_overrides_keep_client_and_federation_resources(self) -> None:
+        config = {}
+        updated = apply_profile_overrides(
+            config,
+            profile="standalone",
+            port=8008,
+            public_baseurl="",
+        )
+        self.assertEqual(
+            updated["listeners"][0]["resources"][0]["names"],
+            ["client", "federation", "health"],
+        )
+
     def test_standalone_overrides_for_sqlite_and_health_listener(self) -> None:
         config = {}
         updated = apply_profile_overrides(

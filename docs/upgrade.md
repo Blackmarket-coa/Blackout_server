@@ -97,6 +97,31 @@ v1.61.0.
 
 <!-- REPLACE_WITH_SCHEMA_VERSIONS -->
 
+# Upgrading to managed-hosting readiness controls (post-2026-03-19)
+
+## Managed profile startup preflight checks and verification hooks
+
+When `BLACKOUT_PROFILE=managed`, startup now executes:
+
+* managed dependency readiness checks (Postgres + Redis TCP checks)
+* optional backup/restore verification hooks
+
+### Migration notes
+
+* Default managed readiness checks are enabled (`BLACKOUT_MANAGED_READINESS_CHECKS=true`).
+* Optional hook env vars:
+  * `BLACKOUT_BACKUP_VERIFY_HOOK`
+  * `BLACKOUT_RESTORE_VERIFY_HOOK`
+* Optional required-failure controls:
+  * `BLACKOUT_BACKUP_HOOK_REQUIRED=true|false`
+  * `BLACKOUT_RESTORE_HOOK_REQUIRED=true|false`
+
+### Rollback notes
+
+* Disable managed preflight checks by setting `BLACKOUT_MANAGED_READINESS_CHECKS=false`.
+* Remove hook env vars to disable backup/restore verification hooks.
+* No schema or protocol changes are involved.
+
 # Upgrading to deterministic `BLACKOUT_PROFILE` startup handling (post-2026-03-19)
 
 ## Explicit profile selection for `blackout-server`

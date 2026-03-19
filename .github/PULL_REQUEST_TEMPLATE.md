@@ -12,3 +12,13 @@
 * [ ] Pull request includes a [sign off](https://matrix-org.github.io/synapse/latest/development/contributing_guide.html#sign-off)
 * [ ] [Code style](https://matrix-org.github.io/synapse/latest/code_style.html) is correct
   (run the [linters](https://matrix-org.github.io/synapse/latest/development/contributing_guide.html#run-the-linters))
+
+### Divergence note (required for behavior changes)
+
+* [ ] This PR changes runtime/protocol behavior and includes an explicit divergence note.
+
+If behavior changed, include:
+
+- Interoperability impact (client/federation)
+- Config flag/rollback path
+- Risky path marker entries added to `release/train/checklist.md` (if applicable)
