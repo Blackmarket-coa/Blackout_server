@@ -52,6 +52,7 @@ from .keys import KeyStore
 from .lock import LockStore
 from .media_repository import MediaRepositoryStore
 from .metrics import ServerMetricsStore
+from .monetization import MonetizationStore
 from .monthly_active_users import MonthlyActiveUsersWorkerStore
 from .openid import OpenIdStore
 from .presence import PresenceStore
@@ -128,6 +129,7 @@ class DataStore(
     ApplicationServiceTransactionStore,
     EventPushActionsStore,
     ServerMetricsStore,
+    MonetizationStore,
     ReceiptsStore,
     EndToEndKeyStore,
     EndToEndRoomKeyStore,

@@ -97,6 +97,91 @@ v1.61.0.
 
 <!-- REPLACE_WITH_SCHEMA_VERSIONS -->
 
+# Upgrading to deterministic `BLACKOUT_PROFILE` startup handling (post-2026-03-19)
+
+## Explicit profile selection for `blackout-server`
+
+Startup now uses deterministic profile selection:
+
+* `managed`
+* `standalone`
+* `constrained`
+* or auto mode when `BLACKOUT_PROFILE` is unset.
+
+`managed` now fails fast with actionable errors unless the required dependency env vars are set:
+`DATABASE_HOST`, `DATABASE_PASSWORD`, `REDIS_HOST`, `REGISTRATION_SHARED_SECRET`.
+
+`standalone` and `constrained` generate sqlite-safe config and enforce a healthcheck-compatible
+listener with `client`, `federation`, and `health` resources.
+
+`constrained` additionally applies conservative low-resource defaults.
+
+### Migration notes
+
+* For deterministic behavior in production, explicitly set `BLACKOUT_PROFILE=managed`.
+* For local/dev standalone runs, set `BLACKOUT_PROFILE=standalone`.
+* For low-resource environments, set `BLACKOUT_PROFILE=constrained`.
+* Matrix protocol endpoints are unchanged.
+
+### Rollback notes
+
+* Unset `BLACKOUT_PROFILE` to return to auto-selection behavior.
+* Or set `BLACKOUT_PROFILE=standalone` to avoid managed dependency requirements.
+* No database schema changes are required for this profile-startup change.
+
+# Upgrading to Blackout monetization phase-0 foundations (post-2026-03-19)
+
+## New additive schema + config for entitlement/webhook plumbing
+
+This update introduces additive monetization foundation tables and configuration:
+
+* `blackout_user_entitlements`
+* `blackout_billing_webhook_events`
+* `monetization.*` config section
+
+No Matrix protocol behavior changes are introduced by this phase.
+
+### Migration notes
+
+* Schema version moves to `84`.
+* Set `monetization.enabled: true` only when you are ready to accept billing webhooks.
+* Configure `billing_provider_api_key` and `billing_webhook_secret` via config or environment.
+
+### Rollback notes
+
+* Disable monetization webhook handling by setting `monetization.enabled: false`.
+* The new tables are additive and can remain in place for rollback to older behavior.
+
+# Upgrading to Blackout fork builds (post-2026-03-19)
+
+## Optional `/versions` fork capability advertisement
+
+Blackout fork builds add a new *opt-in* configuration flag:
+
+```yaml
+experimental_features:
+  blackout_versions_feature_flag: true
+```
+
+When enabled, Synapse adds the following key to `/_matrix/client/versions`:
+`unstable_features["io.blackout.product_fork"] = true`.
+
+This change is protocol-compatible and additive; all existing Matrix/Synapse
+`versions` and MSC capability keys continue to be returned unchanged.
+
+### Migration notes
+
+* Default behavior is unchanged (`blackout_versions_feature_flag` defaults to `false`).
+* Enable the flag only if your downstream clients or product integrations need an explicit
+  Blackout capability signal.
+* No database migration is required.
+
+### Rollback notes
+
+* Set `experimental_features.blackout_versions_feature_flag` to `false` (or remove it).
+* Restart Synapse to stop advertising `io.blackout.product_fork`.
+* No schema rollback or data migration is required.
+
 # Upgrading to v1.93.0
 
 ## Minimum supported Rust version

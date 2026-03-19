@@ -2,12 +2,13 @@ server_name: "${SERVER_NAME}"
 pid_file: /data/homeserver.pid
 public_baseurl: "https://${SERVER_NAME}/"
 listeners:
-  - port: 8008
+  - port: ${PORT:-8008}
     tls: false
     type: http
     x_forwarded: true
+    bind_addresses: ["0.0.0.0"]
     resources:
-      - names: [client, federation]
+      - names: [client, federation, health]
   - port: 8448
     tls: false
     type: http
