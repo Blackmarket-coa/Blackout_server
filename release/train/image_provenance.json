@@ -1,0 +1,13 @@
+{
+  "version": "0.0.0-blackout.0",
+  "image_tags": [
+    "ghcr.io/blackout/server:0.0.0-blackout.0",
+    "ghcr.io/blackout/server:stable",
+    "ghcr.io/blackout/server:canary"
+  ],
+  "source_revision": "TBD",
+  "upstream_base_revision": "TBD",
+  "build_timestamp_utc": "TBD",
+  "sbom_artifact_uri": "TBD",
+  "provenance_artifact_uri": "TBD"
+}
