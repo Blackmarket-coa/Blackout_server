@@ -22,3 +22,7 @@ jobs:
         run: python scripts-dev/check_release_train_gate.py
       - name: Run divergence marker gate
         run: python scripts-dev/check_divergence_markers.py
+      - name: Run hosting profile smoke checks
+        run: python scripts-dev/blackout/ci_hosting_smoke.py
+      - name: Run protocol compatibility smoke check
+        run: python -m pytest tests/rest/client/test_versions.py::VersionsServletTestCase::test_versions_smoke_compatibility
