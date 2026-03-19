@@ -97,6 +97,38 @@ v1.61.0.
 
 <!-- REPLACE_WITH_SCHEMA_VERSIONS -->
 
+# Upgrading to deterministic `BLACKOUT_PROFILE` startup handling (post-2026-03-19)
+
+## Explicit profile selection for `blackout-server`
+
+Startup now uses deterministic profile selection:
+
+* `managed`
+* `standalone`
+* `constrained`
+* or auto mode when `BLACKOUT_PROFILE` is unset.
+
+`managed` now fails fast with actionable errors unless the required dependency env vars are set:
+`DATABASE_HOST`, `DATABASE_PASSWORD`, `REDIS_HOST`, `REGISTRATION_SHARED_SECRET`.
+
+`standalone` and `constrained` generate sqlite-safe config and enforce a healthcheck-compatible
+listener with `client`, `federation`, and `health` resources.
+
+`constrained` additionally applies conservative low-resource defaults.
+
+### Migration notes
+
+* For deterministic behavior in production, explicitly set `BLACKOUT_PROFILE=managed`.
+* For local/dev standalone runs, set `BLACKOUT_PROFILE=standalone`.
+* For low-resource environments, set `BLACKOUT_PROFILE=constrained`.
+* Matrix protocol endpoints are unchanged.
+
+### Rollback notes
+
+* Unset `BLACKOUT_PROFILE` to return to auto-selection behavior.
+* Or set `BLACKOUT_PROFILE=standalone` to avoid managed dependency requirements.
+* No database schema changes are required for this profile-startup change.
+
 # Upgrading to Blackout monetization phase-0 foundations (post-2026-03-19)
 
 ## New additive schema + config for entitlement/webhook plumbing

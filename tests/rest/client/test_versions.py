@@ -21,6 +21,16 @@ from tests.unittest import override_config
 class VersionsServletTestCase(unittest.HomeserverTestCase):
     servlets = [versions.register_servlets]
 
+    def test_versions_smoke_compatibility(self) -> None:
+        channel = self.make_request(
+            "GET", "/_matrix/client/versions", content={}, access_token=None
+        )
+
+        self.assertEqual(channel.code, 200, channel.result)
+        self.assertIn("r0.6.1", channel.json_body["versions"])
+        self.assertIn("v1.9", channel.json_body["versions"])
+        self.assertIsInstance(channel.json_body["unstable_features"], dict)
+
     def test_blackout_fork_flag_disabled_by_default(self) -> None:
         channel = self.make_request(
             "GET", "/_matrix/client/versions", content={}, access_token=None
