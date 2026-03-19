@@ -1,0 +1,56 @@
+# Copyright 2026 The Matrix.org Foundation C.I.C.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+from pathlib import Path
+from typing import List
+
+REQUIRED_RELEASE_FILES = (
+    "release/train/checklist.md",
+    "release/train/changelog.md",
+)
+
+REQUIRED_CHECKLIST_SECTIONS = (
+    "## Upstream Diff Review",
+    "## CVE Review",
+    "## Backport Plan",
+)
+
+REQUIRED_CHANGELOG_SECTIONS = (
+    "## Fork Policy Changes",
+    "## Runtime Defaults",
+    "## Security Backports",
+)
+
+
+def validate_release_train_artifacts(repo_root: Path) -> List[str]:
+    errors: List[str] = []
+
+    for rel_path in REQUIRED_RELEASE_FILES:
+        path = repo_root / rel_path
+        if not path.exists():
+            errors.append(f"Missing required release artifact: {rel_path}")
+
+    checklist_path = repo_root / "release/train/checklist.md"
+    if checklist_path.exists():
+        checklist_text = checklist_path.read_text(encoding="utf-8")
+        for heading in REQUIRED_CHECKLIST_SECTIONS:
+            if heading not in checklist_text:
+                errors.append(
+                    f"release/train/checklist.md missing section heading: {heading}"
+                )
+
+    changelog_path = repo_root / "release/train/changelog.md"
+    if changelog_path.exists():
+        changelog_text = changelog_path.read_text(encoding="utf-8")
+        for heading in REQUIRED_CHANGELOG_SECTIONS:
+            if heading not in changelog_text:
+                errors.append(
+                    f"release/train/changelog.md missing section heading: {heading}"
+                )
+
+    return errors
