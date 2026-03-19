@@ -3,6 +3,9 @@
 This plan defines how Blackout Server becomes an independently-operated product
 fork while remaining Matrix/Synapse protocol compatible.
 
+For completion-oriented implementation prompts, see:
+`docs/development/product_fork_ai_prompts.md`.
+
 ## Goal
 
 Own the parts that matter commercially and operationally:
