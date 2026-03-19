@@ -176,6 +176,24 @@ Recommendation: Start with Option A, migrate to B after API layer is built.
 
 ---
 
+
+## 12.1 Blackout API Endpoint Coverage (Requested Update)
+
+| Method | Endpoint | Status | Notes |
+|--------|----------|--------|-------|
+| GET | `/v1/servers/{id}/members` | NEW | Added in API surface plan |
+| PATCH | `/v1/servers/{id}` | NEW | Added in API surface plan |
+| DELETE | `/v1/servers/{id}` | NEW | Added in API surface plan |
+| POST | `/v1/servers/{id}/join` | EXISTED | Already present in prior API design |
+| DELETE | `/v1/servers/{id}/leave` | EXISTED | Already present in prior API design |
+| PUT | `/v1/servers/{id}/members/{id}/role` | FIXED | Pydantic model correction applied |
+| GET | `/v1/servers/{id}/channels` | NEW | Added in API surface plan |
+| POST | `/v1/servers/{id}/channels` | EXISTED | Already present in prior API design |
+| DELETE | `/v1/channels/{id}` | EXISTED | Already present in prior API design |
+| GET | `/v1/channels/{id}/messages` | EXISTED | Already present in prior API design |
+| POST | `/v1/channels/{id}/messages` | EXISTED | Already present in prior API design |
+| WS | `/gateway` | EXISTED | Already present in prior API design |
+
 ## 13. Phase 2 Items
 
 | Item | Status | Notes |
