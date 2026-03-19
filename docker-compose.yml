@@ -1,0 +1,103 @@
+##############################################################################
+# Blackout Core — Local Development Stack
+#
+# Usage:
+#   docker compose up --build
+#
+# Services:
+#   postgres        :5432   Shared database (Synapse + blackout-api mapping tables)
+#   redis           :6379   Synapse worker coordination
+#   blackout-server :8008   Synapse homeserver (Matrix CS API)
+#   blackout-api    :8000   Discord-like REST + WebSocket API
+#
+# First run:
+#   docker compose up -d postgres redis
+#   docker compose up --build
+##############################################################################
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: blackout
+      POSTGRES_PASSWORD: blackout-dev
+      POSTGRES_DB: blackout
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blackout"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  blackout-server:
+    build:
+      context: .
+      dockerfile: services/blackout-server/Dockerfile
+    ports:
+      - "8008:8008"
+    environment:
+      SERVER_NAME: localhost
+      PORT: "8008"
+      BLACKOUT_PROFILE: managed
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: blackout
+      DATABASE_USER: blackout
+      DATABASE_PASSWORD: blackout-dev
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REGISTRATION_SHARED_SECRET: dev-shared-secret
+      ENABLE_REGISTRATION: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8008/_matrix/client/versions || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  blackout-api:
+    build:
+      context: .
+      dockerfile: services/blackout-api/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://blackout:blackout-dev@postgres:5432/blackout
+      SYNAPSE_URL: http://blackout-server:8008
+      SYNAPSE_ADMIN_TOKEN: ""
+      REGISTRATION_SHARED_SECRET: dev-shared-secret
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRY_HOURS: "72"
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:5173,http://localhost:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      blackout-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

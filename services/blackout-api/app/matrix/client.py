@@ -133,3 +133,25 @@ class MatrixClient:
 
     async def whoami(self, access_token: str) -> dict:
         return await self._request("GET", "/_matrix/client/v3/account/whoami", access_token=access_token)
+
+    # --- Sync ---
+
+    async def sync(self, access_token: str, since: str | None = None, timeout: int = 30000) -> dict:
+        """Long-poll /sync. Returns the full sync response with next_batch token.
+
+        Args:
+            access_token: User's Matrix access token.
+            since: The since_token from a previous sync (for incremental sync).
+            timeout: Server-side long-poll timeout in milliseconds.
+        """
+        params: dict = {"timeout": str(timeout)}
+        if since:
+            params["since"] = since
+        # Use a longer client timeout than the server-side timeout to avoid premature disconnect
+        async with self._client(access_token) as client:
+            client.timeout = httpx.Timeout(timeout=(timeout / 1000) + 10)
+            resp = await client.get("/_matrix/client/v3/sync", params=params)
+            if resp.status_code >= 400:
+                body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                raise MatrixError(resp.status_code, body.get("errcode", "M_UNKNOWN"), body.get("error", resp.text))
+            return resp.json()
