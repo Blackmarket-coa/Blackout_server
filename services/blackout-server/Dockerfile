@@ -33,5 +33,5 @@ COPY --from=py-builder /usr/local /usr/local
 COPY services/blackout-server/entrypoint.sh /entrypoint.sh
 COPY services/blackout-server/homeserver.yaml.template /templates/homeserver.yaml.template
 RUN chmod +x /entrypoint.sh
-EXPOSE 8008 8448
+EXPOSE 8008
 ENTRYPOINT ["/entrypoint.sh"]
