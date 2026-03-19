@@ -10,21 +10,29 @@ Matrix (Synapse) is the engine underneath — it handles messaging, sync, media,
 presence. Two new services sit on top:
 
 ```
-┌─────────────────────────────────┐
-│     blackout-web (Next.js)      │  ← What users see
-│  Discord-like UI components     │
-└──────────────┬──────────────────┘
-               │ REST + WebSocket
-┌──────────────▼──────────────────┐
-│     blackout-api (FastAPI)      │  ← Translation layer
-│  Discord concepts → Matrix ops  │
-└──────┬───────────────┬──────────┘
-       │               │
-┌──────▼──────┐  ┌─────▼──────────┐
-│  PostgreSQL │  │ Synapse (this   │
-│  (mappings) │  │ repo) on :8008  │
-└─────────────┘  └────────────────┘
+┌──────────────────────────────────────────┐
+│  blackout-web (Vite + vanilla TS)        │  ← What users see
+│  github.com/Blackmarket-coa/blackout     │
+│  Element Web fork with custom ApiClient  │
+└──────────────────┬───────────────────────┘
+                   │ REST + WebSocket
+┌──────────────────▼───────────────────────┐
+│  blackout-api (FastAPI)                  │  ← Translation layer
+│  services/blackout-api/ in THIS repo     │
+│  Discord concepts → Matrix operations    │
+└──────────┬───────────────┬───────────────┘
+           │               │
+┌──────────▼──────┐  ┌─────▼──────────────┐
+│  PostgreSQL     │  │ Synapse (this repo) │
+│  (mappings +    │  │ on :8008            │
+│   Synapse data) │  │                     │
+└─────────────────┘  └────────────────────┘
 ```
+
+> **Note:** The frontend (`blackout-web`) is a separate repo — an Element Web fork
+> with a custom vanilla TypeScript app under `apps/blackout-web/`. Its `ApiClient`
+> currently calls Matrix endpoints directly. To complete the Discord-like experience,
+> the ApiClient should be updated to call `blackout-api` endpoints instead.
 
 ---
 
@@ -240,83 +248,68 @@ services/blackout-api/
 
 ## Part 2: Blackout Web Frontend
 
-**Location**: `services/blackout-web/`
-**Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+**Repo**: `github.com/Blackmarket-coa/blackout`
+**Location**: `apps/blackout-web/`
+**Stack**: Vite + vanilla TypeScript (no React/Vue), minimal CSS
 
-### 2.1 Layout (Discord Clone)
+### 2.1 Current State
+
+The frontend is a custom app with:
+- `ApiClient` class that calls Matrix endpoints directly (`/_matrix/client/v3/*`)
+- Tab-based navigation (auth, rooms, timeline, settings)
+- Simple `setState()` pattern (no Redux/Zustand)
+- Session persisted in `localStorage`
+- Mock API fallback for dev/testing
+- Dark theme CSS
+
+### 2.2 What Needs to Change
+
+The `ApiClient` in `apps/blackout-web/src/api/client.ts` should be updated to call
+`blackout-api` instead of Matrix directly. The mapping:
+
+| Current (Matrix direct)                    | New (via blackout-api)                |
+|--------------------------------------------|---------------------------------------|
+| `POST /_matrix/client/v3/login`            | `POST /v1/auth/login`                 |
+| `GET /_matrix/client/v3/joined_rooms`      | `GET /v1/servers`                     |
+| `GET /_matrix/client/v3/rooms/{id}/messages` | `GET /v1/channels/{id}/messages`    |
+| (not implemented)                          | `POST /v1/auth/register`              |
+| (not implemented)                          | `POST /v1/servers`                    |
+| (not implemented)                          | `POST /v1/servers/{id}/channels`      |
+| (not implemented)                          | `POST /v1/channels/{id}/messages`     |
+| (not implemented)                          | `WS /gateway`                         |
+
+### 2.3 Target Layout (Discord Clone)
 
 ```
 ┌──┬────────────┬─────────────────────────────────┐
 │  │            │  # general                    ⚙ │
 │  │ # general  ├─────────────────────────────────│
 │S │ # voice    │                                 │
-│E │ # announcements │  alice: hey everyone!      │
+│E │ # announce │  alice: hey everyone!           │
 │R │            │  bob: what's up?                │
 │V │            │                                 │
 │E │  MEMBERS   │                                 │
-│R │  ─────────── │                               │
+│R │  ───────── │                                 │
 │  │  alice     │                                 │
 │L │  bob       ├─────────────────────────────────│
 │I │            │ ┌─────────────────────────────┐ │
 │S │            │ │ Type a message...         ⏎ │ │
 │T │            │ └─────────────────────────────┘ │
 └──┴────────────┴─────────────────────────────────┘
- ↑       ↑                    ↑
- Server  Channel list +       Chat area
- icons   member list
 ```
 
-### 2.2 Pages & Components
+The UI evolution (tabs → Discord layout) happens in the frontend repo.
 
-```
-services/blackout-web/
-├── Dockerfile
-├── package.json
-├── next.config.js
-├── tailwind.config.js
-├── app/
-│   ├── layout.tsx                 # Root layout
-│   ├── login/page.tsx             # Login page
-│   ├── register/page.tsx          # Register page
-│   └── (app)/                     # Authenticated layout
-│       ├── layout.tsx             # Main app shell (server sidebar)
-│       └── servers/
-│           └── [serverId]/
-│               ├── layout.tsx     # Channel sidebar + member list
-│               └── channels/
-│                   └── [channelId]/
-│                       └── page.tsx  # Chat view
-├── components/
-│   ├── ServerSidebar.tsx          # Vertical icon strip (left rail)
-│   ├── ChannelList.tsx            # Channel names + categories
-│   ├── MemberList.tsx             # Online/offline member list
-│   ├── ChatWindow.tsx             # Message list + auto-scroll
-│   ├── MessageInput.tsx           # Composer with file upload
-│   ├── Message.tsx                # Single message bubble
-│   ├── CreateServerModal.tsx      # "Add Server" dialog
-│   └── CreateChannelModal.tsx     # "Add Channel" dialog
-├── lib/
-│   ├── api.ts                     # Fetch wrapper for blackout-api
-│   ├── gateway.ts                 # WebSocket connection manager
-│   ├── auth.ts                    # JWT storage, login/register calls
-│   └── stores/                    # Zustand stores
-│       ├── useAuthStore.ts
-│       ├── useServerStore.ts
-│       ├── useChannelStore.ts
-│       └── useMessageStore.ts
-└── railway.toml
-```
+### 2.4 Key Interactions
 
-### 2.3 Key Interactions
-
-1. **Login** → `POST /auth/login` → store JWT → redirect to first server
-2. **Load servers** → `GET /servers` → populate sidebar icons
-3. **Select server** → `GET /servers/:id` → load channels + members
-4. **Select channel** → `GET /channels/:id/messages` → load message history
-5. **Send message** → `POST /channels/:id/messages` → optimistic update
-6. **Real-time** → `WS /gateway` → listen for MESSAGE_CREATE, update stores
-7. **Create server** → modal → `POST /servers` → add to sidebar
-8. **Create channel** → modal → `POST /servers/:id/channels` → add to list
+1. **Login** → `POST /v1/auth/login` → store JWT → redirect to first server
+2. **Load servers** → `GET /v1/servers` → populate sidebar icons
+3. **Select server** → `GET /v1/servers/:id` → load channels + members
+4. **Select channel** → `GET /v1/channels/:id/messages` → load message history
+5. **Send message** → `POST /v1/channels/:id/messages` → optimistic update
+6. **Real-time** → `WS /gateway` → listen for MESSAGE_CREATE, update state
+7. **Create server** → modal → `POST /v1/servers` → add to sidebar
+8. **Create channel** → modal → `POST /v1/servers/:id/channels` → add to list
 
 ---
 
@@ -375,10 +368,9 @@ JWT_SECRET=...                          # For issuing Blackout JWTs
 CORS_ORIGINS=https://blackout.app
 ```
 
-**blackout-web** (new):
+**blackout-web** (separate repo):
 ```
-NEXT_PUBLIC_API_URL=https://api.blackout.app
-NEXT_PUBLIC_WS_URL=wss://api.blackout.app
+VITE_MATRIX_HOMESERVER_URL=https://api.blackout.app   # Points to blackout-api, NOT Synapse
 ```
 
 ### 3.3 Networking
@@ -395,15 +387,15 @@ Users never hit Synapse directly. All Matrix operations go through blackout-api.
 ## Part 4: Implementation Order
 
 ### Phase 1 — Foundation (get chat working)
-1. Create `services/blackout-api/` with FastAPI scaffold
-2. Add migration `delta/85/` with mapping tables
-3. Implement auth endpoints (register, login, me)
-4. Implement server create + list
-5. Implement channel create + list
-6. Implement message send + fetch
-7. Create `services/blackout-web/` with Next.js scaffold
-8. Build login/register pages
-9. Build server sidebar + channel list + chat window
+1. ~~Create `services/blackout-api/` with FastAPI scaffold~~ DONE
+2. ~~Add migration `delta/85/` with mapping tables~~ DONE
+3. ~~Implement auth endpoints (register, login, me)~~ DONE
+4. ~~Implement server create + list + join~~ DONE
+5. ~~Implement channel create + delete~~ DONE
+6. ~~Implement message send + fetch~~ DONE
+7. ~~Add WebSocket gateway stub~~ DONE
+8. Update frontend ApiClient to call blackout-api (in blackout repo)
+9. Build Discord-like layout in frontend (in blackout repo)
 10. Deploy all 3 services to Railway
 
 ### Phase 2 — Real-time + Polish
