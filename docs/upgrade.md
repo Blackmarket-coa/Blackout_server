@@ -97,6 +97,29 @@ v1.61.0.
 
 <!-- REPLACE_WITH_SCHEMA_VERSIONS -->
 
+# Upgrading to Blackout monetization phase-0 foundations (post-2026-03-19)
+
+## New additive schema + config for entitlement/webhook plumbing
+
+This update introduces additive monetization foundation tables and configuration:
+
+* `blackout_user_entitlements`
+* `blackout_billing_webhook_events`
+* `monetization.*` config section
+
+No Matrix protocol behavior changes are introduced by this phase.
+
+### Migration notes
+
+* Schema version moves to `84`.
+* Set `monetization.enabled: true` only when you are ready to accept billing webhooks.
+* Configure `billing_provider_api_key` and `billing_webhook_secret` via config or environment.
+
+### Rollback notes
+
+* Disable monetization webhook handling by setting `monetization.enabled: false`.
+* The new tables are additive and can remain in place for rollback to older behavior.
+
 # Upgrading to Blackout fork builds (post-2026-03-19)
 
 ## Optional `/versions` fork capability advertisement

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SCHEMA_VERSION = 83  # remember to update the list below when updating
+SCHEMA_VERSION = 84  # remember to update the list below when updating
 """Represents the expectations made by the codebase about the database schema
 
 This should be incremented whenever the codebase changes its requirements on the
@@ -125,11 +125,15 @@ Changes in SCHEMA_VERSION = 82
 
 Changes in SCHEMA_VERSION = 83
     - The event_txn_id is no longer used.
+
+Changes in SCHEMA_VERSION = 84
+    - Add blackout monetization foundation tables:
+      `blackout_user_entitlements` and `blackout_billing_webhook_events`.
 """
 
 
 SCHEMA_COMPAT_VERSION = (
-    # The event_txn_id table and tables from MSC2716 no longer exist.
+    # Monetization schema additions in v84 are additive.
     83
 )
 """Limit on how far the synapse codebase can be rolled back without breaking db compat

@@ -29,6 +29,7 @@ from .jwt import JWTConfig
 from .key import KeyConfig
 from .logger import LoggingConfig
 from .metrics import MetricsConfig
+from .monetization import MonetizationConfig
 from .modules import ModulesConfig
 from .oembed import OembedConfig
 from .oidc import OIDCConfig
@@ -73,6 +74,7 @@ class HomeServerConfig(RootConfig):
         RegistrationConfig,
         AccountValidityConfig,
         MetricsConfig,
+        MonetizationConfig,
         ApiConfig,
         AppServiceConfig,
         KeyConfig,
