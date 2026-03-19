@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timezone
 from typing import Generator
 
-from sqlalchemy import DateTime, String, create_engine
+from sqlalchemy import DateTime, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 
@@ -39,6 +39,8 @@ class ServerMap(Base, TimestampMixin):
     app_server_id: Mapped[str] = mapped_column(String(128), primary_key=True)
     matrix_space_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     owner_user_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
 
 class ChannelMap(Base, TimestampMixin):
@@ -57,6 +59,15 @@ class MembershipMap(Base):
     app_user_id: Mapped[str] = mapped_column(String(128), primary_key=True)
     role: Mapped[str] = mapped_column(String(32), default="member", nullable=False)
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class Message(Base, TimestampMixin):
+    __tablename__ = "message"
+
+    message_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    app_channel_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    sender_app_user_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 def get_db() -> Generator:

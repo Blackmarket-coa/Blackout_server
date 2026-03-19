@@ -6,6 +6,12 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ServerCreateRequest(BaseModel):
+    matrix_space_id: str = Field(min_length=1, max_length=255)
+    name: str = Field(min_length=1, max_length=128)
+    description: str = Field(default="", max_length=1024)
+
+
 class ServerPatchRequest(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=128)
     description: Optional[str] = Field(default=None, max_length=1024)
@@ -29,12 +35,14 @@ class MessageCreateRequest(BaseModel):
     body: str = Field(min_length=1, max_length=5000)
 
 
-class UserMapOut(BaseModel):
+class ServerOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    app_user_id: str
-    matrix_user_id: str
-    status: str
+    app_server_id: str
+    matrix_space_id: str
+    owner_user_id: str
+    name: str
+    description: str
     created_at: datetime
 
 
@@ -55,3 +63,13 @@ class MembershipOut(BaseModel):
     app_user_id: str
     role: str
     joined_at: datetime
+
+
+class MessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    message_id: str
+    app_channel_id: str
+    sender_app_user_id: str
+    body: str
+    created_at: datetime

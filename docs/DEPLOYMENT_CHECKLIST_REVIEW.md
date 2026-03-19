@@ -72,19 +72,18 @@ Matrix into Discord-like concepts. This repo only provides the Matrix engine.
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Separate API service | DOES NOT EXIST | Matrix Client-Server API exposed directly |
+| Separate API service | NOW IMPLEMENTED | `services/blackout-api` FastAPI service added |
 | Auth (JWT) | PARTIAL | JWT login module exists but API abstraction layer needed |
 | User abstraction | NOT IMPLEMENTED | Users see Matrix-style `@user:server` IDs |
 | Server (Space) creation | NATIVE MATRIX | Via `POST /createRoom` with `type: m.space` |
 | Role/permission system | MATRIX POWER LEVELS | Numeric (0-100), not named Owner/Admin/Member roles |
 | Billing hooks | STUB | `monetization.py` + DB tables exist; billing is stub-only |
-| Custom endpoints | NOT IMPLEMENTED | No `/register`, `/login`, `/servers/create`, etc. |
-| User ↔ Matrix User ID mapping | NOT IMPLEMENTED | No abstraction table |
-| Server ↔ Space ID mapping | NOT IMPLEMENTED | No mapping table |
-| Channel ↔ Room ID mapping | NOT IMPLEMENTED | No mapping table |
+| Custom endpoints | PARTIAL | Core `/v1/servers`, `/v1/channels`, `/gateway` abstraction routes now implemented |
+| User ↔ Matrix User ID mapping | TABLE READY | `user_map` table implemented in blackout-api |
+| Server ↔ Space ID mapping | TABLE READY | `server_map` table implemented in blackout-api |
+| Channel ↔ Room ID mapping | TABLE READY | `channel_map` table implemented in blackout-api |
 
-**Action needed:** Build a separate `blackout-api` service (Node.js or FastAPI) that wraps
-Matrix API with Discord-like endpoints and maintains mapping tables.
+**Action needed:** Complete blackout-api production hardening (migrations, full authz policy, and end-to-end integration).
 
 ---
 
@@ -105,7 +104,7 @@ Matrix API with Discord-like endpoints and maintains mapping tables.
 | Item | Status | Notes |
 |------|--------|-------|
 | Option A (direct Matrix API from frontend) | AVAILABLE | Client-Server API fully implemented |
-| Option B (proxy through API) | NOT IMPLEMENTED | No separate API layer |
+| Option B (proxy through API) | IN PROGRESS | Blackout API service now exists with JWT + Matrix token passthrough contract |
 
 Recommendation: Start with Option A, migrate to B after API layer is built.
 
