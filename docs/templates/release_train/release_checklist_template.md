@@ -22,6 +22,12 @@ Owner: `@maintainer`
 - [ ] Applied and tested backports:
 - [ ] Captured rollback/mitigation notes for deferred backports:
 
+## Divergence Risk Markers
+
+- [ ] If this PR changes risky paths (`auth/signing/federation`), add checked marker entries:
+  - [x] `synapse/federation/...` - rationale + interoperability check link
+  - [x] `synapse/api/auth/...` - rationale + interoperability check link
+
 ## Sign-off
 
 - [ ] Release owner approval

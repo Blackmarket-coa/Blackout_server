@@ -32,6 +32,8 @@ CI release gate enforces both file existence and required section headings.
 * `## Fork Policy Changes`
 * `## Runtime Defaults`
 * `## Security Backports`
+* `## Backport Tracking`
+* `### Upstream patched commit IDs`
 
 ## Required checklist sections
 
@@ -40,6 +42,7 @@ CI release gate enforces both file existence and required section headings.
 * `## Upstream Diff Review`
 * `## CVE Review`
 * `## Backport Plan`
+* `## Divergence Risk Markers` (required when risky paths changed)
 
 ## Minimal maintainer workflow commands
 
@@ -66,3 +69,5 @@ python -m pytest tests/rest/client/test_versions.py::VersionsServletTestCase::te
    * Gate fails with `release/train/checklist.md missing section heading: ## CVE Review`.
 3. Missing security-backport section in changelog:
    * Gate fails with `release/train/changelog.md missing section heading: ## Security Backports`.
+4. Missing upstream patched commit IDs:
+   * Gate fails with `release/train/changelog.md missing upstream patched commit IDs ...`.

@@ -16,3 +16,9 @@ Version: `X.Y.Z-blackout.N`
   - upstream reference:
   - risk:
   - validation notes:
+
+## Backport Tracking
+
+### Upstream patched commit IDs
+
+- `deadbeef` - short rationale / mapping to release patch.

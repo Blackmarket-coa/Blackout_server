@@ -30,7 +30,11 @@ class ReleaseTrainGateTestCase(TestCase):
         self._write(
             root,
             "release/train/changelog.md",
-            "# Changelog\n## Fork Policy Changes\n## Runtime Defaults\n## Security Backports\n",
+            (
+                "# Changelog\n## Fork Policy Changes\n## Runtime Defaults\n"
+                "## Security Backports\n## Backport Tracking\n"
+                "### Upstream patched commit IDs\n- `deadbeef`\n"
+            ),
         )
 
         self.assertEqual(validate_release_train_artifacts(root), [])
@@ -40,7 +44,11 @@ class ReleaseTrainGateTestCase(TestCase):
         self._write(
             root,
             "release/train/changelog.md",
-            "# Changelog\n## Fork Policy Changes\n## Runtime Defaults\n## Security Backports\n",
+            (
+                "# Changelog\n## Fork Policy Changes\n## Runtime Defaults\n"
+                "## Security Backports\n## Backport Tracking\n"
+                "### Upstream patched commit IDs\n- `deadbeef`\n"
+            ),
         )
 
         errors = validate_release_train_artifacts(root)
@@ -67,5 +75,29 @@ class ReleaseTrainGateTestCase(TestCase):
         )
         self.assertIn(
             "release/train/changelog.md missing section heading: ## Security Backports",
+            errors,
+        )
+
+    def test_gate_fails_when_upstream_commit_ids_are_missing(self) -> None:
+        root = Path(self.mktemp())
+        self._write(
+            root,
+            "release/train/checklist.md",
+            "# Checklist\n## Upstream Diff Review\n## CVE Review\n## Backport Plan\n",
+        )
+        self._write(
+            root,
+            "release/train/changelog.md",
+            (
+                "# Changelog\n## Fork Policy Changes\n## Runtime Defaults\n"
+                "## Security Backports\n## Backport Tracking\n"
+                "### Upstream patched commit IDs\n- none listed\n"
+            ),
+        )
+
+        errors = validate_release_train_artifacts(root)
+        self.assertIn(
+            "release/train/changelog.md missing upstream patched commit IDs "
+            "(expected at least one backticked git commit hash in Security Backports)",
             errors,
         )

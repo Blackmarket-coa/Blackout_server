@@ -61,6 +61,14 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
       exit 1
     fi
 
+    # Managed-hosting operator controls:
+    # - BLACKOUT_MANAGED_READINESS_CHECKS=true|false (default true)
+    # - BLACKOUT_BACKUP_VERIFY_HOOK / BLACKOUT_RESTORE_VERIFY_HOOK
+    # - BLACKOUT_BACKUP_HOOK_REQUIRED=true|false
+    # - BLACKOUT_RESTORE_HOOK_REQUIRED=true|false
+    python -m synapse.util.managed_hosting readiness
+    python -m synapse.util.managed_hosting run-hooks
+
     envsubst < "$TEMPLATE_PATH" > "$CONFIG_PATH"
   else
     echo "[entrypoint] generating ${SELECTED_PROFILE} sqlite config"

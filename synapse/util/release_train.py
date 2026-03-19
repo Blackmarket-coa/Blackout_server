@@ -6,6 +6,7 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 
+import re
 from pathlib import Path
 from typing import List
 
@@ -24,6 +25,8 @@ REQUIRED_CHANGELOG_SECTIONS = (
     "## Fork Policy Changes",
     "## Runtime Defaults",
     "## Security Backports",
+    "## Backport Tracking",
+    "### Upstream patched commit IDs",
 )
 
 
@@ -52,5 +55,12 @@ def validate_release_train_artifacts(repo_root: Path) -> List[str]:
                 errors.append(
                     f"release/train/changelog.md missing section heading: {heading}"
                 )
+
+        # Ensure release notes explicitly track upstream patched commit ids.
+        if not re.search(r"`[0-9a-f]{7,40}`", changelog_text):
+            errors.append(
+                "release/train/changelog.md missing upstream patched commit IDs "
+                "(expected at least one backticked git commit hash in Security Backports)"
+            )
 
     return errors

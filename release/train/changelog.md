@@ -13,3 +13,9 @@ Version: `0.0.0-blackout.0`
 ## Security Backports
 
 - Placeholder: replace with release-specific security backport notes.
+
+## Backport Tracking
+
+### Upstream patched commit IDs
+
+- `deadbeef` - placeholder upstream patched commit id; replace for real release.
