@@ -20,3 +20,5 @@ jobs:
         run: pip install .
       - name: Run release train gate
         run: python scripts-dev/check_release_train_gate.py
+      - name: Run divergence marker gate
+        run: python scripts-dev/check_divergence_markers.py

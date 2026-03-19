@@ -15,3 +15,8 @@ Owner: `TBD`
 ## Backport Plan
 
 - [ ] Populate from `docs/templates/release_train/release_checklist_template.md`.
+
+## Divergence Risk Markers
+
+- [ ] Add checked marker entries only when risky paths changed:
+  - [x] `synapse/federation/...` - placeholder example, replace/remove as needed.

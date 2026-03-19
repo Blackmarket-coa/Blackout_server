@@ -42,6 +42,7 @@ CI release gate enforces both file existence and required section headings.
 * `## Upstream Diff Review`
 * `## CVE Review`
 * `## Backport Plan`
+* `## Divergence Risk Markers` (required when risky paths changed)
 
 ## Minimal maintainer workflow commands
 
