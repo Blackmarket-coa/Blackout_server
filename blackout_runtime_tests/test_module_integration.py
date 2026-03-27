@@ -16,9 +16,14 @@ from blackout_runtime.server_semantics import (
     ANNOUNCEMENT_POLICY_EVENT,
     ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
+    BOOST_STATE_EVENT,
+    DELIBERATION_EXECUTION_EVENT,
+    DELIBERATION_PROPOSAL_EVENT,
+    DELIBERATION_VOTE_EVENT,
     DELEGATION_GRANT_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
+    TOWNHALL_SESSION_EVENT,
     STEGO_POLICY_EVENT,
 )
 from synapse.api.errors import Codes, SynapseError
@@ -535,6 +540,91 @@ def test_migration_blocks_legacy_payloads_with_forbidden_errcode_and_telemetry()
     anomalies = module.drain_anomaly_events()
     assert len(anomalies) == 2
     assert anomalies[0]["type"] == "migration_payload_blocked"
+
+
+def test_deliberation_vote_window_duplicate_and_execution_guards() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+    state = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})}
+    room_id = "!delib:test"
+
+    proposal = _DummyEvent(
+        DELIBERATION_PROPOSAL_EVENT,
+        {
+            "workflow_id": "w42",
+            "title": "Enable feature",
+            "options": ["yes", "no"],
+            "opens_at": 0,
+            "closes_at": 4_000_000_000,
+        },
+        room_id=room_id,
+        event_id="$delib-proposal",
+    )
+    asyncio.run(module.check_event_allowed(proposal, state))
+
+    vote = _DummyEvent(
+        DELIBERATION_VOTE_EVENT,
+        {"workflow_id": "w42", "vote": "yes"},
+        room_id=room_id,
+        event_id="$delib-v1",
+    )
+    asyncio.run(module.check_event_allowed(vote, state))
+
+    with pytest.raises(SynapseError, match="only one vote per user per workflow"):
+        asyncio.run(module.check_event_allowed(vote, state))
+
+    exec_event = _DummyEvent(
+        DELIBERATION_EXECUTION_EVENT,
+        {"workflow_id": "w42", "decision": "accepted", "executed_at": 100},
+        room_id=room_id,
+        event_id="$delib-exec",
+    )
+    asyncio.run(module.check_event_allowed(exec_event, state))
+
+    bad_exec = _DummyEvent(
+        DELIBERATION_EXECUTION_EVENT,
+        {"workflow_id": "missing", "decision": "accepted", "executed_at": 100},
+        room_id=room_id,
+        event_id="$delib-exec-missing",
+    )
+    with pytest.raises(SynapseError, match="unknown workflow_id"):
+        asyncio.run(module.check_event_allowed(bad_exec, state))
+
+
+def test_boost_rate_limit_and_townhall_metrics() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api, boost_update_limit_per_minute=1)
+    state = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})}
+
+    first = _DummyEvent(
+        BOOST_STATE_EVENT,
+        {"boost_id": "b1", "boost_tier": 1, "boost_expiry_ts": 1_900_000_000},
+        event_id="$boost1",
+    )
+    asyncio.run(module.check_event_allowed(first, state))
+
+    second = _DummyEvent(
+        BOOST_STATE_EVENT,
+        {"boost_id": "b2", "boost_tier": 2, "boost_expiry_ts": 1_900_000_001},
+        event_id="$boost2",
+    )
+    with pytest.raises(SynapseError, match="Boost update rate limit exceeded"):
+        asyncio.run(module.check_event_allowed(second, state))
+
+    townhall = _DummyEvent(
+        TOWNHALL_SESSION_EVENT,
+        {
+            "session_id": "s1",
+            "title": "Townhall",
+            "starts_at": 10,
+            "ends_at": 20,
+            "state": "scheduled",
+        },
+        event_id="$townhall1",
+    )
+    asyncio.run(module.check_event_allowed(townhall, state))
+    metrics = module.snapshot_signal_metrics()
+    assert metrics[f"townhall.{TOWNHALL_SESSION_EVENT}.accepted"] >= 1
 
 
 def test_governance_vote_requires_known_open_proposal_window() -> None:

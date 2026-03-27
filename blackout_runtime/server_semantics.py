@@ -8,6 +8,14 @@ GOVERNANCE_PROPOSAL_EVENT = "m.blackout.governance.proposal"
 GOVERNANCE_VOTE_EVENT = "m.blackout.governance.vote"
 GOVERNANCE_ATTESTATION_EVENT = "m.blackout.governance.attestation"
 REPUTATION_UPDATE_EVENT = "m.blackout.reputation.update"
+PAID_ROOM_STATE_EVENT = "m.blackout.paid_room"
+BOOST_STATE_EVENT = "m.blackout.boost.state"
+DELIBERATION_PROPOSAL_EVENT = "m.blackout.deliberation.proposal"
+DELIBERATION_VOTE_EVENT = "m.blackout.deliberation.vote"
+DELIBERATION_EXECUTION_EVENT = "m.blackout.deliberation.execution"
+TOWNHALL_SESSION_EVENT = "m.blackout.townhall.session"
+TOWNHALL_AGENDA_EVENT = "m.blackout.townhall.agenda"
+TOWNHALL_SUMMARY_EVENT = "m.blackout.townhall.summary"
 ANNOUNCEMENT_POLICY_EVENT = "m.blackout.announcement.policy"
 STEGO_POLICY_EVENT = "m.blackout.stego.policy"
 STEGO_ENTITLEMENTS_EVENT = "m.blackout.entitlements"
@@ -74,6 +82,14 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
             GOVERNANCE_PROPOSAL_EVENT,
             GOVERNANCE_VOTE_EVENT,
             GOVERNANCE_ATTESTATION_EVENT,
+            DELIBERATION_PROPOSAL_EVENT,
+            DELIBERATION_VOTE_EVENT,
+            DELIBERATION_EXECUTION_EVENT,
+            PAID_ROOM_STATE_EVENT,
+            BOOST_STATE_EVENT,
+            TOWNHALL_SESSION_EVENT,
+            TOWNHALL_AGENDA_EVENT,
+            TOWNHALL_SUMMARY_EVENT,
             DELEGATION_GRANT_EVENT,
             ATTESTATION_EVENT,
             REPUTATION_UPDATE_EVENT,
@@ -91,6 +107,14 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
             GOVERNANCE_PROPOSAL_EVENT,
             GOVERNANCE_VOTE_EVENT,
             GOVERNANCE_ATTESTATION_EVENT,
+            DELIBERATION_PROPOSAL_EVENT,
+            DELIBERATION_VOTE_EVENT,
+            DELIBERATION_EXECUTION_EVENT,
+            PAID_ROOM_STATE_EVENT,
+            BOOST_STATE_EVENT,
+            TOWNHALL_SESSION_EVENT,
+            TOWNHALL_AGENDA_EVENT,
+            TOWNHALL_SUMMARY_EVENT,
             BLACKOUT_CHANNEL_TYPE_EVENT,
         ),
     ),
@@ -269,6 +293,38 @@ class BlackoutServerSemantics:
             self._validate_reputation_update(content)
             return True
 
+        if event_type == PAID_ROOM_STATE_EVENT:
+            self._validate_paid_room_state(content)
+            return True
+
+        if event_type == BOOST_STATE_EVENT:
+            self._validate_boost_state(content)
+            return True
+
+        if event_type == DELIBERATION_PROPOSAL_EVENT:
+            self._validate_deliberation_proposal(content)
+            return True
+
+        if event_type == DELIBERATION_VOTE_EVENT:
+            self._validate_deliberation_vote(content)
+            return True
+
+        if event_type == DELIBERATION_EXECUTION_EVENT:
+            self._validate_deliberation_execution(content)
+            return True
+
+        if event_type == TOWNHALL_SESSION_EVENT:
+            self._validate_townhall_session(content)
+            return True
+
+        if event_type == TOWNHALL_AGENDA_EVENT:
+            self._validate_townhall_agenda(content)
+            return True
+
+        if event_type == TOWNHALL_SUMMARY_EVENT:
+            self._validate_townhall_summary(content)
+            return True
+
         if event_type == ANNOUNCEMENT_POLICY_EVENT:
             self._validate_announcement_policy(content)
             return True
@@ -379,6 +435,91 @@ class BlackoutServerSemantics:
 
         if not isinstance(content["delta"], (int, float)):
             raise ValueError("reputation update delta must be numeric")
+
+    @staticmethod
+    def _validate_paid_room_state(content: Mapping[str, object]) -> None:
+        if not isinstance(content.get("paid_room"), bool):
+            raise ValueError("paid room state requires boolean paid_room")
+        plan_tier = content.get("plan_tier")
+        if plan_tier is not None and (
+            not isinstance(plan_tier, str) or not plan_tier.strip()
+        ):
+            raise ValueError("paid room state plan_tier must be non-empty string")
+
+    @staticmethod
+    def _validate_boost_state(content: Mapping[str, object]) -> None:
+        tier = content.get("boost_tier")
+        if not isinstance(tier, int) or tier < 0 or tier > 10:
+            raise ValueError("boost state boost_tier must be integer 0..10")
+        expiry = content.get("boost_expiry_ts")
+        if not isinstance(expiry, int) or expiry <= 0:
+            raise ValueError("boost state boost_expiry_ts must be positive integer")
+        if not isinstance(content.get("boost_id"), str) or not content["boost_id"]:
+            raise ValueError("boost state requires non-empty boost_id")
+
+    @staticmethod
+    def _validate_deliberation_proposal(content: Mapping[str, object]) -> None:
+        required = ("workflow_id", "title", "options", "opens_at", "closes_at")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"deliberation proposal missing required fields: {missing}")
+        options = content["options"]
+        if not isinstance(options, Sequence) or isinstance(options, (str, bytes)):
+            raise ValueError("deliberation proposal options must be a list")
+        if len(options) < 2 or not all(
+            isinstance(option, str) and option for option in options
+        ):
+            raise ValueError(
+                "deliberation proposal options must contain at least two non-empty strings"
+            )
+
+    @staticmethod
+    def _validate_deliberation_vote(content: Mapping[str, object]) -> None:
+        if not isinstance(content.get("workflow_id"), str) or not content["workflow_id"]:
+            raise ValueError("deliberation vote requires non-empty workflow_id")
+        if not isinstance(content.get("vote"), str) or not content["vote"]:
+            raise ValueError("deliberation vote requires non-empty vote")
+
+    @staticmethod
+    def _validate_deliberation_execution(content: Mapping[str, object]) -> None:
+        required = ("workflow_id", "decision", "executed_at")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"deliberation execution missing required fields: {missing}")
+        if not isinstance(content["decision"], str) or not content["decision"]:
+            raise ValueError("deliberation execution requires non-empty decision")
+        if not isinstance(content["executed_at"], int) or content["executed_at"] <= 0:
+            raise ValueError("deliberation execution requires positive executed_at")
+
+    @staticmethod
+    def _validate_townhall_session(content: Mapping[str, object]) -> None:
+        required = ("session_id", "title", "starts_at", "ends_at", "state")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"townhall session missing required fields: {missing}")
+        if content.get("state") not in {"scheduled", "live", "closed"}:
+            raise ValueError("townhall session state must be scheduled|live|closed")
+
+    @staticmethod
+    def _validate_townhall_agenda(content: Mapping[str, object]) -> None:
+        required = ("session_id", "item_id", "topic", "order")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"townhall agenda missing required fields: {missing}")
+        if not isinstance(content["order"], int) or content["order"] < 0:
+            raise ValueError("townhall agenda order must be non-negative integer")
+
+    @staticmethod
+    def _validate_townhall_summary(content: Mapping[str, object]) -> None:
+        required = ("session_id", "summary_id", "highlights", "published_at")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"townhall summary missing required fields: {missing}")
+        highlights = content["highlights"]
+        if not isinstance(highlights, Sequence) or isinstance(highlights, (str, bytes)):
+            raise ValueError("townhall summary highlights must be a list")
+        if not all(isinstance(item, str) and item for item in highlights):
+            raise ValueError("townhall summary highlights must be non-empty strings")
 
     @staticmethod
     def _validate_announcement_policy(content: Mapping[str, object]) -> None:

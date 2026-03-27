@@ -33,11 +33,19 @@ from .server_semantics import (
     ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
     DELEGATION_GRANT_EVENT,
+    DELIBERATION_EXECUTION_EVENT,
+    DELIBERATION_PROPOSAL_EVENT,
+    DELIBERATION_VOTE_EVENT,
     GOVERNANCE_ATTESTATION_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
+    BOOST_STATE_EVENT,
+    PAID_ROOM_STATE_EVENT,
     REPUTATION_UPDATE_EVENT,
     STEGO_POLICY_EVENT,
+    TOWNHALL_AGENDA_EVENT,
+    TOWNHALL_SESSION_EVENT,
+    TOWNHALL_SUMMARY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
     MIGRATION_BLOCKED_EVENT_TYPES,
@@ -546,6 +554,12 @@ class BlackoutRuntimeModule:
         self._proposal_times: Dict[str, Deque[int]] = defaultdict(deque)
         self._attestation_times: Dict[Tuple[str, str], int] = {}
         self._relay_fallback_times: Dict[str, Deque[int]] = defaultdict(deque)
+        self._boost_update_times: Dict[str, Deque[int]] = defaultdict(deque)
+        self._boost_update_limit_per_minute = int(
+            config.get("boost_update_limit_per_minute", 20)
+        )
+        self._deliberation_windows: Dict[Tuple[str, str], Tuple[int, int]] = {}
+        self._deliberation_voters: Set[Tuple[str, str, str]] = set()
         self._backfilled_rooms: Set[str] = set()
         self._backfilled_nodes: Set[str] = set()
         self._dead_drop_ttl_hours = int(config.get("dead_drop_ttl_hours", 24))
@@ -744,6 +758,80 @@ class BlackoutRuntimeModule:
                     raise SynapseError(
                         403, "Governance attestation rejected: unknown proposal_id"
                     )
+
+        if event.type == DELIBERATION_PROPOSAL_EVENT and isinstance(event.content, Mapping):
+            workflow_id = event.content.get("workflow_id")
+            opens_at = event.content.get("opens_at")
+            closes_at = event.content.get("closes_at")
+            if (
+                isinstance(workflow_id, str)
+                and isinstance(room_id, str)
+                and isinstance(opens_at, int)
+                and isinstance(closes_at, int)
+            ):
+                self._deliberation_windows[(room_id, workflow_id)] = (opens_at, closes_at)
+
+        if event.type == DELIBERATION_VOTE_EVENT and isinstance(event.content, Mapping):
+            workflow_id = event.content.get("workflow_id")
+            if (
+                isinstance(workflow_id, str)
+                and isinstance(sender, str)
+                and isinstance(room_id, str)
+            ):
+                window = self._deliberation_windows.get((room_id, workflow_id))
+                if window is None:
+                    raise SynapseError(
+                        403, "Deliberation vote rejected: unknown workflow_id"
+                    )
+                opens_at, closes_at = window
+                if now < opens_at or now > closes_at:
+                    raise SynapseError(
+                        403, "Deliberation vote rejected: workflow is outside voting window"
+                    )
+                voter_key = (room_id, workflow_id, sender)
+                if voter_key in self._deliberation_voters:
+                    raise SynapseError(
+                        403,
+                        "Deliberation vote rejected: only one vote per user per workflow",
+                    )
+                self._deliberation_voters.add(voter_key)
+
+        if event.type == DELIBERATION_EXECUTION_EVENT and isinstance(
+            event.content, Mapping
+        ):
+            workflow_id = event.content.get("workflow_id")
+            if isinstance(workflow_id, str) and isinstance(room_id, str):
+                if (room_id, workflow_id) not in self._deliberation_windows:
+                    raise SynapseError(
+                        403, "Deliberation execution rejected: unknown workflow_id"
+                    )
+
+        if event.type == BOOST_STATE_EVENT and isinstance(sender, str):
+            q = self._boost_update_times[sender]
+            while q and q[0] <= now - 60:
+                q.popleft()
+            if len(q) >= self._boost_update_limit_per_minute:
+                self._anomaly_events.append(
+                    {
+                        "ts": now,
+                        "type": "boost_update_rate_exceeded",
+                        "sender": sender,
+                        "limit": self._boost_update_limit_per_minute,
+                    }
+                )
+                raise SynapseError(429, "Boost update rate limit exceeded")
+            q.append(now)
+
+        if event.type == PAID_ROOM_STATE_EVENT and isinstance(event.content, Mapping):
+            if not isinstance(event.content.get("paid_room"), bool):
+                raise SynapseError(403, "paid_room must be boolean")
+
+        if event.type in {
+            TOWNHALL_SESSION_EVENT,
+            TOWNHALL_AGENDA_EVENT,
+            TOWNHALL_SUMMARY_EVENT,
+        } and isinstance(sender, str):
+            self._signal_metrics[f"townhall.{event.type}.accepted"] += 1
 
         if event.type == REPUTATION_UPDATE_EVENT and isinstance(event.content, Mapping):
             node_id = event.content.get("node_id")

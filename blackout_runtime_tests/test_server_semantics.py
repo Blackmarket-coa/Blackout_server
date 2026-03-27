@@ -5,13 +5,21 @@ from blackout_runtime.server_semantics import (
     ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
     BLACKOUT_PRESENCE_ROUTE,
+    BOOST_STATE_EVENT,
+    DELIBERATION_EXECUTION_EVENT,
+    DELIBERATION_PROPOSAL_EVENT,
+    DELIBERATION_VOTE_EVENT,
     DELEGATION_GRANT_EVENT,
     GOVERNANCE_ATTESTATION_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
+    PAID_ROOM_STATE_EVENT,
     REPUTATION_UPDATE_EVENT,
     STEGO_ENTITLEMENTS_EVENT,
     STEGO_POLICY_EVENT,
+    TOWNHALL_AGENDA_EVENT,
+    TOWNHALL_SESSION_EVENT,
+    TOWNHALL_SUMMARY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
 )
@@ -81,6 +89,55 @@ def test_validate_custom_event_schemas_accepts_valid_payloads() -> None:
         {"node_id": "node-7", "delta": 2, "reason": "delivery_success"},
     )
     assert semantics.check_event_allowed(
+        PAID_ROOM_STATE_EVENT,
+        {"paid_room": True, "plan_tier": "gold"},
+    )
+    assert semantics.check_event_allowed(
+        BOOST_STATE_EVENT,
+        {"boost_id": "b1", "boost_tier": 2, "boost_expiry_ts": 1_900_000_000},
+    )
+    assert semantics.check_event_allowed(
+        DELIBERATION_PROPOSAL_EVENT,
+        {
+            "workflow_id": "w1",
+            "title": "Select rollout",
+            "options": ["ship", "hold"],
+            "opens_at": 1,
+            "closes_at": 2,
+        },
+    )
+    assert semantics.check_event_allowed(
+        DELIBERATION_VOTE_EVENT,
+        {"workflow_id": "w1", "vote": "ship"},
+    )
+    assert semantics.check_event_allowed(
+        DELIBERATION_EXECUTION_EVENT,
+        {"workflow_id": "w1", "decision": "ship", "executed_at": 3},
+    )
+    assert semantics.check_event_allowed(
+        TOWNHALL_SESSION_EVENT,
+        {
+            "session_id": "s1",
+            "title": "Sprint townhall",
+            "starts_at": 10,
+            "ends_at": 20,
+            "state": "scheduled",
+        },
+    )
+    assert semantics.check_event_allowed(
+        TOWNHALL_AGENDA_EVENT,
+        {"session_id": "s1", "item_id": "a1", "topic": "Roadmap", "order": 1},
+    )
+    assert semantics.check_event_allowed(
+        TOWNHALL_SUMMARY_EVENT,
+        {
+            "session_id": "s1",
+            "summary_id": "sum1",
+            "highlights": ["Decision recorded"],
+            "published_at": 30,
+        },
+    )
+    assert semantics.check_event_allowed(
         STEGO_POLICY_EVENT, {"allow_stego": True, "max_ttl_hours": 48}
     )
     assert semantics.check_event_allowed(
@@ -121,6 +178,31 @@ def test_validate_custom_event_schemas_accepts_valid_payloads() -> None:
             REPUTATION_UPDATE_EVENT,
             {"node_id": "n1", "delta": "x", "reason": "bad"},
             "delta must be numeric",
+        ),
+        (
+            PAID_ROOM_STATE_EVENT,
+            {"paid_room": "yes"},
+            "boolean paid_room",
+        ),
+        (
+            BOOST_STATE_EVENT,
+            {"boost_id": "b", "boost_tier": 40, "boost_expiry_ts": 1},
+            "boost_tier must be integer 0..10",
+        ),
+        (
+            DELIBERATION_PROPOSAL_EVENT,
+            {"workflow_id": "w", "title": "t", "options": ["only"], "opens_at": 1, "closes_at": 2},
+            "at least two non-empty strings",
+        ),
+        (
+            DELIBERATION_EXECUTION_EVENT,
+            {"workflow_id": "w", "decision": "", "executed_at": 0},
+            "non-empty decision",
+        ),
+        (
+            TOWNHALL_SESSION_EVENT,
+            {"session_id": "s", "title": "t", "starts_at": 1, "ends_at": 2, "state": "unknown"},
+            "state must be scheduled|live|closed",
         ),
         (
             BLACKOUT_CHANNEL_TYPE_EVENT,
