@@ -2,6 +2,8 @@
 
 _Date: 2026-03-27_
 
+Status: **completed** (Wave 2 scope U3/U7/U9).
+
 This document operationalizes Wave 2 implementation kickoff for:
 
 - U3 — Paid rooms / boosts integration
@@ -12,6 +14,13 @@ It complements:
 
 - `docs/upstream_blackout_feature_build_plan.md` (wave sequencing)
 - `docs/development/blackout_upstream_feature_matrix.md` (support-status source of truth)
+
+Implemented evidence:
+
+- `blackout_runtime/server_semantics.py`
+- `blackout_runtime/module.py`
+- `blackout_runtime_tests/test_server_semantics.py`
+- `blackout_runtime_tests/test_module_integration.py`
 
 ## U3 — Paid rooms / boosts integration
 

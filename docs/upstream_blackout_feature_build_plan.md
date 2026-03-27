@@ -16,13 +16,13 @@ Feature families were normalized from upstream docs/source folders (for example 
 |---|---|---|---|---|---|
 | U1 | Steganography core pipeline | `src/steganography/*` | Add server-side validation/storage policy hooks for hidden payload metadata and policy enforcement. | required-now | complete (Wave 1) |
 | U2 | Stego entitlements | `src/steganography/entitlements/*` | Add capability/entitlement checks for stego-enabled event flows. | required-now | complete (Wave 1) |
-| U3 | Paid rooms / boosts integration | `src/steganography/paidrooms/*`, `src/steganography/boosts/*` | Add server APIs/state for paid-room flags and boost-related governance signals. | required-later | open |
+| U3 | Paid rooms / boosts integration | `src/steganography/paidrooms/*`, `src/steganography/boosts/*` | Add server APIs/state for paid-room flags and boost-related governance signals. | required-later | complete (Wave 2) |
 | U4 | Ephemeral stego policies | `src/steganography/ephemeral/*` | Align retention/expiry behavior with stego payload lifecycle controls. | required-now | complete (Wave 1) |
 | U5 | Stego plugin surface | `src/steganography/plugins/*` | Define allowlisted plugin metadata schema + signing/verification policy for interoperability. | required-later | open |
 | U6 | Governance services | `src/services/governance/*`, `src/modules/governance/*` | Add governance event schemas, moderation/voting state, and audit trails in server domain. | required-now | complete (Wave 1) |
-| U7 | Deliberation + task workflows | `src/services/deliberation/*`, `src/modules/education/*` | Add deliberation/task event types and state transitions (proposal -> vote -> execution). | required-later | open |
+| U7 | Deliberation + task workflows | `src/services/deliberation/*`, `src/modules/education/*` | Add deliberation/task event types and state transitions (proposal -> vote -> execution). | required-later | complete (Wave 2) |
 | U8 | Delegation + attestations | `src/services/delegation/*`, `src/services/attestations/*` | Add server attestation verification and delegation authorization paths. | required-now | complete (Wave 1) |
-| U9 | Townhall/community modules | `src/services/townhall/*`, `src/modules/townhall/*` | Add server primitives for townhall sessions, agendas, and summary artifacts. | required-later | open |
+| U9 | Townhall/community modules | `src/services/townhall/*`, `src/modules/townhall/*` | Add server primitives for townhall sessions, agendas, and summary artifacts. | required-later | complete (Wave 2) |
 | U10 | P2P/self-healing transport hooks | `src/p2p/*`, `docs/distributed_self_healing_blueprint.md` | Add compatibility layer for peer-sync metadata and bootstrap/recovery envelopes. | required-now | complete (Wave 1) |
 | U11 | Ops evidence + SLO artifacts | `docs/operations/*`, `scripts/operations/validate_tracker_evidence.sh` | Mirror upstream evidence requirements in this repo’s runbooks, drill artifacts, and CI checks. | required-now | complete (Wave 1) |
 | U12 | Module/runtime extensibility | `module_system/*`, `src/modules/*` | Define server extension contract and capability negotiation for upstream modules. | required-later | open |
@@ -45,7 +45,7 @@ Exit criteria:
 
 Targets: U3, U7, U9.
 
-Kickoff update (2026-03-27): **in progress (planning active)**.
+Status update (2026-03-27): **completed**.
 
 #### Wave 2 kickoff backlog (implementation-ready)
 
