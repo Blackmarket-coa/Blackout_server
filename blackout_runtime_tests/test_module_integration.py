@@ -21,7 +21,7 @@ from blackout_runtime.server_semantics import (
     GOVERNANCE_VOTE_EVENT,
     STEGO_POLICY_EVENT,
 )
-from synapse.api.errors import SynapseError
+from synapse.api.errors import Codes, SynapseError
 
 
 class _DummyUser:
@@ -502,6 +502,39 @@ def test_webrtc_relay_abuse_controls_and_metrics() -> None:
     metrics = module.snapshot_signal_metrics()
     assert metrics["content_class.webrtc-session.accepted"] >= 1
     assert metrics["relay_fallback_total"] >= 1
+
+
+def test_migration_blocks_legacy_payloads_with_forbidden_errcode_and_telemetry() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+    }
+
+    blocked = _DummyEvent(
+        "m.room.message",
+        {"body": "legacy message"},
+        event_id="$legacy-msg",
+    )
+    with pytest.raises(SynapseError, match="use m.blackout.signal") as exc:
+        asyncio.run(module.check_event_allowed(blocked, state_events))
+    assert exc.value.errcode == Codes.FORBIDDEN
+
+    blocked_encrypted = _DummyEvent(
+        "m.room.encrypted",
+        {"ciphertext": "legacy encrypted"},
+        event_id="$legacy-enc",
+    )
+    with pytest.raises(SynapseError, match="use m.blackout.signal"):
+        asyncio.run(module.check_event_allowed(blocked_encrypted, state_events))
+
+    metrics = module.snapshot_signal_metrics()
+    assert metrics["migration_blocked.m.room.message"] == 1
+    assert metrics["migration_blocked.m.room.encrypted"] == 1
+
+    anomalies = module.drain_anomaly_events()
+    assert len(anomalies) == 2
+    assert anomalies[0]["type"] == "migration_payload_blocked"
 
 
 def test_governance_vote_requires_known_open_proposal_window() -> None:

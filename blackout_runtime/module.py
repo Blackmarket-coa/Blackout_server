@@ -23,7 +23,7 @@ from typing import (
 
 from twisted.web.resource import Resource
 
-from synapse.api.errors import SynapseError
+from synapse.api.errors import Codes, SynapseError
 from synapse.http.server import DirectServeJsonResource
 from synapse.http.site import SynapseRequest
 from synapse.types import JsonDict, StateMap
@@ -40,6 +40,7 @@ from .server_semantics import (
     STEGO_POLICY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
+    MIGRATION_BLOCKED_EVENT_TYPES,
 )
 
 BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE = "m.blackout.presence"
@@ -680,7 +681,21 @@ class BlackoutRuntimeModule:
                 event.type, event.content, channel_type=channel_type
             )
         except ValueError as exc:
-            raise SynapseError(403, str(exc))
+            if (
+                isinstance(event.type, str)
+                and event.type in MIGRATION_BLOCKED_EVENT_TYPES
+                and isinstance(channel_type, str)
+            ):
+                self._signal_metrics[f"migration_blocked.{event.type}"] += 1
+                self._anomaly_events.append(
+                    {
+                        "ts": int(time.time()),
+                        "type": "migration_payload_blocked",
+                        "event_type": event.type,
+                        "channel_type": channel_type,
+                    }
+                )
+            raise SynapseError(403, str(exc), errcode=Codes.FORBIDDEN)
 
         now = int(time.time())
         sender = getattr(event, "sender", "")

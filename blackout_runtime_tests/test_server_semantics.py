@@ -218,6 +218,27 @@ def test_dead_drop_template_blocks_unapproved_event_types() -> None:
         )
 
 
+@pytest.mark.parametrize("blocked_type", ["m.room.message", "m.room.encrypted"])
+def test_governance_and_dispute_migration_block_legacy_message_payloads(
+    blocked_type: str,
+) -> None:
+    semantics = BlackoutServerSemantics()
+
+    with pytest.raises(ValueError, match="during migration; use m.blackout.signal"):
+        semantics.check_event_allowed(
+            blocked_type,
+            {"body": "legacy"},
+            channel_type="governance",
+        )
+
+    with pytest.raises(ValueError, match="during migration; use m.blackout.signal"):
+        semantics.check_event_allowed(
+            blocked_type,
+            {"body": "legacy"},
+            channel_type="dispute",
+        )
+
+
 def test_announcement_preset_history_visibility_and_event_allowlist() -> None:
     semantics = BlackoutServerSemantics()
     config = {"preset": "blackout_announcement_room"}

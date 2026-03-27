@@ -15,6 +15,8 @@ DELEGATION_GRANT_EVENT = "m.blackout.delegation.grant"
 ATTESTATION_EVENT = "m.blackout.attestation"
 
 BLACKOUT_PRESENCE_ROUTE = "/_synapse/client/blackout/presence"
+MIGRATION_BLOCKED_EVENT_TYPES = {"m.room.message", "m.room.encrypted"}
+SIGNAL_MIGRATION_CHANNEL_TYPES = {"governance", "dispute"}
 
 _ALLOWED_PRESENCE = {
     "delivering",
@@ -239,6 +241,14 @@ class BlackoutServerSemantics:
         *,
         channel_type: str | None = None,
     ) -> bool:
+        if (
+            channel_type in SIGNAL_MIGRATION_CHANNEL_TYPES
+            and event_type in MIGRATION_BLOCKED_EVENT_TYPES
+        ):
+            raise ValueError(
+                f"Event type {event_type} is blocked in {channel_type} rooms during migration; use m.blackout.signal"
+            )
+
         if event_type == BLACKOUT_CHANNEL_TYPE_EVENT:
             self._validate_channel_type(content)
             return True
