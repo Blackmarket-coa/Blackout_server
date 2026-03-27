@@ -10,6 +10,7 @@ from blackout_runtime.server_semantics import (
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
     REPUTATION_UPDATE_EVENT,
+    STEGO_ENTITLEMENTS_EVENT,
     STEGO_POLICY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
@@ -83,6 +84,9 @@ def test_validate_custom_event_schemas_accepts_valid_payloads() -> None:
         STEGO_POLICY_EVENT, {"allow_stego": True, "max_ttl_hours": 48}
     )
     assert semantics.check_event_allowed(
+        STEGO_ENTITLEMENTS_EVENT, {"@alice:test": ["stego:send"]}
+    )
+    assert semantics.check_event_allowed(
         DELEGATION_GRANT_EVENT,
         {
             "delegate": "@node:test",
@@ -127,6 +131,11 @@ def test_validate_custom_event_schemas_accepts_valid_payloads() -> None:
             STEGO_POLICY_EVENT,
             {"allow_stego": "yes"},
             "boolean allow_stego",
+        ),
+        (
+            STEGO_ENTITLEMENTS_EVENT,
+            {"@alice:test": "stego:send"},
+            "scope lists",
         ),
         (
             DELEGATION_GRANT_EVENT,

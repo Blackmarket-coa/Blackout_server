@@ -15,6 +15,7 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Sequence,
     Set,
     Tuple,
     cast,
@@ -1021,7 +1022,11 @@ class BlackoutRuntimeModule:
         if not isinstance(entitlements_content, Mapping):
             raise SynapseError(403, "Stego entitlement required for sender")
         sender_entitlements = entitlements_content.get(sender)
-        if not isinstance(sender_entitlements, list) or "stego:send" not in sender_entitlements:
+        if (
+            not isinstance(sender_entitlements, Sequence)
+            or isinstance(sender_entitlements, (str, bytes))
+            or "stego:send" not in sender_entitlements
+        ):
             raise SynapseError(403, "Stego entitlement required for sender")
 
     def _validate_attestation_proof(self, content: Mapping[str, object]) -> None:
@@ -1047,7 +1052,11 @@ class BlackoutRuntimeModule:
         if not isinstance(delegation_content, Mapping):
             raise SynapseError(403, "Delegation scope required for attestation writes")
         scopes = delegation_content.get("scopes")
-        if not isinstance(scopes, list) or "attestation:write" not in scopes:
+        if (
+            not isinstance(scopes, Sequence)
+            or isinstance(scopes, (str, bytes))
+            or "attestation:write" not in scopes
+        ):
             raise SynapseError(403, "Attestation write scope not delegated")
 
     @staticmethod

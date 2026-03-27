@@ -33,7 +33,7 @@ Feature families were normalized from upstream docs/source folders (for example 
 
 Targets: U1, U2, U4, U6, U8, U10, U11.
 
-Status update (2026-03-27): **completed**. Runtime schema/validation hooks, parity tests, and evidence validation command/CI wiring landed for all Wave 1 targets.
+Status update (2026-03-27): **completed**. Wave 1 now includes schema docs under `docs/policy_schemas/`, API/validation test coverage in `blackout_runtime_tests/`, and evidence validation command + CI wiring for U11.
 
 Exit criteria:
 

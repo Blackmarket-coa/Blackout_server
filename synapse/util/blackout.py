@@ -2,7 +2,7 @@ import base64
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Mapping, Tuple
 
 import jsonschema
 
@@ -101,6 +101,17 @@ _BLACKOUT_SIGNAL_CONTENT_SCHEMA = {
             },
             "additionalProperties": False,
         },
+        "blackout_stego": {
+            "type": "object",
+            "required": ["carrier", "payload_hash", "policy_id"],
+            "properties": {
+                "carrier": {"enum": ["image", "audio", "video"]},
+                "payload_hash": {"type": "string", "minLength": 16},
+                "policy_id": {"type": "string", "minLength": 1},
+                "ttl_hours": {"type": "integer", "minimum": 1, "maximum": 72},
+            },
+            "additionalProperties": False,
+        },
         "self_destruct_after": {"type": "integer"},
         "org.matrix.self_destruct_after": {"type": "integer"},
     },
@@ -129,6 +140,14 @@ def _is_fixed_length_hash(value: Any) -> bool:
         return False
 
     return len(decoded) == 32
+
+
+def _to_plain_json(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(k): _to_plain_json(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_to_plain_json(v) for v in value]
+    return value
 
 
 def _validate_message_metadata(metadata: Any) -> Dict[str, Any]:
@@ -211,8 +230,11 @@ def _validate_chunk_announcements(
 
 
 def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationResult:
+    plain_content = _to_plain_json(content)
     payload_bytes = len(
-        json.dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        json.dumps(plain_content, ensure_ascii=False, separators=(",", ":")).encode(
+            "utf-8"
+        )
     )
     if payload_bytes > BLACKOUT_SIGNAL_MAX_PAYLOAD_BYTES:
         raise ValueError(
@@ -221,17 +243,20 @@ def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationRe
         )
 
     try:
-        jsonschema.validate(content, _BLACKOUT_SIGNAL_CONTENT_SCHEMA)
+        jsonschema.validate(plain_content, _BLACKOUT_SIGNAL_CONTENT_SCHEMA)
     except jsonschema.ValidationError as e:
         raise ValueError(f"invalid m.blackout.signal content: {e.message}")
 
-    _validate_message_metadata(content.get("message_metadata"))
-    if content.get("sdp_offer") is not None and content.get("sdp_answer") is not None:
+    _validate_message_metadata(plain_content.get("message_metadata"))
+    if (
+        plain_content.get("sdp_offer") is not None
+        and plain_content.get("sdp_answer") is not None
+    ):
         raise ValueError(
             "invalid m.blackout.signal content: only one of sdp_offer or sdp_answer is allowed"
         )
 
-    ice_candidates = content.get("ice_candidates")
+    ice_candidates = plain_content.get("ice_candidates")
     if isinstance(ice_candidates, list):
         for idx, candidate in enumerate(ice_candidates):
             sdp_mid = candidate.get("sdpMid")
@@ -243,7 +268,7 @@ def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationRe
                     % (idx,)
                 )
 
-    return _validate_chunk_announcements(content.get("chunk_announcements"))
+    return _validate_chunk_announcements(plain_content.get("chunk_announcements"))
 
 
 def strip_inline_payload_from_signal_content(content: Any) -> bool:

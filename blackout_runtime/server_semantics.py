@@ -10,6 +10,7 @@ GOVERNANCE_ATTESTATION_EVENT = "m.blackout.governance.attestation"
 REPUTATION_UPDATE_EVENT = "m.blackout.reputation.update"
 ANNOUNCEMENT_POLICY_EVENT = "m.blackout.announcement.policy"
 STEGO_POLICY_EVENT = "m.blackout.stego.policy"
+STEGO_ENTITLEMENTS_EVENT = "m.blackout.entitlements"
 DELEGATION_GRANT_EVENT = "m.blackout.delegation.grant"
 ATTESTATION_EVENT = "m.blackout.attestation"
 
@@ -76,6 +77,7 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
             REPUTATION_UPDATE_EVENT,
             BLACKOUT_CHANNEL_TYPE_EVENT,
             STEGO_POLICY_EVENT,
+            STEGO_ENTITLEMENTS_EVENT,
         ),
     ),
     "dispute": RoomTemplate(
@@ -265,6 +267,10 @@ class BlackoutServerSemantics:
             self._validate_stego_policy(content)
             return True
 
+        if event_type == STEGO_ENTITLEMENTS_EVENT:
+            self._validate_stego_entitlements(content)
+            return True
+
         if event_type == DELEGATION_GRANT_EVENT:
             self._validate_delegation_grant(content)
             return True
@@ -320,7 +326,11 @@ class BlackoutServerSemantics:
             raise ValueError(f"governance proposal missing required fields: {missing}")
 
         options = content["options"]
-        if not isinstance(options, list) or len(options) < 2:
+        if not isinstance(options, Sequence) or isinstance(options, (str, bytes)):
+            raise ValueError(
+                "governance proposal options must contain at least two entries"
+            )
+        if len(options) < 2:
             raise ValueError(
                 "governance proposal options must contain at least two entries"
             )
@@ -406,6 +416,16 @@ class BlackoutServerSemantics:
                 raise ValueError("stego policy max_ttl_hours must be 1..72")
 
     @staticmethod
+    def _validate_stego_entitlements(content: Mapping[str, object]) -> None:
+        for user_id, scopes in content.items():
+            if not isinstance(user_id, str) or not user_id:
+                raise ValueError("stego entitlements requires string user keys")
+            if not isinstance(scopes, Sequence) or isinstance(scopes, (str, bytes)):
+                raise ValueError("stego entitlements values must be scope lists")
+            if not all(isinstance(scope, str) and scope for scope in scopes):
+                raise ValueError("stego entitlement scopes must be non-empty strings")
+
+    @staticmethod
     def _validate_delegation_grant(content: Mapping[str, object]) -> None:
         required = ("delegate", "scopes", "expires_at")
         missing = [key for key in required if key not in content]
@@ -414,7 +434,11 @@ class BlackoutServerSemantics:
         if not isinstance(content["delegate"], str) or not content["delegate"]:
             raise ValueError("delegation grant requires non-empty delegate")
         scopes = content["scopes"]
-        if not isinstance(scopes, list) or not scopes:
+        if (
+            not isinstance(scopes, Sequence)
+            or isinstance(scopes, (str, bytes))
+            or not scopes
+        ):
             raise ValueError("delegation grant requires non-empty scopes list")
         if not all(isinstance(scope, str) and scope for scope in scopes):
             raise ValueError("delegation grant scopes must be non-empty strings")
