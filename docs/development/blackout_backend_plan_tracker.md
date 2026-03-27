@@ -86,6 +86,15 @@ Success criteria:
 - Closure artifact: `docs/reports/w1_22_closure_evidence_2026-03-18.md`.
 - Remaining in-progress work continues at W1-24/W1-25/W1-26 buckets.
 
+## W1-24/W1-25/W1-26 execution closure update (2026-03-27)
+
+- Status: `[x]` W1-24 signal schema/content-class completion closed.
+  - Evidence: `synapse/util/blackout.py`, `tests/util/test_blackout.py`, `docs/policy_schemas/blackout_signal_stego.schema.json`, `blackout_runtime_tests/test_wave1_schema_contracts.py`.
+- Status: `[x]` W1-25 TURN/STUN + relay-abuse controls and observability metrics closed.
+  - Evidence: `blackout_runtime/module.py` (relay fallback rate guard + signal metrics snapshot), `blackout_runtime_tests/test_module_integration.py`.
+- Status: `[x]` W1-26 TTL/purge config + bounded purge + irretrievability checks closed.
+  - Evidence: `blackout_runtime/module.py` (`blackout_signal_ttl_hours`, `blackout_purge_interval_minutes`, bounded `run_signal_purge`, `is_signal_event_retrievable`), `blackout_runtime_tests/test_module_integration.py`, `tests/blackout_runtime/test_module_e2e.py`.
+
 ---
 
 ## 2) Add signaling-only event type: `m.blackout.signal`

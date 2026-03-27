@@ -124,10 +124,12 @@ class _FakeModuleApi:
         return self._requester
 
 
-def _build_module(api: _FakeModuleApi) -> BlackoutRuntimeModule:
+def _build_module(api: _FakeModuleApi, **config: object) -> BlackoutRuntimeModule:
     fd, path = tempfile.mkstemp(suffix=".sqlite3")
     os.close(fd)
-    return BlackoutRuntimeModule({"persistence_path": path}, api)
+    base = {"persistence_path": path}
+    base.update(config)
+    return BlackoutRuntimeModule(base, api)
 
 
 def test_module_registers_callbacks_and_blackout_resource_tree() -> None:
@@ -403,6 +405,103 @@ def test_stego_retention_purge_marks_only_expired_records() -> None:
     fresh_row = module.get_stego_retention_record("$stego-fresh")
     assert expired_row is not None and expired_row["purged_at_ms"] == 2_000
     assert fresh_row is not None and fresh_row["purged_at_ms"] is None
+
+
+def test_signal_ttl_and_purge_irretrievability_controls() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(
+        api,
+        blackout_signal_ttl_hours=24,
+        signal_purge_batch_size=10,
+        blackout_purge_interval_minutes=5,
+    )
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    event = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "schema_version": 2,
+            "message_metadata": {
+                "message_id": "m1",
+                "sender_key_id": "k1",
+                "content_class": "control",
+            },
+            "blackout_stego": {
+                "carrier": "image",
+                "payload_hash": "abcdef1234567890",
+                "policy_id": "policy-a",
+            },
+        },
+        event_id="$signal-retain-1",
+    )
+    asyncio.run(module.on_new_event(event, state_events))
+    assert module.get_signal_retention_record("$signal-retain-1") is not None
+    assert module.is_signal_event_retrievable("$signal-retain-1")
+
+    module._conn.execute(
+        "UPDATE blackout_signal_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (1_000, "$signal-retain-1"),
+    )
+    module._conn.commit()
+    purged = module.run_signal_purge(now_ms=2_000)
+    assert [row["event_id"] for row in purged] == ["$signal-retain-1"]
+    assert not module.is_signal_event_retrievable("$signal-retain-1")
+
+
+def test_webrtc_relay_abuse_controls_and_metrics() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api, relay_fallback_limit_per_minute=1)
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+
+    first = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "schema_version": 2,
+            "message_metadata": {
+                "message_id": "w1",
+                "sender_key_id": "k1",
+                "content_class": "webrtc-session",
+            },
+            "turn_usage": {"relay_fallback": True},
+            "blackout_stego": {
+                "carrier": "image",
+                "payload_hash": "abcdef1234567890",
+                "policy_id": "policy-a",
+            },
+        },
+        event_id="$webrtc1",
+    )
+    asyncio.run(module.check_event_allowed(first, state_events))
+
+    second = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "schema_version": 2,
+            "message_metadata": {
+                "message_id": "w2",
+                "sender_key_id": "k1",
+                "content_class": "webrtc-session",
+            },
+            "turn_usage": {"relay_fallback": True},
+            "blackout_stego": {
+                "carrier": "audio",
+                "payload_hash": "abcdef1234567891",
+                "policy_id": "policy-a",
+            },
+        },
+        event_id="$webrtc2",
+    )
+    with pytest.raises(SynapseError, match="Relay fallback rate limit exceeded"):
+        asyncio.run(module.check_event_allowed(second, state_events))
+
+    metrics = module.snapshot_signal_metrics()
+    assert metrics["content_class.webrtc-session.accepted"] >= 1
+    assert metrics["relay_fallback_total"] >= 1
 
 
 def test_governance_vote_requires_known_open_proposal_window() -> None:

@@ -532,9 +532,19 @@ class BlackoutRuntimeModule:
         self._attestation_cooldown_s = int(config.get("attestation_cooldown_s", 600))
         self._stego_ttl_hours = int(config.get("stego_ttl_hours", 48))
         self._stego_purge_batch_size = int(config.get("stego_purge_batch_size", 100))
+        self._signal_ttl_hours = int(config.get("blackout_signal_ttl_hours", 48))
+        self._signal_ttl_hours = max(24, min(72, self._signal_ttl_hours))
+        self._signal_purge_interval_minutes = int(
+            config.get("blackout_purge_interval_minutes", 15)
+        )
+        self._signal_purge_batch_size = int(config.get("signal_purge_batch_size", 200))
         self._attestation_secret = str(config.get("attestation_secret", "blackout-dev"))
+        self._relay_fallback_limit_per_minute = int(
+            config.get("relay_fallback_limit_per_minute", 30)
+        )
         self._proposal_times: Dict[str, Deque[int]] = defaultdict(deque)
         self._attestation_times: Dict[Tuple[str, str], int] = {}
+        self._relay_fallback_times: Dict[str, Deque[int]] = defaultdict(deque)
         self._backfilled_rooms: Set[str] = set()
         self._backfilled_nodes: Set[str] = set()
         self._dead_drop_ttl_hours = int(config.get("dead_drop_ttl_hours", 24))
@@ -551,6 +561,7 @@ class BlackoutRuntimeModule:
             Tuple[str, str], Deque[int]
         ] = defaultdict(deque)
         self._anomaly_events: List[JsonDict] = []
+        self._signal_metrics: Dict[str, int] = defaultdict(int)
 
         db_path = Path(
             str(config.get("persistence_path", "/tmp/blackout_runtime.sqlite3"))
@@ -571,6 +582,9 @@ class BlackoutRuntimeModule:
         )
         self._conn.execute(
             "CREATE TABLE IF NOT EXISTS blackout_stego_retention (event_id TEXT PRIMARY KEY, room_id TEXT NOT NULL, expires_at_ms INTEGER NOT NULL, purged_at_ms INTEGER)"
+        )
+        self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS blackout_signal_retention (event_id TEXT PRIMARY KEY, room_id TEXT NOT NULL, expires_at_ms INTEGER NOT NULL, purged_at_ms INTEGER)"
         )
         self._conn.commit()
 
@@ -795,6 +809,25 @@ class BlackoutRuntimeModule:
 
         if event.type == BLACKOUT_SIGNAL_EVENT_TYPE and isinstance(event.content, Mapping):
             stego_meta = event.content.get("blackout_stego")
+            message_metadata = event.content.get("message_metadata")
+            content_class = None
+            if isinstance(message_metadata, Mapping):
+                raw_class = message_metadata.get("content_class")
+                if isinstance(raw_class, str):
+                    content_class = raw_class
+                    self._signal_metrics[f"content_class.{content_class}.accepted"] += 1
+
+            if content_class == "webrtc-session":
+                turn_usage = event.content.get("turn_usage")
+                if isinstance(turn_usage, Mapping):
+                    relay_fallback = bool(turn_usage.get("relay_fallback"))
+                    if relay_fallback:
+                        self._signal_metrics["relay_fallback_total"] += 1
+                        if isinstance(sender, str) and sender:
+                            self._enforce_relay_fallback_rate(sender=sender, now_s=now)
+                elif turn_usage is not None:
+                    raise SynapseError(403, "turn_usage must be an object when present")
+
             if stego_meta is not None:
                 if not isinstance(stego_meta, Mapping):
                     raise SynapseError(403, "blackout_stego metadata must be an object")
@@ -851,6 +884,22 @@ class BlackoutRuntimeModule:
                     (event.event_id, event.room_id, expires_at_ms),
                 )
                 self._conn.commit()
+
+            event_ts_ms = getattr(event, "origin_server_ts", None)
+            if not isinstance(event_ts_ms, int):
+                event_ts_ms = int(time.time() * 1000)
+            ttl_hours = self._signal_ttl_hours
+            ttl_override = event.content.get("org.matrix.self_destruct_after")
+            if not isinstance(ttl_override, int):
+                ttl_override = event.content.get("self_destruct_after")
+            if isinstance(ttl_override, int) and ttl_override > 0:
+                ttl_hours = max(1, min(72, int(ttl_override // 3600)))
+            expires_at_ms = event_ts_ms + (ttl_hours * 3_600_000)
+            self._conn.execute(
+                "INSERT OR IGNORE INTO blackout_signal_retention (event_id, room_id, expires_at_ms, purged_at_ms) VALUES (?, ?, ?, NULL)",
+                (event.event_id, event.room_id, expires_at_ms),
+            )
+            self._conn.commit()
 
         self._proposals.ingest_event(event)
         self._decisions.ingest_event(event)
@@ -913,6 +962,33 @@ class BlackoutRuntimeModule:
             self._conn.commit()
         return purged
 
+    def run_signal_purge(self, *, now_ms: Optional[int] = None) -> List[JsonDict]:
+        if now_ms is None:
+            now_ms = int(time.time() * 1000)
+
+        rows = self._conn.execute(
+            "SELECT event_id, room_id, expires_at_ms FROM blackout_signal_retention WHERE purged_at_ms IS NULL AND expires_at_ms <= ? ORDER BY expires_at_ms ASC LIMIT ?",
+            (now_ms, self._signal_purge_batch_size),
+        ).fetchall()
+        purged: List[JsonDict] = []
+        for event_id, room_id, expires_at_ms in rows:
+            self._conn.execute(
+                "UPDATE blackout_signal_retention SET purged_at_ms = ? WHERE event_id = ?",
+                (now_ms, event_id),
+            )
+            purged.append(
+                {
+                    "event_id": event_id,
+                    "room_id": room_id,
+                    "expires_at_ms": expires_at_ms,
+                    "purged_at_ms": now_ms,
+                    "tombstone_event_type": "m.blackout.signal.purge",
+                }
+            )
+        if rows:
+            self._conn.commit()
+        return purged
+
     def get_dead_drop_retention_record(self, event_id: str) -> Optional[JsonDict]:
         row = self._conn.execute(
             "SELECT event_id, room_id, expires_at_ms, purged_at_ms FROM blackout_dead_drop_retention WHERE event_id = ?",
@@ -940,6 +1016,26 @@ class BlackoutRuntimeModule:
             "expires_at_ms": row[2],
             "purged_at_ms": row[3],
         }
+
+    def get_signal_retention_record(self, event_id: str) -> Optional[JsonDict]:
+        row = self._conn.execute(
+            "SELECT event_id, room_id, expires_at_ms, purged_at_ms FROM blackout_signal_retention WHERE event_id = ?",
+            (event_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {
+            "event_id": row[0],
+            "room_id": row[1],
+            "expires_at_ms": row[2],
+            "purged_at_ms": row[3],
+        }
+
+    def is_signal_event_retrievable(self, event_id: str) -> bool:
+        record = self.get_signal_retention_record(event_id)
+        if record is None:
+            return True
+        return record["purged_at_ms"] is None
 
     def _enforce_dead_drop_membership_quota(
         self, *, sender: str, membership: str, now_s: int
@@ -972,6 +1068,25 @@ class BlackoutRuntimeModule:
         drained = list(self._anomaly_events)
         self._anomaly_events.clear()
         return drained
+
+    def snapshot_signal_metrics(self) -> JsonDict:
+        return dict(self._signal_metrics)
+
+    def _enforce_relay_fallback_rate(self, *, sender: str, now_s: int) -> None:
+        q = self._relay_fallback_times[sender]
+        while q and q[0] <= now_s - 60:
+            q.popleft()
+        if len(q) >= self._relay_fallback_limit_per_minute:
+            self._anomaly_events.append(
+                {
+                    "ts": now_s,
+                    "type": "relay_fallback_rate_exceeded",
+                    "sender": sender,
+                    "limit": self._relay_fallback_limit_per_minute,
+                }
+            )
+            raise SynapseError(429, "Relay fallback rate limit exceeded")
+        q.append(now_s)
 
     @staticmethod
     def _validate_stego_metadata(stego_meta: Mapping[str, object]) -> None:

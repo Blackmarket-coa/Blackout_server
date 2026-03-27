@@ -248,6 +248,29 @@ def validate_blackout_signal_content(content: Any) -> BlackoutSignalValidationRe
         raise ValueError(f"invalid m.blackout.signal content: {e.message}")
 
     _validate_message_metadata(plain_content.get("message_metadata"))
+    content_class = plain_content["message_metadata"].get("content_class")
+    if content_class == "webrtc-session" and not any(
+        plain_content.get(field) is not None
+        for field in ("sdp_offer", "sdp_answer", "ice_candidates")
+    ):
+        raise ValueError(
+            "invalid m.blackout.signal content: webrtc-session requires signaling payload fields"
+        )
+    if (
+        content_class == "chunk-announcement"
+        and plain_content.get("chunk_announcements") is None
+    ):
+        raise ValueError(
+            "invalid m.blackout.signal content: chunk-announcement requires chunk_announcements"
+        )
+    if (
+        content_class == "offline-retrieval"
+        and plain_content.get("offline_retrieval") is None
+    ):
+        raise ValueError(
+            "invalid m.blackout.signal content: offline-retrieval requires offline_retrieval metadata"
+        )
+
     if (
         plain_content.get("sdp_offer") is not None
         and plain_content.get("sdp_answer") is not None
