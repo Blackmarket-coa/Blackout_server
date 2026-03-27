@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import hmac
 import sqlite3
 import time
 from collections import defaultdict, deque
@@ -59,6 +60,9 @@ ANNOUNCEMENT_MESSAGE_EVENT_TYPE = "m.room.message"
 ROOM_MEMBER_EVENT_TYPE = "m.room.member"
 BLACKOUT_SIGNAL_EVENT_TYPE = "m.blackout.signal"
 STEGO_ENTITLEMENTS_EVENT_TYPE = "m.blackout.entitlements"
+PLUGIN_POLICY_EVENT_TYPE = "m.blackout.plugin.policy"
+PLUGIN_REGISTER_EVENT_TYPE = "m.blackout.plugin.register"
+RUNTIME_EXTENSION_EVENT_TYPE = "m.blackout.runtime.extension"
 
 
 @dataclass
@@ -541,6 +545,30 @@ class BlackoutRuntimeModule:
         self._attestation_cooldown_s = int(config.get("attestation_cooldown_s", 600))
         self._stego_ttl_hours = int(config.get("stego_ttl_hours", 48))
         self._stego_purge_batch_size = int(config.get("stego_purge_batch_size", 100))
+        self._plugin_signature_secret = str(
+            config.get("plugin_signature_secret", "blackout-plugin-dev")
+        )
+        self._supported_extension_contract_versions: Set[int] = {
+            int(version)
+            for version in config.get(
+                "supported_extension_contract_versions",
+                [1],
+            )
+            if isinstance(version, int)
+        }
+        if not self._supported_extension_contract_versions:
+            self._supported_extension_contract_versions = {1}
+        self._supported_runtime_capabilities: Set[str] = {
+            str(capability)
+            for capability in config.get(
+                "supported_runtime_capabilities",
+                ["stego:processor", "governance:hooks", "telemetry:emit"],
+            )
+            if isinstance(capability, str) and capability
+        }
+        self._runtime_extensions_enabled = bool(
+            config.get("blackout_enable_runtime_extensions", False)
+        )
         self._signal_ttl_hours = int(config.get("blackout_signal_ttl_hours", 48))
         self._signal_ttl_hours = max(24, min(72, self._signal_ttl_hours))
         self._signal_purge_interval_minutes = int(
@@ -846,6 +874,18 @@ class BlackoutRuntimeModule:
                 if last is not None and now - last < self._attestation_cooldown_s:
                     raise SynapseError(429, "Attestation update cooldown active")
                 self._attestation_times[key] = now
+
+        if event.type == PLUGIN_REGISTER_EVENT_TYPE and isinstance(event.content, Mapping):
+            self._validate_plugin_registration(
+                sender=sender if isinstance(sender, str) else "",
+                content=event.content,
+                state_events=state_events,
+            )
+
+        if event.type == RUNTIME_EXTENSION_EVENT_TYPE and isinstance(
+            event.content, Mapping
+        ):
+            self._validate_runtime_extension_activation(event.content)
 
         if (
             channel_type == ANNOUNCEMENT_CHANNEL_TYPE
@@ -1262,6 +1302,172 @@ class BlackoutRuntimeModule:
         ).hexdigest()
         if proof != expected:
             raise SynapseError(403, "Attestation proof verification failed")
+
+    def _validate_plugin_registration(
+        self, *, sender: str, content: Mapping[str, object], state_events: StateMap[Any]
+    ) -> None:
+        plugin_id = content.get("plugin_id")
+        plugin_version = content.get("plugin_version")
+        capabilities = content.get("capabilities")
+        signing_key_id = content.get("signing_key_id")
+        signature = content.get("signature")
+
+        if (
+            not isinstance(plugin_id, str)
+            or not plugin_id
+            or not isinstance(plugin_version, str)
+            or not plugin_version
+            or not isinstance(signing_key_id, str)
+            or not signing_key_id
+            or not isinstance(signature, str)
+            or not signature
+            or not isinstance(capabilities, Sequence)
+            or isinstance(capabilities, (str, bytes))
+            or not capabilities
+            or any(not isinstance(cap, str) or not cap for cap in capabilities)
+        ):
+            self._anomaly_events.append(
+                {
+                    "ts": int(time.time()),
+                    "type": "plugin_registration_rejected",
+                    "sender": sender,
+                    "reason": "malformed_registration",
+                }
+            )
+            raise SynapseError(403, "Plugin registration payload is malformed")
+
+        policy_event = state_events.get((PLUGIN_POLICY_EVENT_TYPE, ""))
+        policy_content = getattr(policy_event, "content", None)
+        if not isinstance(policy_content, Mapping):
+            self._anomaly_events.append(
+                {
+                    "ts": int(time.time()),
+                    "type": "plugin_registration_rejected",
+                    "sender": sender,
+                    "plugin_id": plugin_id,
+                    "reason": "missing_policy",
+                }
+            )
+            raise SynapseError(403, "Plugin registration policy is required")
+
+        allowlisted_plugins = self._coerce_string_list(
+            policy_content.get("allowlisted_plugins")
+        )
+        if allowlisted_plugins is None or plugin_id not in allowlisted_plugins:
+            self._anomaly_events.append(
+                {
+                    "ts": int(time.time()),
+                    "type": "plugin_registration_rejected",
+                    "sender": sender,
+                    "plugin_id": plugin_id,
+                    "reason": "plugin_not_allowlisted",
+                }
+            )
+            raise SynapseError(403, "Plugin is not allowlisted for registration")
+
+        revoked_signing_keys = self._coerce_string_list(
+            policy_content.get("revoked_signing_key_ids")
+        )
+        if revoked_signing_keys is not None and signing_key_id in revoked_signing_keys:
+            self._anomaly_events.append(
+                {
+                    "ts": int(time.time()),
+                    "type": "plugin_registration_rejected",
+                    "sender": sender,
+                    "plugin_id": plugin_id,
+                    "signing_key_id": signing_key_id,
+                    "reason": "signing_key_revoked",
+                }
+            )
+            raise SynapseError(403, "Plugin signing key has been revoked")
+
+        trusted_capabilities = self._coerce_string_list(
+            policy_content.get("trusted_capabilities")
+        )
+        if trusted_capabilities is not None and any(
+            capability not in trusted_capabilities for capability in capabilities
+        ):
+            self._anomaly_events.append(
+                {
+                    "ts": int(time.time()),
+                    "type": "plugin_registration_rejected",
+                    "sender": sender,
+                    "plugin_id": plugin_id,
+                    "reason": "capability_not_trusted",
+                }
+            )
+            raise SynapseError(403, "Plugin requests a capability outside trust policy")
+
+        canonical_capabilities = sorted(capabilities)
+        expected_signature = hmac.new(
+            self._plugin_signature_secret.encode("utf-8"),
+            f"{plugin_id}:{plugin_version}:{signing_key_id}:{','.join(canonical_capabilities)}".encode(
+                "utf-8"
+            ),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(signature, expected_signature):
+            self._anomaly_events.append(
+                {
+                    "ts": int(time.time()),
+                    "type": "plugin_registration_rejected",
+                    "sender": sender,
+                    "plugin_id": plugin_id,
+                    "reason": "signature_verification_failed",
+                }
+            )
+            raise SynapseError(403, "Plugin signature verification failed")
+
+    def _validate_runtime_extension_activation(
+        self, content: Mapping[str, object]
+    ) -> None:
+        if not self._runtime_extensions_enabled:
+            raise SynapseError(403, "Runtime extensions are disabled by configuration")
+
+        extension_id = content.get("extension_id")
+        contract_version = content.get("contract_version")
+        requested_capabilities = content.get("requested_capabilities")
+
+        if not isinstance(extension_id, str) or not extension_id:
+            raise SynapseError(403, "Runtime extension requires extension_id")
+        if not isinstance(contract_version, int) or isinstance(contract_version, bool):
+            raise SynapseError(403, "Runtime extension requires integer contract_version")
+        if contract_version not in self._supported_extension_contract_versions:
+            raise SynapseError(
+                403,
+                "Runtime extension contract_version is incompatible with this server",
+            )
+        if (
+            not isinstance(requested_capabilities, Sequence)
+            or isinstance(requested_capabilities, (str, bytes))
+            or not requested_capabilities
+            or any(
+                not isinstance(capability, str) or not capability
+                for capability in requested_capabilities
+            )
+        ):
+            raise SynapseError(
+                403,
+                "Runtime extension requested_capabilities must be a list of strings",
+            )
+        unsupported = [
+            capability
+            for capability in requested_capabilities
+            if capability not in self._supported_runtime_capabilities
+        ]
+        if unsupported:
+            raise SynapseError(
+                403,
+                f"Runtime extension requested unsupported capabilities: {unsupported}",
+            )
+
+    @staticmethod
+    def _coerce_string_list(value: object) -> Optional[List[str]]:
+        if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+            return None
+        if any(not isinstance(item, str) or not item for item in value):
+            return None
+        return list(value)
 
     @staticmethod
     def _enforce_attestation_scope(sender: str, state_events: StateMap[Any]) -> None:
