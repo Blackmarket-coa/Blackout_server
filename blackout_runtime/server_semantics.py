@@ -6,8 +6,12 @@ from typing import Dict, Iterable, List, Mapping, MutableMapping, Sequence, cast
 BLACKOUT_CHANNEL_TYPE_EVENT = "m.blackout.channel.type"
 GOVERNANCE_PROPOSAL_EVENT = "m.blackout.governance.proposal"
 GOVERNANCE_VOTE_EVENT = "m.blackout.governance.vote"
+GOVERNANCE_ATTESTATION_EVENT = "m.blackout.governance.attestation"
 REPUTATION_UPDATE_EVENT = "m.blackout.reputation.update"
 ANNOUNCEMENT_POLICY_EVENT = "m.blackout.announcement.policy"
+STEGO_POLICY_EVENT = "m.blackout.stego.policy"
+DELEGATION_GRANT_EVENT = "m.blackout.delegation.grant"
+ATTESTATION_EVENT = "m.blackout.attestation"
 
 BLACKOUT_PRESENCE_ROUTE = "/_synapse/client/blackout/presence"
 
@@ -63,10 +67,15 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
         power_levels={"events_default": 0, "state_default": 100},
         allowed_event_types=(
             "m.room.message",
+            "m.blackout.signal",
             GOVERNANCE_PROPOSAL_EVENT,
             GOVERNANCE_VOTE_EVENT,
+            GOVERNANCE_ATTESTATION_EVENT,
+            DELEGATION_GRANT_EVENT,
+            ATTESTATION_EVENT,
             REPUTATION_UPDATE_EVENT,
             BLACKOUT_CHANNEL_TYPE_EVENT,
+            STEGO_POLICY_EVENT,
         ),
     ),
     "dispute": RoomTemplate(
@@ -74,8 +83,10 @@ ROOM_TEMPLATES: Dict[str, RoomTemplate] = {
         power_levels={"events_default": 0, "state_default": 100},
         allowed_event_types=(
             "m.room.message",
+            "m.blackout.signal",
             GOVERNANCE_PROPOSAL_EVENT,
             GOVERNANCE_VOTE_EVENT,
+            GOVERNANCE_ATTESTATION_EVENT,
             BLACKOUT_CHANNEL_TYPE_EVENT,
         ),
     ),
@@ -238,12 +249,28 @@ class BlackoutServerSemantics:
             self._validate_governance_vote(content)
             return True
 
+        if event_type == GOVERNANCE_ATTESTATION_EVENT:
+            self._validate_governance_attestation(content)
+            return True
+
         if event_type == REPUTATION_UPDATE_EVENT:
             self._validate_reputation_update(content)
             return True
 
         if event_type == ANNOUNCEMENT_POLICY_EVENT:
             self._validate_announcement_policy(content)
+            return True
+
+        if event_type == STEGO_POLICY_EVENT:
+            self._validate_stego_policy(content)
+            return True
+
+        if event_type == DELEGATION_GRANT_EVENT:
+            self._validate_delegation_grant(content)
+            return True
+
+        if event_type == ATTESTATION_EVENT:
+            self._validate_attestation(content)
             return True
 
         if channel_type and channel_type in ROOM_TEMPLATES:
@@ -311,6 +338,19 @@ class BlackoutServerSemantics:
             raise ValueError("governance vote requires non-empty string vote")
 
     @staticmethod
+    def _validate_governance_attestation(content: Mapping[str, object]) -> None:
+        required = ("proposal_id", "decision", "attested_by", "attestation_ref")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(
+                f"governance attestation missing required fields: {missing}"
+            )
+        if not isinstance(content["attestation_ref"], str) or not content[
+            "attestation_ref"
+        ]:
+            raise ValueError("governance attestation requires attestation_ref")
+
+    @staticmethod
     def _validate_reputation_update(content: Mapping[str, object]) -> None:
         required = ("node_id", "delta", "reason")
         missing = [key for key in required if key not in content]
@@ -353,6 +393,42 @@ class BlackoutServerSemantics:
                 raise ValueError(
                     "announcement policy delayed fanout requires rollback_procedure_ref"
                 )
+
+    @staticmethod
+    def _validate_stego_policy(content: Mapping[str, object]) -> None:
+        allow_stego = content.get("allow_stego")
+        if not isinstance(allow_stego, bool):
+            raise ValueError("stego policy requires boolean allow_stego")
+
+        ttl_hours = content.get("max_ttl_hours")
+        if ttl_hours is not None:
+            if not isinstance(ttl_hours, int) or ttl_hours < 1 or ttl_hours > 72:
+                raise ValueError("stego policy max_ttl_hours must be 1..72")
+
+    @staticmethod
+    def _validate_delegation_grant(content: Mapping[str, object]) -> None:
+        required = ("delegate", "scopes", "expires_at")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"delegation grant missing required fields: {missing}")
+        if not isinstance(content["delegate"], str) or not content["delegate"]:
+            raise ValueError("delegation grant requires non-empty delegate")
+        scopes = content["scopes"]
+        if not isinstance(scopes, list) or not scopes:
+            raise ValueError("delegation grant requires non-empty scopes list")
+        if not all(isinstance(scope, str) and scope for scope in scopes):
+            raise ValueError("delegation grant scopes must be non-empty strings")
+        if not isinstance(content["expires_at"], int) or content["expires_at"] <= 0:
+            raise ValueError("delegation grant expires_at must be a positive integer")
+
+    @staticmethod
+    def _validate_attestation(content: Mapping[str, object]) -> None:
+        required = ("node_id", "subject_user_id", "proof")
+        missing = [key for key in required if key not in content]
+        if missing:
+            raise ValueError(f"attestation missing required fields: {missing}")
+        if not isinstance(content["proof"], str) or len(content["proof"]) < 16:
+            raise ValueError("attestation proof must be a non-empty signature string")
 
 
 class BlackoutPresenceService:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import sqlite3
 import time
 from collections import defaultdict, deque
@@ -28,10 +29,14 @@ from synapse.types import JsonDict, StateMap
 
 from .server_semantics import (
     ANNOUNCEMENT_POLICY_EVENT,
+    ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
+    DELEGATION_GRANT_EVENT,
+    GOVERNANCE_ATTESTATION_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
     REPUTATION_UPDATE_EVENT,
+    STEGO_POLICY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
 )
@@ -42,6 +47,8 @@ ANNOUNCEMENT_CHANNEL_TYPE = "blackout_announcement_room"
 DEAD_DROP_MESSAGE_EVENT_TYPE = "m.room.message"
 ANNOUNCEMENT_MESSAGE_EVENT_TYPE = "m.room.message"
 ROOM_MEMBER_EVENT_TYPE = "m.room.member"
+BLACKOUT_SIGNAL_EVENT_TYPE = "m.blackout.signal"
+STEGO_ENTITLEMENTS_EVENT_TYPE = "m.blackout.entitlements"
 
 
 @dataclass
@@ -158,6 +165,52 @@ class GovernanceDecisionStore:
             if d.room_id == room_id and d.token > since
         ]
         return self._next_token - 1, results
+
+
+class GovernanceProposalStore:
+    def __init__(self, conn: sqlite3.Connection) -> None:
+        self._conn = conn
+        self._windows: Dict[Tuple[str, str], Tuple[int, int]] = {}
+        self._load()
+
+    def _load(self) -> None:
+        rows = self._conn.execute(
+            "SELECT room_id, proposal_id, opens_at, closes_at FROM blackout_governance_proposals"
+        ).fetchall()
+        for room_id, proposal_id, opens_at, closes_at in rows:
+            self._windows[(room_id, proposal_id)] = (int(opens_at), int(closes_at))
+
+    def ingest_event(self, event: Any) -> bool:
+        if event.type != GOVERNANCE_PROPOSAL_EVENT:
+            return False
+
+        content = event.content
+        if not isinstance(content, Mapping):
+            return False
+
+        proposal_id = content.get("proposal_id")
+        opens_at = content.get("opens_at")
+        closes_at = content.get("closes_at")
+        if (
+            not isinstance(proposal_id, str)
+            or not proposal_id
+            or not isinstance(opens_at, int)
+            or not isinstance(closes_at, int)
+            or closes_at <= opens_at
+        ):
+            return False
+
+        key = (event.room_id, proposal_id)
+        self._windows[key] = (opens_at, closes_at)
+        self._conn.execute(
+            "INSERT OR REPLACE INTO blackout_governance_proposals (room_id, proposal_id, opens_at, closes_at) VALUES (?, ?, ?, ?)",
+            (event.room_id, proposal_id, opens_at, closes_at),
+        )
+        self._conn.commit()
+        return True
+
+    def vote_window_for(self, room_id: str, proposal_id: str) -> Optional[Tuple[int, int]]:
+        return self._windows.get((room_id, proposal_id))
 
 
 class ReputationStore:
@@ -476,6 +529,9 @@ class BlackoutRuntimeModule:
         self._proposal_rate_window_s = int(config.get("proposal_rate_window_s", 3600))
         self._proposal_rate_limit = int(config.get("proposal_rate_limit", 5))
         self._attestation_cooldown_s = int(config.get("attestation_cooldown_s", 600))
+        self._stego_ttl_hours = int(config.get("stego_ttl_hours", 48))
+        self._stego_purge_batch_size = int(config.get("stego_purge_batch_size", 100))
+        self._attestation_secret = str(config.get("attestation_secret", "blackout-dev"))
         self._proposal_times: Dict[str, Deque[int]] = defaultdict(deque)
         self._attestation_times: Dict[Tuple[str, str], int] = {}
         self._backfilled_rooms: Set[str] = set()
@@ -504,14 +560,21 @@ class BlackoutRuntimeModule:
             "CREATE TABLE IF NOT EXISTS blackout_governance_decisions (token INTEGER PRIMARY KEY, room_id TEXT NOT NULL, event_id TEXT NOT NULL UNIQUE, proposal_id TEXT NOT NULL, decision TEXT NOT NULL, finalized_at INTEGER, sender TEXT NOT NULL)"
         )
         self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS blackout_governance_proposals (room_id TEXT NOT NULL, proposal_id TEXT NOT NULL, opens_at INTEGER NOT NULL, closes_at INTEGER NOT NULL, PRIMARY KEY (room_id, proposal_id))"
+        )
+        self._conn.execute(
             "CREATE TABLE IF NOT EXISTS blackout_reputation_updates (event_id TEXT PRIMARY KEY, node_id TEXT NOT NULL, delta REAL NOT NULL, reason TEXT NOT NULL, rating REAL, attestation_status TEXT, governance_standing TEXT)"
         )
         self._conn.execute(
             "CREATE TABLE IF NOT EXISTS blackout_dead_drop_retention (event_id TEXT PRIMARY KEY, room_id TEXT NOT NULL, expires_at_ms INTEGER NOT NULL, purged_at_ms INTEGER)"
         )
+        self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS blackout_stego_retention (event_id TEXT PRIMARY KEY, room_id TEXT NOT NULL, expires_at_ms INTEGER NOT NULL, purged_at_ms INTEGER)"
+        )
         self._conn.commit()
 
         self._decisions = GovernanceDecisionStore(self._conn)
+        self._proposals = GovernanceProposalStore(self._conn)
         self._reputation = ReputationStore(self._conn)
 
         self._module_api.register_third_party_rules_callbacks(
@@ -532,6 +595,7 @@ class BlackoutRuntimeModule:
             room_id, limit, end_token
         )
         for event in events:
+            self._proposals.ingest_event(event)
             self._decisions.ingest_event(event)
             self._reputation.ingest_event(event)
         self._backfilled_rooms.add(room_id)
@@ -630,6 +694,26 @@ class BlackoutRuntimeModule:
                     raise SynapseError(
                         403, "Only one vote per user per proposal is allowed"
                     )
+                vote_window = self._proposals.vote_window_for(room_id, proposal_id)
+                if vote_window is None:
+                    raise SynapseError(
+                        403, "Vote rejected: unknown governance proposal_id"
+                    )
+                opens_at, closes_at = vote_window
+                if now < opens_at or now > closes_at:
+                    raise SynapseError(
+                        403, "Vote rejected: governance proposal is outside voting window"
+                    )
+
+        if event.type == GOVERNANCE_ATTESTATION_EVENT and isinstance(
+            event.content, Mapping
+        ):
+            proposal_id = event.content.get("proposal_id")
+            if isinstance(proposal_id, str) and isinstance(room_id, str):
+                if self._proposals.vote_window_for(room_id, proposal_id) is None:
+                    raise SynapseError(
+                        403, "Governance attestation rejected: unknown proposal_id"
+                    )
 
         if event.type == REPUTATION_UPDATE_EVENT and isinstance(event.content, Mapping):
             node_id = event.content.get("node_id")
@@ -708,6 +792,30 @@ class BlackoutRuntimeModule:
                     sender=sender, membership=membership, now_s=now
                 )
 
+        if event.type == BLACKOUT_SIGNAL_EVENT_TYPE and isinstance(event.content, Mapping):
+            stego_meta = event.content.get("blackout_stego")
+            if stego_meta is not None:
+                if not isinstance(stego_meta, Mapping):
+                    raise SynapseError(403, "blackout_stego metadata must be an object")
+                self._validate_stego_metadata(stego_meta)
+                self._enforce_stego_policy_and_entitlement(
+                    event_content=event.content,
+                    state_events=state_events,
+                    sender=sender if isinstance(sender, str) else "",
+                )
+
+        if event.type == DELEGATION_GRANT_EVENT:
+            sender_power = self._sender_power_level(sender, state_events)
+            if sender_power < 50:
+                raise SynapseError(403, "Delegation grants require moderator power")
+
+        if event.type == ATTESTATION_EVENT and isinstance(event.content, Mapping):
+            self._validate_attestation_proof(event.content)
+            self._enforce_attestation_scope(
+                sender=sender if isinstance(sender, str) else "",
+                state_events=state_events,
+            )
+
         return True, None
 
     async def on_new_event(self, event: Any, state_events: StateMap[Any]) -> None:
@@ -726,6 +834,24 @@ class BlackoutRuntimeModule:
             )
             self._conn.commit()
 
+        if event.type == BLACKOUT_SIGNAL_EVENT_TYPE and isinstance(event.content, Mapping):
+            stego_meta = event.content.get("blackout_stego")
+            if isinstance(stego_meta, Mapping):
+                ttl_hours = self._stego_ttl_hours
+                stego_ttl = stego_meta.get("ttl_hours")
+                if isinstance(stego_ttl, int) and 1 <= stego_ttl <= 72:
+                    ttl_hours = stego_ttl
+                event_ts_ms = getattr(event, "origin_server_ts", None)
+                if not isinstance(event_ts_ms, int):
+                    event_ts_ms = int(time.time() * 1000)
+                expires_at_ms = event_ts_ms + (ttl_hours * 3_600_000)
+                self._conn.execute(
+                    "INSERT OR IGNORE INTO blackout_stego_retention (event_id, room_id, expires_at_ms, purged_at_ms) VALUES (?, ?, ?, NULL)",
+                    (event.event_id, event.room_id, expires_at_ms),
+                )
+                self._conn.commit()
+
+        self._proposals.ingest_event(event)
         self._decisions.ingest_event(event)
         self._reputation.ingest_event(event)
 
@@ -758,9 +884,51 @@ class BlackoutRuntimeModule:
             self._conn.commit()
         return purged
 
+    def run_stego_purge(self, *, now_ms: Optional[int] = None) -> List[JsonDict]:
+        if now_ms is None:
+            now_ms = int(time.time() * 1000)
+
+        rows = self._conn.execute(
+            "SELECT event_id, room_id, expires_at_ms FROM blackout_stego_retention WHERE purged_at_ms IS NULL AND expires_at_ms <= ? ORDER BY expires_at_ms ASC LIMIT ?",
+            (now_ms, self._stego_purge_batch_size),
+        ).fetchall()
+
+        purged: List[JsonDict] = []
+        for event_id, room_id, expires_at_ms in rows:
+            self._conn.execute(
+                "UPDATE blackout_stego_retention SET purged_at_ms = ? WHERE event_id = ?",
+                (now_ms, event_id),
+            )
+            purged.append(
+                {
+                    "event_id": event_id,
+                    "room_id": room_id,
+                    "expires_at_ms": expires_at_ms,
+                    "purged_at_ms": now_ms,
+                    "tombstone_event_type": "m.blackout.stego.purge",
+                }
+            )
+        if rows:
+            self._conn.commit()
+        return purged
+
     def get_dead_drop_retention_record(self, event_id: str) -> Optional[JsonDict]:
         row = self._conn.execute(
             "SELECT event_id, room_id, expires_at_ms, purged_at_ms FROM blackout_dead_drop_retention WHERE event_id = ?",
+            (event_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {
+            "event_id": row[0],
+            "room_id": row[1],
+            "expires_at_ms": row[2],
+            "purged_at_ms": row[3],
+        }
+
+    def get_stego_retention_record(self, event_id: str) -> Optional[JsonDict]:
+        row = self._conn.execute(
+            "SELECT event_id, room_id, expires_at_ms, purged_at_ms FROM blackout_stego_retention WHERE event_id = ?",
             (event_id,),
         ).fetchone()
         if row is None:
@@ -803,6 +971,84 @@ class BlackoutRuntimeModule:
         drained = list(self._anomaly_events)
         self._anomaly_events.clear()
         return drained
+
+    @staticmethod
+    def _validate_stego_metadata(stego_meta: Mapping[str, object]) -> None:
+        required = ("carrier", "payload_hash", "policy_id")
+        missing = [key for key in required if key not in stego_meta]
+        if missing:
+            raise SynapseError(403, f"Stego metadata missing required fields: {missing}")
+        carrier = stego_meta.get("carrier")
+        if not isinstance(carrier, str) or carrier not in {"image", "audio", "video"}:
+            raise SynapseError(403, "Stego metadata carrier must be image|audio|video")
+        payload_hash = stego_meta.get("payload_hash")
+        if not isinstance(payload_hash, str) or len(payload_hash) < 16:
+            raise SynapseError(403, "Stego metadata payload_hash must be a stable hash")
+        ttl_hours = stego_meta.get("ttl_hours")
+        if ttl_hours is not None and (
+            not isinstance(ttl_hours, int) or ttl_hours < 1 or ttl_hours > 72
+        ):
+            raise SynapseError(403, "Stego metadata ttl_hours must be 1..72")
+
+    def _enforce_stego_policy_and_entitlement(
+        self,
+        *,
+        event_content: Mapping[str, object],
+        state_events: StateMap[Any],
+        sender: str,
+    ) -> None:
+        policy_event = state_events.get((STEGO_POLICY_EVENT, ""))
+        policy_content = getattr(policy_event, "content", None)
+        if isinstance(policy_content, Mapping):
+            allow_stego = policy_content.get("allow_stego")
+            if allow_stego is False:
+                raise SynapseError(403, "Stego transport disabled by room policy")
+
+            policy_ttl_hours = policy_content.get("max_ttl_hours")
+            stego_meta = event_content.get("blackout_stego")
+            if (
+                isinstance(stego_meta, Mapping)
+                and isinstance(policy_ttl_hours, int)
+                and isinstance(stego_meta.get("ttl_hours"), int)
+                and int(stego_meta.get("ttl_hours")) > policy_ttl_hours
+            ):
+                raise SynapseError(
+                    403, "Stego metadata ttl_hours exceeds policy max_ttl_hours"
+                )
+
+        entitlements_event = state_events.get((STEGO_ENTITLEMENTS_EVENT_TYPE, ""))
+        entitlements_content = getattr(entitlements_event, "content", None)
+        if not isinstance(entitlements_content, Mapping):
+            raise SynapseError(403, "Stego entitlement required for sender")
+        sender_entitlements = entitlements_content.get(sender)
+        if not isinstance(sender_entitlements, list) or "stego:send" not in sender_entitlements:
+            raise SynapseError(403, "Stego entitlement required for sender")
+
+    def _validate_attestation_proof(self, content: Mapping[str, object]) -> None:
+        node_id = content.get("node_id")
+        subject = content.get("subject_user_id")
+        proof = content.get("proof")
+        if (
+            not isinstance(node_id, str)
+            or not isinstance(subject, str)
+            or not isinstance(proof, str)
+        ):
+            raise SynapseError(403, "Attestation proof fields are malformed")
+        expected = hashlib.sha256(
+            f"{node_id}:{subject}:{self._attestation_secret}".encode("utf-8")
+        ).hexdigest()
+        if proof != expected:
+            raise SynapseError(403, "Attestation proof verification failed")
+
+    @staticmethod
+    def _enforce_attestation_scope(sender: str, state_events: StateMap[Any]) -> None:
+        delegation_event = state_events.get((DELEGATION_GRANT_EVENT, sender))
+        delegation_content = getattr(delegation_event, "content", None)
+        if not isinstance(delegation_content, Mapping):
+            raise SynapseError(403, "Delegation scope required for attestation writes")
+        scopes = delegation_content.get("scopes")
+        if not isinstance(scopes, list) or "attestation:write" not in scopes:
+            raise SynapseError(403, "Attestation write scope not delegated")
 
     @staticmethod
     def _announcement_policy(state_events: StateMap[Any]) -> JsonDict:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import io
 import os
 import tempfile
@@ -13,8 +14,12 @@ from blackout_runtime.module import (
 )
 from blackout_runtime.server_semantics import (
     ANNOUNCEMENT_POLICY_EVENT,
+    ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
+    DELEGATION_GRANT_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
+    GOVERNANCE_VOTE_EVENT,
+    STEGO_POLICY_EVENT,
 )
 from synapse.api.errors import SynapseError
 
@@ -319,6 +324,131 @@ def test_dead_drop_retention_purge_schedules_and_purges_by_ttl() -> None:
     dd2 = module.get_dead_drop_retention_record("$dd2")
     assert dd1 is not None and dd1["purged_at_ms"] == 2_000
     assert dd2 is not None and dd2["purged_at_ms"] is None
+
+
+def test_stego_signal_requires_entitlement_and_obeys_policy_ttl() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        (STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": True, "max_ttl_hours": 24}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    event = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "blackout_stego": {
+                "carrier": "image",
+                "payload_hash": "abcdef1234567890",
+                "policy_id": "policy-a",
+                "ttl_hours": 12,
+            }
+        },
+        event_id="$stego1",
+    )
+    asyncio.run(module.check_event_allowed(event, state_events))
+    asyncio.run(module.on_new_event(event, state_events))
+    assert module.get_stego_retention_record("$stego1") is not None
+
+    blocked_state_events = {
+        (STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": False, "max_ttl_hours": 24}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    with pytest.raises(SynapseError, match="disabled by room policy"):
+        asyncio.run(module.check_event_allowed(event, blocked_state_events))
+
+    no_entitlement = {(STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": True})}
+    with pytest.raises(SynapseError, match="entitlement required"):
+        asyncio.run(module.check_event_allowed(event, no_entitlement))
+
+
+def test_governance_vote_requires_known_open_proposal_window() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    room_id = "!gov:test"
+    state = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})}
+    asyncio.run(
+        module.on_new_event(
+            _DummyEvent(
+                GOVERNANCE_PROPOSAL_EVENT,
+                {
+                    "proposal_id": "p42",
+                    "title": "Ship",
+                    "options": ["yes", "no"],
+                    "opens_at": 0,
+                    "closes_at": 4_000_000_000,
+                },
+                room_id=room_id,
+                event_id="$proposal",
+            ),
+            state,
+        )
+    )
+
+    asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                GOVERNANCE_VOTE_EVENT,
+                {"proposal_id": "p42", "vote": "yes"},
+                room_id=room_id,
+                event_id="$vote-ok",
+            ),
+            state,
+        )
+    )
+
+    with pytest.raises(SynapseError, match="unknown governance proposal_id"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    GOVERNANCE_VOTE_EVENT,
+                    {"proposal_id": "missing", "vote": "yes"},
+                    room_id=room_id,
+                    event_id="$vote-missing",
+                ),
+                state,
+            )
+        )
+
+
+def test_attestation_requires_delegated_scope_and_valid_proof() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+    module._attestation_secret = "test-secret"
+
+    good_proof = hashlib.sha256("node-1:@alice:test:test-secret".encode("utf-8")).hexdigest()
+    event = _DummyEvent(
+        ATTESTATION_EVENT,
+        {"node_id": "node-1", "subject_user_id": "@alice:test", "proof": good_proof},
+        sender="@delegate:test",
+    )
+    state = {
+        (DELEGATION_GRANT_EVENT, "@delegate:test"): _DummyStateEvent(
+            {"delegate": "@delegate:test", "scopes": ["attestation:write"], "expires_at": 9_999_999}
+        )
+    }
+    asyncio.run(module.check_event_allowed(event, state))
+
+    with pytest.raises(SynapseError, match="verification failed"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    ATTESTATION_EVENT,
+                    {
+                        "node_id": "node-1",
+                        "subject_user_id": "@alice:test",
+                        "proof": "badbadbadbadbadbadbadbadbadbadba",
+                    },
+                    sender="@delegate:test",
+                ),
+                state,
+            )
+        )
+
+    with pytest.raises(SynapseError, match="Delegation scope required"):
+        asyncio.run(module.check_event_allowed(event, {}))
 
 
 def test_announcement_room_sender_restrictions_enforced() -> None:
