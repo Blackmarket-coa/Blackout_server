@@ -2,11 +2,16 @@ import pytest
 
 from blackout_runtime.server_semantics import (
     ANNOUNCEMENT_POLICY_EVENT,
+    ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
     BLACKOUT_PRESENCE_ROUTE,
+    DELEGATION_GRANT_EVENT,
+    GOVERNANCE_ATTESTATION_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
     GOVERNANCE_VOTE_EVENT,
     REPUTATION_UPDATE_EVENT,
+    STEGO_ENTITLEMENTS_EVENT,
+    STEGO_POLICY_EVENT,
     BlackoutPresenceService,
     BlackoutServerSemantics,
 )
@@ -63,8 +68,35 @@ def test_validate_custom_event_schemas_accepts_valid_payloads() -> None:
         {"proposal_id": "p1", "vote": "yes"},
     )
     assert semantics.check_event_allowed(
+        GOVERNANCE_ATTESTATION_EVENT,
+        {
+            "proposal_id": "p1",
+            "decision": "accepted",
+            "attested_by": "@mod:test",
+            "attestation_ref": "sig:abc",
+        },
+    )
+    assert semantics.check_event_allowed(
         REPUTATION_UPDATE_EVENT,
         {"node_id": "node-7", "delta": 2, "reason": "delivery_success"},
+    )
+    assert semantics.check_event_allowed(
+        STEGO_POLICY_EVENT, {"allow_stego": True, "max_ttl_hours": 48}
+    )
+    assert semantics.check_event_allowed(
+        STEGO_ENTITLEMENTS_EVENT, {"@alice:test": ["stego:send"]}
+    )
+    assert semantics.check_event_allowed(
+        DELEGATION_GRANT_EVENT,
+        {
+            "delegate": "@node:test",
+            "scopes": ["attestation:write"],
+            "expires_at": 1,
+        },
+    )
+    assert semantics.check_event_allowed(
+        ATTESTATION_EVENT,
+        {"node_id": "node-7", "subject_user_id": "@alice:test", "proof": "a" * 64},
     )
     assert semantics.check_event_allowed(
         BLACKOUT_CHANNEL_TYPE_EVENT,
@@ -94,6 +126,26 @@ def test_validate_custom_event_schemas_accepts_valid_payloads() -> None:
             BLACKOUT_CHANNEL_TYPE_EVENT,
             {"channel_type": "invalid"},
             "supported channel_type",
+        ),
+        (
+            STEGO_POLICY_EVENT,
+            {"allow_stego": "yes"},
+            "boolean allow_stego",
+        ),
+        (
+            STEGO_ENTITLEMENTS_EVENT,
+            {"@alice:test": "stego:send"},
+            "scope lists",
+        ),
+        (
+            DELEGATION_GRANT_EVENT,
+            {"delegate": "@n:test", "scopes": [], "expires_at": 1},
+            "non-empty scopes",
+        ),
+        (
+            ATTESTATION_EVENT,
+            {"node_id": "n1", "subject_user_id": "@a:test", "proof": "short"},
+            "signature string",
         ),
     ],
 )
@@ -163,6 +215,27 @@ def test_dead_drop_template_blocks_unapproved_event_types() -> None:
             "m.room.topic",
             {"topic": "not allowed"},
             channel_type="blackout_dead_drop_room",
+        )
+
+
+@pytest.mark.parametrize("blocked_type", ["m.room.message", "m.room.encrypted"])
+def test_governance_and_dispute_migration_block_legacy_message_payloads(
+    blocked_type: str,
+) -> None:
+    semantics = BlackoutServerSemantics()
+
+    with pytest.raises(ValueError, match="during migration; use m.blackout.signal"):
+        semantics.check_event_allowed(
+            blocked_type,
+            {"body": "legacy"},
+            channel_type="governance",
+        )
+
+    with pytest.raises(ValueError, match="during migration; use m.blackout.signal"):
+        semantics.check_event_allowed(
+            blocked_type,
+            {"body": "legacy"},
+            channel_type="dispute",
         )
 
 

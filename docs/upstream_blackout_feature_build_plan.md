@@ -14,17 +14,17 @@ Feature families were normalized from upstream docs/source folders (for example 
 
 | ID | Feature family (upstream) | Representative upstream paths | Server-impact summary | Scope | Status |
 |---|---|---|---|---|---|
-| U1 | Steganography core pipeline | `src/steganography/*` | Add server-side validation/storage policy hooks for hidden payload metadata and policy enforcement. | required-now | open |
-| U2 | Stego entitlements | `src/steganography/entitlements/*` | Add capability/entitlement checks for stego-enabled event flows. | required-now | open |
+| U1 | Steganography core pipeline | `src/steganography/*` | Add server-side validation/storage policy hooks for hidden payload metadata and policy enforcement. | required-now | complete (Wave 1) |
+| U2 | Stego entitlements | `src/steganography/entitlements/*` | Add capability/entitlement checks for stego-enabled event flows. | required-now | complete (Wave 1) |
 | U3 | Paid rooms / boosts integration | `src/steganography/paidrooms/*`, `src/steganography/boosts/*` | Add server APIs/state for paid-room flags and boost-related governance signals. | required-later | open |
-| U4 | Ephemeral stego policies | `src/steganography/ephemeral/*` | Align retention/expiry behavior with stego payload lifecycle controls. | required-now | open |
+| U4 | Ephemeral stego policies | `src/steganography/ephemeral/*` | Align retention/expiry behavior with stego payload lifecycle controls. | required-now | complete (Wave 1) |
 | U5 | Stego plugin surface | `src/steganography/plugins/*` | Define allowlisted plugin metadata schema + signing/verification policy for interoperability. | required-later | open |
-| U6 | Governance services | `src/services/governance/*`, `src/modules/governance/*` | Add governance event schemas, moderation/voting state, and audit trails in server domain. | required-now | open |
+| U6 | Governance services | `src/services/governance/*`, `src/modules/governance/*` | Add governance event schemas, moderation/voting state, and audit trails in server domain. | required-now | complete (Wave 1) |
 | U7 | Deliberation + task workflows | `src/services/deliberation/*`, `src/modules/education/*` | Add deliberation/task event types and state transitions (proposal -> vote -> execution). | required-later | open |
-| U8 | Delegation + attestations | `src/services/delegation/*`, `src/services/attestations/*` | Add server attestation verification and delegation authorization paths. | required-now | open |
+| U8 | Delegation + attestations | `src/services/delegation/*`, `src/services/attestations/*` | Add server attestation verification and delegation authorization paths. | required-now | complete (Wave 1) |
 | U9 | Townhall/community modules | `src/services/townhall/*`, `src/modules/townhall/*` | Add server primitives for townhall sessions, agendas, and summary artifacts. | required-later | open |
-| U10 | P2P/self-healing transport hooks | `src/p2p/*`, `docs/distributed_self_healing_blueprint.md` | Add compatibility layer for peer-sync metadata and bootstrap/recovery envelopes. | required-now | open |
-| U11 | Ops evidence + SLO artifacts | `docs/operations/*`, `scripts/operations/validate_tracker_evidence.sh` | Mirror upstream evidence requirements in this repo’s runbooks, drill artifacts, and CI checks. | required-now | open |
+| U10 | P2P/self-healing transport hooks | `src/p2p/*`, `docs/distributed_self_healing_blueprint.md` | Add compatibility layer for peer-sync metadata and bootstrap/recovery envelopes. | required-now | complete (Wave 1) |
+| U11 | Ops evidence + SLO artifacts | `docs/operations/*`, `scripts/operations/validate_tracker_evidence.sh` | Mirror upstream evidence requirements in this repo’s runbooks, drill artifacts, and CI checks. | required-now | complete (Wave 1) |
 | U12 | Module/runtime extensibility | `module_system/*`, `src/modules/*` | Define server extension contract and capability negotiation for upstream modules. | required-later | open |
 
 ## 3) Execution waves
@@ -32,6 +32,8 @@ Feature families were normalized from upstream docs/source folders (for example 
 ### Wave 1 (required-now parity foundations)
 
 Targets: U1, U2, U4, U6, U8, U10, U11.
+
+Status update (2026-03-27): **completed**. Wave 1 now includes schema docs under `docs/policy_schemas/`, API/validation test coverage in `blackout_runtime_tests/`, and evidence validation command + CI wiring for U11.
 
 Exit criteria:
 
@@ -42,6 +44,29 @@ Exit criteria:
 ### Wave 2 (required-later high-value integration)
 
 Targets: U3, U7, U9.
+
+Kickoff update (2026-03-27): **in progress (planning active)**.
+
+#### Wave 2 kickoff backlog (implementation-ready)
+
+| ID | Milestone | Owner | Due | Deliverable(s) | Evidence path |
+|---|---|---|---|---|---|
+| U3 | Paid rooms / boosts domain model + flags | Product Integrations Lead | 2026-04-10 | Room-state flags (`paid_room`, `boost_tier`) documented; config-gated validation hooks; abuse constraints for forged boost state. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; implementation + tests (to be added) |
+| U7 | Deliberation workflow state machine | Workflow Services Lead | 2026-04-15 | Event lifecycle contract (`proposal -> vote -> execution`) with transition guard rules and rejection codes. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; workflow tests (to be added) |
+| U9 | Townhall primitives + endpoint shape | Community Platform Lead | 2026-04-20 | Session/agenda/summary event schemas + minimal endpoints behind feature flag. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; endpoint specs/tests (to be added) |
+
+#### Wave 2 rollout sequence
+
+1. **Design freeze** (schema + API contracts + risk controls) by 2026-04-10.
+2. **Prototype implementation** behind explicit feature flags by 2026-04-20.
+3. **Staging hardening + abuse tests** by 2026-04-25.
+4. **Release-candidate gate** with evidence updates by 2026-04-30.
+
+#### Wave 2 risk controls
+
+- Billing/boost integrity: signed/authorized boost-state transitions only; reject out-of-policy state promotions.
+- Governance abuse resistance: enforce transition windows and one-vote semantics in deliberation flows.
+- Moderation safety: townhall session controls must preserve moderator override and emergency lock semantics.
 
 Exit criteria:
 
