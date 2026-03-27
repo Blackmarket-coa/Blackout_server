@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import io
 import os
 import tempfile
@@ -13,10 +14,14 @@ from blackout_runtime.module import (
 )
 from blackout_runtime.server_semantics import (
     ANNOUNCEMENT_POLICY_EVENT,
+    ATTESTATION_EVENT,
     BLACKOUT_CHANNEL_TYPE_EVENT,
+    DELEGATION_GRANT_EVENT,
     GOVERNANCE_PROPOSAL_EVENT,
+    GOVERNANCE_VOTE_EVENT,
+    STEGO_POLICY_EVENT,
 )
-from synapse.api.errors import SynapseError
+from synapse.api.errors import Codes, SynapseError
 
 
 class _DummyUser:
@@ -119,10 +124,12 @@ class _FakeModuleApi:
         return self._requester
 
 
-def _build_module(api: _FakeModuleApi) -> BlackoutRuntimeModule:
+def _build_module(api: _FakeModuleApi, **config: object) -> BlackoutRuntimeModule:
     fd, path = tempfile.mkstemp(suffix=".sqlite3")
     os.close(fd)
-    return BlackoutRuntimeModule({"persistence_path": path}, api)
+    base = {"persistence_path": path}
+    base.update(config)
+    return BlackoutRuntimeModule(base, api)
 
 
 def test_module_registers_callbacks_and_blackout_resource_tree() -> None:
@@ -319,6 +326,303 @@ def test_dead_drop_retention_purge_schedules_and_purges_by_ttl() -> None:
     dd2 = module.get_dead_drop_retention_record("$dd2")
     assert dd1 is not None and dd1["purged_at_ms"] == 2_000
     assert dd2 is not None and dd2["purged_at_ms"] is None
+
+
+def test_stego_signal_requires_entitlement_and_obeys_policy_ttl() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        (STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": True, "max_ttl_hours": 24}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    event = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "blackout_stego": {
+                "carrier": "image",
+                "payload_hash": "abcdef1234567890",
+                "policy_id": "policy-a",
+                "ttl_hours": 12,
+            }
+        },
+        event_id="$stego1",
+    )
+    asyncio.run(module.check_event_allowed(event, state_events))
+    asyncio.run(module.on_new_event(event, state_events))
+    assert module.get_stego_retention_record("$stego1") is not None
+
+    blocked_state_events = {
+        (STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": False, "max_ttl_hours": 24}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    with pytest.raises(SynapseError, match="disabled by room policy"):
+        asyncio.run(module.check_event_allowed(event, blocked_state_events))
+
+    no_entitlement = {(STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": True})}
+    with pytest.raises(SynapseError, match="entitlement required"):
+        asyncio.run(module.check_event_allowed(event, no_entitlement))
+
+
+def test_stego_retention_purge_marks_only_expired_records() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        (STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": True, "max_ttl_hours": 72}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    expired = _DummyEvent(
+        "m.blackout.signal",
+        {"blackout_stego": {"carrier": "image", "payload_hash": "expired-hash-012345", "policy_id": "p1"}},
+        event_id="$stego-expired",
+    )
+    fresh = _DummyEvent(
+        "m.blackout.signal",
+        {"blackout_stego": {"carrier": "audio", "payload_hash": "fresh-hash-01234567", "policy_id": "p1"}},
+        event_id="$stego-fresh",
+    )
+    asyncio.run(module.on_new_event(expired, state_events))
+    asyncio.run(module.on_new_event(fresh, state_events))
+
+    module._conn.execute(
+        "UPDATE blackout_stego_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (1_000, "$stego-expired"),
+    )
+    module._conn.execute(
+        "UPDATE blackout_stego_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (9_999_999, "$stego-fresh"),
+    )
+    module._conn.commit()
+
+    purged = module.run_stego_purge(now_ms=2_000)
+    assert [row["event_id"] for row in purged] == ["$stego-expired"]
+    assert purged[0]["tombstone_event_type"] == "m.blackout.stego.purge"
+
+    expired_row = module.get_stego_retention_record("$stego-expired")
+    fresh_row = module.get_stego_retention_record("$stego-fresh")
+    assert expired_row is not None and expired_row["purged_at_ms"] == 2_000
+    assert fresh_row is not None and fresh_row["purged_at_ms"] is None
+
+
+def test_signal_ttl_and_purge_irretrievability_controls() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(
+        api,
+        blackout_signal_ttl_hours=24,
+        signal_purge_batch_size=10,
+        blackout_purge_interval_minutes=5,
+    )
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    event = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "schema_version": 2,
+            "message_metadata": {
+                "message_id": "m1",
+                "sender_key_id": "k1",
+                "content_class": "control",
+            },
+            "blackout_stego": {
+                "carrier": "image",
+                "payload_hash": "abcdef1234567890",
+                "policy_id": "policy-a",
+            },
+        },
+        event_id="$signal-retain-1",
+    )
+    asyncio.run(module.on_new_event(event, state_events))
+    assert module.get_signal_retention_record("$signal-retain-1") is not None
+    assert module.is_signal_event_retrievable("$signal-retain-1")
+
+    module._conn.execute(
+        "UPDATE blackout_signal_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (1_000, "$signal-retain-1"),
+    )
+    module._conn.commit()
+    purged = module.run_signal_purge(now_ms=2_000)
+    assert [row["event_id"] for row in purged] == ["$signal-retain-1"]
+    assert not module.is_signal_event_retrievable("$signal-retain-1")
+
+
+def test_webrtc_relay_abuse_controls_and_metrics() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api, relay_fallback_limit_per_minute=1)
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+
+    first = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "schema_version": 2,
+            "message_metadata": {
+                "message_id": "w1",
+                "sender_key_id": "k1",
+                "content_class": "webrtc-session",
+            },
+            "turn_usage": {"relay_fallback": True},
+            "blackout_stego": {
+                "carrier": "image",
+                "payload_hash": "abcdef1234567890",
+                "policy_id": "policy-a",
+            },
+        },
+        event_id="$webrtc1",
+    )
+    asyncio.run(module.check_event_allowed(first, state_events))
+
+    second = _DummyEvent(
+        "m.blackout.signal",
+        {
+            "schema_version": 2,
+            "message_metadata": {
+                "message_id": "w2",
+                "sender_key_id": "k1",
+                "content_class": "webrtc-session",
+            },
+            "turn_usage": {"relay_fallback": True},
+            "blackout_stego": {
+                "carrier": "audio",
+                "payload_hash": "abcdef1234567891",
+                "policy_id": "policy-a",
+            },
+        },
+        event_id="$webrtc2",
+    )
+    with pytest.raises(SynapseError, match="Relay fallback rate limit exceeded"):
+        asyncio.run(module.check_event_allowed(second, state_events))
+
+    metrics = module.snapshot_signal_metrics()
+    assert metrics["content_class.webrtc-session.accepted"] >= 1
+    assert metrics["relay_fallback_total"] >= 1
+
+
+def test_migration_blocks_legacy_payloads_with_forbidden_errcode_and_telemetry() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+    }
+
+    blocked = _DummyEvent(
+        "m.room.message",
+        {"body": "legacy message"},
+        event_id="$legacy-msg",
+    )
+    with pytest.raises(SynapseError, match="use m.blackout.signal") as exc:
+        asyncio.run(module.check_event_allowed(blocked, state_events))
+    assert exc.value.errcode == Codes.FORBIDDEN
+
+    blocked_encrypted = _DummyEvent(
+        "m.room.encrypted",
+        {"ciphertext": "legacy encrypted"},
+        event_id="$legacy-enc",
+    )
+    with pytest.raises(SynapseError, match="use m.blackout.signal"):
+        asyncio.run(module.check_event_allowed(blocked_encrypted, state_events))
+
+    metrics = module.snapshot_signal_metrics()
+    assert metrics["migration_blocked.m.room.message"] == 1
+    assert metrics["migration_blocked.m.room.encrypted"] == 1
+
+    anomalies = module.drain_anomaly_events()
+    assert len(anomalies) == 2
+    assert anomalies[0]["type"] == "migration_payload_blocked"
+
+
+def test_governance_vote_requires_known_open_proposal_window() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    room_id = "!gov:test"
+    state = {(BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"})}
+    asyncio.run(
+        module.on_new_event(
+            _DummyEvent(
+                GOVERNANCE_PROPOSAL_EVENT,
+                {
+                    "proposal_id": "p42",
+                    "title": "Ship",
+                    "options": ["yes", "no"],
+                    "opens_at": 0,
+                    "closes_at": 4_000_000_000,
+                },
+                room_id=room_id,
+                event_id="$proposal",
+            ),
+            state,
+        )
+    )
+
+    asyncio.run(
+        module.check_event_allowed(
+            _DummyEvent(
+                GOVERNANCE_VOTE_EVENT,
+                {"proposal_id": "p42", "vote": "yes"},
+                room_id=room_id,
+                event_id="$vote-ok",
+            ),
+            state,
+        )
+    )
+
+    with pytest.raises(SynapseError, match="unknown governance proposal_id"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    GOVERNANCE_VOTE_EVENT,
+                    {"proposal_id": "missing", "vote": "yes"},
+                    room_id=room_id,
+                    event_id="$vote-missing",
+                ),
+                state,
+            )
+        )
+
+
+def test_attestation_requires_delegated_scope_and_valid_proof() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+    module._attestation_secret = "test-secret"
+
+    good_proof = hashlib.sha256("node-1:@alice:test:test-secret".encode("utf-8")).hexdigest()
+    event = _DummyEvent(
+        ATTESTATION_EVENT,
+        {"node_id": "node-1", "subject_user_id": "@alice:test", "proof": good_proof},
+        sender="@delegate:test",
+    )
+    state = {
+        (DELEGATION_GRANT_EVENT, "@delegate:test"): _DummyStateEvent(
+            {"delegate": "@delegate:test", "scopes": ["attestation:write"], "expires_at": 9_999_999}
+        )
+    }
+    asyncio.run(module.check_event_allowed(event, state))
+
+    with pytest.raises(SynapseError, match="verification failed"):
+        asyncio.run(
+            module.check_event_allowed(
+                _DummyEvent(
+                    ATTESTATION_EVENT,
+                    {
+                        "node_id": "node-1",
+                        "subject_user_id": "@alice:test",
+                        "proof": "badbadbadbadbadbadbadbadbadbadba",
+                    },
+                    sender="@delegate:test",
+                ),
+                state,
+            )
+        )
+
+    with pytest.raises(SynapseError, match="Delegation scope required"):
+        asyncio.run(module.check_event_allowed(event, {}))
 
 
 def test_announcement_room_sender_restrictions_enforced() -> None:
