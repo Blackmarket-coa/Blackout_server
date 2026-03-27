@@ -11,6 +11,9 @@ import pytest
 from blackout_runtime.module import (
     BLACKOUT_PRESENCE_ACCOUNT_DATA_TYPE,
     BlackoutRuntimeModule,
+    PLUGIN_POLICY_EVENT_TYPE,
+    PLUGIN_REGISTER_EVENT_TYPE,
+    RUNTIME_EXTENSION_EVENT_TYPE,
 )
 from blackout_runtime.server_semantics import (
     ANNOUNCEMENT_POLICY_EVENT,
@@ -759,6 +762,158 @@ def test_announcement_room_sender_restrictions_enforced() -> None:
     )
     assert allowed is True
     assert replacement_dict is None
+
+
+def test_plugin_registration_enforces_allowlist_signature_revocation_and_capabilities() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api, plugin_signature_secret="plugin-secret")
+    capabilities = ["stego:encode"]
+    good_signature = hashlib.sha256(
+        "plugin-alpha:1.0.0:key-1:stego:encode:plugin-secret".encode("utf-8")
+    ).hexdigest()
+    state_events = {
+        (PLUGIN_POLICY_EVENT_TYPE, ""): _DummyStateEvent(
+            {
+                "allowlisted_plugins": ["plugin-alpha"],
+                "revoked_signing_key_ids": ["revoked-key"],
+                "trusted_capabilities": ["stego:encode", "stego:decode"],
+            }
+        ),
+    }
+    allowed = _DummyEvent(
+        PLUGIN_REGISTER_EVENT_TYPE,
+        {
+            "plugin_id": "plugin-alpha",
+            "plugin_version": "1.0.0",
+            "capabilities": capabilities,
+            "signing_key_id": "key-1",
+            "signature": good_signature,
+        },
+        event_id="$plugin-ok",
+    )
+    asyncio.run(module.check_event_allowed(allowed, state_events))
+
+    revoked = _DummyEvent(
+        PLUGIN_REGISTER_EVENT_TYPE,
+        {
+            "plugin_id": "plugin-alpha",
+            "plugin_version": "1.0.0",
+            "capabilities": capabilities,
+            "signing_key_id": "revoked-key",
+            "signature": good_signature,
+        },
+        event_id="$plugin-revoked",
+    )
+    with pytest.raises(SynapseError, match="signing key has been revoked"):
+        asyncio.run(module.check_event_allowed(revoked, state_events))
+
+    not_allowlisted = _DummyEvent(
+        PLUGIN_REGISTER_EVENT_TYPE,
+        {
+            "plugin_id": "plugin-beta",
+            "plugin_version": "1.0.0",
+            "capabilities": capabilities,
+            "signing_key_id": "key-1",
+            "signature": good_signature,
+        },
+        event_id="$plugin-not-allowlisted",
+    )
+    with pytest.raises(SynapseError, match="not allowlisted"):
+        asyncio.run(module.check_event_allowed(not_allowlisted, state_events))
+
+    untrusted_capability = _DummyEvent(
+        PLUGIN_REGISTER_EVENT_TYPE,
+        {
+            "plugin_id": "plugin-alpha",
+            "plugin_version": "1.0.0",
+            "capabilities": ["stego:encode", "dangerous:admin"],
+            "signing_key_id": "key-1",
+            "signature": good_signature,
+        },
+        event_id="$plugin-untrusted-capability",
+    )
+    with pytest.raises(SynapseError, match="outside trust policy"):
+        asyncio.run(module.check_event_allowed(untrusted_capability, state_events))
+
+    bad_signature = _DummyEvent(
+        PLUGIN_REGISTER_EVENT_TYPE,
+        {
+            "plugin_id": "plugin-alpha",
+            "plugin_version": "1.0.0",
+            "capabilities": capabilities,
+            "signing_key_id": "key-1",
+            "signature": "deadbeef",
+        },
+        event_id="$plugin-bad-signature",
+    )
+    with pytest.raises(SynapseError, match="signature verification failed"):
+        asyncio.run(module.check_event_allowed(bad_signature, state_events))
+
+
+def test_runtime_extension_activation_requires_gate_contract_and_capability_negotiation() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(
+        api,
+        blackout_enable_runtime_extensions=True,
+        supported_extension_contract_versions=[2],
+        supported_runtime_capabilities=["stego:processor", "governance:hooks"],
+    )
+
+    allowed = _DummyEvent(
+        RUNTIME_EXTENSION_EVENT_TYPE,
+        {
+            "extension_id": "ext-safe",
+            "contract_version": 2,
+            "requested_capabilities": ["stego:processor"],
+        },
+        event_id="$ext-ok",
+    )
+    asyncio.run(module.check_event_allowed(allowed, {}))
+
+    incompatible_contract = _DummyEvent(
+        RUNTIME_EXTENSION_EVENT_TYPE,
+        {
+            "extension_id": "ext-legacy",
+            "contract_version": 1,
+            "requested_capabilities": ["stego:processor"],
+        },
+        event_id="$ext-contract-bad",
+    )
+    with pytest.raises(SynapseError, match="contract_version is incompatible"):
+        asyncio.run(module.check_event_allowed(incompatible_contract, {}))
+
+    unsupported_capability = _DummyEvent(
+        RUNTIME_EXTENSION_EVENT_TYPE,
+        {
+            "extension_id": "ext-unsafe",
+            "contract_version": 2,
+            "requested_capabilities": ["admin:root"],
+        },
+        event_id="$ext-capability-bad",
+    )
+    with pytest.raises(SynapseError, match="unsupported capabilities"):
+        asyncio.run(module.check_event_allowed(unsupported_capability, {}))
+
+    disabled_api = _FakeModuleApi()
+    disabled_module = _build_module(
+        disabled_api,
+        blackout_enable_runtime_extensions=False,
+    )
+    with pytest.raises(SynapseError, match="disabled by configuration"):
+        asyncio.run(
+            disabled_module.check_event_allowed(
+                _DummyEvent(
+                    RUNTIME_EXTENSION_EVENT_TYPE,
+                    {
+                        "extension_id": "ext-disabled",
+                        "contract_version": 1,
+                        "requested_capabilities": ["stego:processor"],
+                    },
+                    event_id="$ext-disabled",
+                ),
+                {},
+            )
+        )
 
 
 def test_announcement_fanout_role_and_delay_policy_gating() -> None:
