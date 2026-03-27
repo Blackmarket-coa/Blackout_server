@@ -51,9 +51,9 @@ Kickoff update (2026-03-27): **in progress (planning active)**.
 
 | ID | Milestone | Owner | Due | Deliverable(s) | Evidence path |
 |---|---|---|---|---|---|
-| U3 | Paid rooms / boosts domain model + flags | Product Integrations Lead | 2026-04-10 | Room-state flags (`paid_room`, `boost_tier`) documented; config-gated validation hooks; abuse constraints for forged boost state. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; implementation + tests (to be added) |
-| U7 | Deliberation workflow state machine | Workflow Services Lead | 2026-04-15 | Event lifecycle contract (`proposal -> vote -> execution`) with transition guard rules and rejection codes. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; workflow tests (to be added) |
-| U9 | Townhall primitives + endpoint shape | Community Platform Lead | 2026-04-20 | Session/agenda/summary event schemas + minimal endpoints behind feature flag. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; endpoint specs/tests (to be added) |
+| U3 | Paid rooms / boosts domain model + flags | Product Integrations Lead | 2026-04-10 | Room-state flags (`paid_room`, `boost_tier`) documented; config-gated validation hooks; abuse constraints for forged boost state. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; `docs/development/wave2_u3_u7_u9_kickoff_plan.md`; implementation + tests (to be added) |
+| U7 | Deliberation workflow state machine | Workflow Services Lead | 2026-04-15 | Event lifecycle contract (`proposal -> vote -> execution`) with transition guard rules and rejection codes. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; `docs/development/wave2_u3_u7_u9_kickoff_plan.md`; workflow tests (to be added) |
+| U9 | Townhall primitives + endpoint shape | Community Platform Lead | 2026-04-20 | Session/agenda/summary event schemas + minimal endpoints behind feature flag. | `docs/upstream_blackout_feature_build_plan.md`; `docs/development/blackout_upstream_feature_matrix.md`; `docs/development/wave2_u3_u7_u9_kickoff_plan.md`; endpoint specs/tests (to be added) |
 
 #### Wave 2 rollout sequence
 
