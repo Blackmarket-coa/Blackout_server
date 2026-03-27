@@ -35,6 +35,8 @@ jobs:
         run: python scripts-dev/check_release_train_gate.py
       - name: Run divergence marker gate
         run: python scripts-dev/check_divergence_markers.py
+      - name: Run tracker evidence validator
+        run: bash scripts-dev/blackout/validate_tracker_evidence.sh
       - name: Run hosting profile smoke checks
         run: python scripts-dev/blackout/ci_hosting_smoke.py
       - name: Run managed readiness integration smoke
