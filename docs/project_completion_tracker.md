@@ -266,8 +266,9 @@ keeps implementation evidence tied to canonical project docs.
   - due: 2026-03-29
   - Action: maintain full upstream feature inventory (U1-U12) and per-feature support status in server tracker artifacts.
   - Action: publish wave-based build plan with AI prompt pack and command-level validation steps.
+  - Action: run one-command tracker evidence validation for reliability/SLO/drill artifacts.
   - exit criteria (measurable): `docs/upstream_blackout_feature_build_plan.md` and `docs/development/blackout_upstream_feature_matrix.md` exist, are linked from tracker docs, and each U1-U12 row has support status with owner/due/exit/evidence metadata for non-complete states.
-  - evidence: `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5; U1-U12 inventory with scope/status/server-impact, wave plan, prompt pack, and validation command bundle); `docs/development/blackout_upstream_feature_matrix.md`
+  - evidence: `docs/upstream_blackout_feature_build_plan.md` (Sections 2-5; U1-U12 inventory with scope/status/server-impact, wave plan, prompt pack, and validation command bundle); `docs/development/blackout_upstream_feature_matrix.md`; `scripts-dev/blackout/validate_tracker_evidence.sh`
 
 - [x] [required-now] **G1/G2/G3 compliance closure**
   - owner: Release Engineering Lead

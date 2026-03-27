@@ -181,6 +181,9 @@ rg -n "^- \[ \]" docs/distributed_self_healing_blueprint.md
 
 # 4) marker budget sanity
 python scripts-dev/check_marker_budget.py
+
+# 5) upstream tracker evidence validation (U11 parity)
+bash scripts-dev/blackout/validate_tracker_evidence.sh
 ```
 
 ## 5) Definition of completion for this prompt pack

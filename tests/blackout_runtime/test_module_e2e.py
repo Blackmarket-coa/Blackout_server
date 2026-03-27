@@ -38,13 +38,25 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             },
         )
 
-        vote = self.make_request(
-            "PUT",
-            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.vote/1",
-            {"proposal_id": "p1", "vote": "yes", "decision": "accepted"},
-            access_token=self.tok,
+        self.helper.send_event(
+            room_id,
+            "m.blackout.governance.proposal",
+            {
+                "proposal_id": "p1",
+                "title": "Activate",
+                "options": ["yes", "no"],
+                "opens_at": 0,
+                "closes_at": 4_000_000_000,
+            },
+            tok=self.tok,
         )
-        self.assertEqual(vote.code, 200, vote.result)
+
+        self.helper.send_event(
+            room_id,
+            "m.blackout.governance.vote",
+            {"proposal_id": "p1", "vote": "yes", "decision": "accepted"},
+            tok=self.tok,
+        )
 
         decisions = self.make_request(
             "GET",
@@ -85,13 +97,25 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             },
         )
 
-        first_vote = self.make_request(
-            "PUT",
-            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.governance.vote/10",
-            {"proposal_id": "p2", "vote": "yes", "decision": "accepted"},
-            access_token=self.tok,
+        self.helper.send_event(
+            room_id,
+            "m.blackout.governance.proposal",
+            {
+                "proposal_id": "p2",
+                "title": "Route",
+                "options": ["yes", "no"],
+                "opens_at": 0,
+                "closes_at": 4_000_000_000,
+            },
+            tok=self.tok,
         )
-        self.assertEqual(first_vote.code, 200, first_vote.result)
+
+        self.helper.send_event(
+            room_id,
+            "m.blackout.governance.vote",
+            {"proposal_id": "p2", "vote": "yes", "decision": "accepted"},
+            tok=self.tok,
+        )
 
         second_vote = self.make_request(
             "PUT",
@@ -100,3 +124,77 @@ class BlackoutRuntimeModuleE2ETestCase(HomeserverTestCase):
             access_token=self.tok,
         )
         self.assertEqual(second_vote.code, 403, second_vote.result)
+
+    def test_stego_policy_and_entitlement_are_enforced_for_signal_events(self) -> None:
+        room_id = self.helper.create_room_as(
+            self.user_id,
+            tok=self.tok,
+            is_public=False,
+            extra_content={
+                "creation_content": {"m.blackout.channel.type": "governance"}
+            },
+        )
+
+        self.helper.send_state(
+            room_id,
+            "m.blackout.stego.policy",
+            {"allow_stego": True, "max_ttl_hours": 24},
+            tok=self.tok,
+        )
+
+        self.helper.send_state(
+            room_id,
+            "m.blackout.entitlements",
+            {self.user_id: ["stego:send"]},
+            tok=self.tok,
+        )
+
+        allowed = self.make_request(
+            "PUT",
+            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.signal/21",
+            {
+                "schema_version": 2,
+                "message_metadata": {
+                    "message_id": "m1",
+                    "sender_key_id": "k1",
+                    "content_class": "control",
+                },
+                "blackout_stego": {
+                    "carrier": "image",
+                    "payload_hash": "abcdef1234567890",
+                    "policy_id": "policy-1",
+                    "ttl_hours": 12,
+                }
+            },
+            access_token=self.tok,
+        )
+        self.assertEqual(allowed.code, 200, allowed.result)
+
+        revoked = self.helper.send_state(
+            room_id,
+            "m.blackout.entitlements",
+            {},
+            tok=self.tok,
+        )
+        self.assertIn("event_id", revoked)
+
+        blocked = self.make_request(
+            "PUT",
+            f"/_matrix/client/v3/rooms/{room_id}/send/m.blackout.signal/22",
+            {
+                "schema_version": 2,
+                "message_metadata": {
+                    "message_id": "m2",
+                    "sender_key_id": "k1",
+                    "content_class": "control",
+                },
+                "blackout_stego": {
+                    "carrier": "image",
+                    "payload_hash": "abcdef1234567890",
+                    "policy_id": "policy-1",
+                    "ttl_hours": 12,
+                }
+            },
+            access_token=self.tok,
+        )
+        self.assertEqual(blocked.code, 403, blocked.result)

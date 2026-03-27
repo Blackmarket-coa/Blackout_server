@@ -186,3 +186,33 @@ class BlackoutSignalSchemaValidationTestCase(unittest.TestCase):
                     "sdp_offer": {"type": "offer", "sdp": "x" * (70 * 1024)},
                 }
             )
+
+    def test_accepts_blackout_stego_extension_field(self) -> None:
+        validate_blackout_signal_content(
+            {
+                "schema_version": 2,
+                "message_metadata": {
+                    "message_id": "m1",
+                    "sender_key_id": "ed25519:dev1",
+                    "content_class": "control",
+                },
+                "blackout_stego": {
+                    "carrier": "image",
+                    "payload_hash": "abcdef1234567890",
+                    "policy_id": "policy-1",
+                },
+            }
+        )
+
+    def test_content_class_requires_matching_payload_shape(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_blackout_signal_content(
+                {
+                    "schema_version": 2,
+                    "message_metadata": {
+                        "message_id": "m1",
+                        "sender_key_id": "ed25519:dev1",
+                        "content_class": "chunk-announcement",
+                    },
+                }
+            )
