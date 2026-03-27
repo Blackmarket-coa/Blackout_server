@@ -363,6 +363,48 @@ def test_stego_signal_requires_entitlement_and_obeys_policy_ttl() -> None:
         asyncio.run(module.check_event_allowed(event, no_entitlement))
 
 
+def test_stego_retention_purge_marks_only_expired_records() -> None:
+    api = _FakeModuleApi()
+    module = _build_module(api)
+
+    state_events = {
+        (BLACKOUT_CHANNEL_TYPE_EVENT, ""): _DummyStateEvent({"channel_type": "governance"}),
+        (STEGO_POLICY_EVENT, ""): _DummyStateEvent({"allow_stego": True, "max_ttl_hours": 72}),
+        ("m.blackout.entitlements", ""): _DummyStateEvent({"@alice:test": ["stego:send"]}),
+    }
+    expired = _DummyEvent(
+        "m.blackout.signal",
+        {"blackout_stego": {"carrier": "image", "payload_hash": "expired-hash-012345", "policy_id": "p1"}},
+        event_id="$stego-expired",
+    )
+    fresh = _DummyEvent(
+        "m.blackout.signal",
+        {"blackout_stego": {"carrier": "audio", "payload_hash": "fresh-hash-01234567", "policy_id": "p1"}},
+        event_id="$stego-fresh",
+    )
+    asyncio.run(module.on_new_event(expired, state_events))
+    asyncio.run(module.on_new_event(fresh, state_events))
+
+    module._conn.execute(
+        "UPDATE blackout_stego_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (1_000, "$stego-expired"),
+    )
+    module._conn.execute(
+        "UPDATE blackout_stego_retention SET expires_at_ms = ? WHERE event_id = ?",
+        (9_999_999, "$stego-fresh"),
+    )
+    module._conn.commit()
+
+    purged = module.run_stego_purge(now_ms=2_000)
+    assert [row["event_id"] for row in purged] == ["$stego-expired"]
+    assert purged[0]["tombstone_event_type"] == "m.blackout.stego.purge"
+
+    expired_row = module.get_stego_retention_record("$stego-expired")
+    fresh_row = module.get_stego_retention_record("$stego-fresh")
+    assert expired_row is not None and expired_row["purged_at_ms"] == 2_000
+    assert fresh_row is not None and fresh_row["purged_at_ms"] is None
+
+
 def test_governance_vote_requires_known_open_proposal_window() -> None:
     api = _FakeModuleApi()
     module = _build_module(api)
