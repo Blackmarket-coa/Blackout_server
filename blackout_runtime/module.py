@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import hmac
 import sqlite3
 import time
 from collections import defaultdict, deque
@@ -1349,12 +1350,10 @@ class BlackoutRuntimeModule:
             )
             raise SynapseError(403, "Plugin registration policy is required")
 
-        allowlisted_plugins = policy_content.get("allowlisted_plugins")
-        if (
-            not isinstance(allowlisted_plugins, Sequence)
-            or isinstance(allowlisted_plugins, (str, bytes))
-            or plugin_id not in allowlisted_plugins
-        ):
+        allowlisted_plugins = self._coerce_string_list(
+            policy_content.get("allowlisted_plugins")
+        )
+        if allowlisted_plugins is None or plugin_id not in allowlisted_plugins:
             self._anomaly_events.append(
                 {
                     "ts": int(time.time()),
@@ -1366,12 +1365,10 @@ class BlackoutRuntimeModule:
             )
             raise SynapseError(403, "Plugin is not allowlisted for registration")
 
-        revoked_signing_keys = policy_content.get("revoked_signing_key_ids")
-        if (
-            isinstance(revoked_signing_keys, Sequence)
-            and not isinstance(revoked_signing_keys, (str, bytes))
-            and signing_key_id in revoked_signing_keys
-        ):
+        revoked_signing_keys = self._coerce_string_list(
+            policy_content.get("revoked_signing_key_ids")
+        )
+        if revoked_signing_keys is not None and signing_key_id in revoked_signing_keys:
             self._anomaly_events.append(
                 {
                     "ts": int(time.time()),
@@ -1384,11 +1381,11 @@ class BlackoutRuntimeModule:
             )
             raise SynapseError(403, "Plugin signing key has been revoked")
 
-        trusted_capabilities = policy_content.get("trusted_capabilities")
-        if (
-            isinstance(trusted_capabilities, Sequence)
-            and not isinstance(trusted_capabilities, (str, bytes))
-            and any(capability not in trusted_capabilities for capability in capabilities)
+        trusted_capabilities = self._coerce_string_list(
+            policy_content.get("trusted_capabilities")
+        )
+        if trusted_capabilities is not None and any(
+            capability not in trusted_capabilities for capability in capabilities
         ):
             self._anomaly_events.append(
                 {
@@ -1401,12 +1398,15 @@ class BlackoutRuntimeModule:
             )
             raise SynapseError(403, "Plugin requests a capability outside trust policy")
 
-        expected_signature = hashlib.sha256(
-            f"{plugin_id}:{plugin_version}:{signing_key_id}:{','.join(capabilities)}:{self._plugin_signature_secret}".encode(
+        canonical_capabilities = sorted(capabilities)
+        expected_signature = hmac.new(
+            self._plugin_signature_secret.encode("utf-8"),
+            f"{plugin_id}:{plugin_version}:{signing_key_id}:{','.join(canonical_capabilities)}".encode(
                 "utf-8"
-            )
+            ),
+            hashlib.sha256,
         ).hexdigest()
-        if signature != expected_signature:
+        if not hmac.compare_digest(signature, expected_signature):
             self._anomaly_events.append(
                 {
                     "ts": int(time.time()),
@@ -1430,7 +1430,7 @@ class BlackoutRuntimeModule:
 
         if not isinstance(extension_id, str) or not extension_id:
             raise SynapseError(403, "Runtime extension requires extension_id")
-        if not isinstance(contract_version, int):
+        if not isinstance(contract_version, int) or isinstance(contract_version, bool):
             raise SynapseError(403, "Runtime extension requires integer contract_version")
         if contract_version not in self._supported_extension_contract_versions:
             raise SynapseError(
@@ -1440,6 +1440,7 @@ class BlackoutRuntimeModule:
         if (
             not isinstance(requested_capabilities, Sequence)
             or isinstance(requested_capabilities, (str, bytes))
+            or not requested_capabilities
             or any(
                 not isinstance(capability, str) or not capability
                 for capability in requested_capabilities
@@ -1459,6 +1460,14 @@ class BlackoutRuntimeModule:
                 403,
                 f"Runtime extension requested unsupported capabilities: {unsupported}",
             )
+
+    @staticmethod
+    def _coerce_string_list(value: object) -> Optional[List[str]]:
+        if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+            return None
+        if any(not isinstance(item, str) or not item for item in value):
+            return None
+        return list(value)
 
     @staticmethod
     def _enforce_attestation_scope(sender: str, state_events: StateMap[Any]) -> None:

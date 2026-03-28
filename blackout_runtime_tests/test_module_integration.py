@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import io
 import os
 import tempfile
@@ -768,8 +769,10 @@ def test_plugin_registration_enforces_allowlist_signature_revocation_and_capabil
     api = _FakeModuleApi()
     module = _build_module(api, plugin_signature_secret="plugin-secret")
     capabilities = ["stego:encode"]
-    good_signature = hashlib.sha256(
-        "plugin-alpha:1.0.0:key-1:stego:encode:plugin-secret".encode("utf-8")
+    good_signature = hmac.new(
+        b"plugin-secret",
+        b"plugin-alpha:1.0.0:key-1:stego:encode",
+        hashlib.sha256,
     ).hexdigest()
     state_events = {
         (PLUGIN_POLICY_EVENT_TYPE, ""): _DummyStateEvent(
@@ -849,6 +852,41 @@ def test_plugin_registration_enforces_allowlist_signature_revocation_and_capabil
     with pytest.raises(SynapseError, match="signature verification failed"):
         asyncio.run(module.check_event_allowed(bad_signature, state_events))
 
+    reordered_signature = _DummyEvent(
+        PLUGIN_REGISTER_EVENT_TYPE,
+        {
+            "plugin_id": "plugin-alpha",
+            "plugin_version": "1.0.0",
+            "capabilities": ["stego:decode", "stego:encode"],
+            "signing_key_id": "key-1",
+            "signature": hmac.new(
+                b"plugin-secret",
+                b"plugin-alpha:1.0.0:key-1:stego:decode,stego:encode",
+                hashlib.sha256,
+            ).hexdigest(),
+        },
+        event_id="$plugin-sorted-signature",
+    )
+    ordered_policy_state = {
+        (PLUGIN_POLICY_EVENT_TYPE, ""): _DummyStateEvent(
+            {
+                "allowlisted_plugins": ["plugin-alpha"],
+                "trusted_capabilities": ["stego:encode", "stego:decode"],
+            }
+        ),
+    }
+    asyncio.run(module.check_event_allowed(reordered_signature, ordered_policy_state))
+
+    malformed_policy = {
+        (PLUGIN_POLICY_EVENT_TYPE, ""): _DummyStateEvent(
+            {
+                "allowlisted_plugins": ["plugin-alpha", 5],
+            }
+        ),
+    }
+    with pytest.raises(SynapseError, match="not allowlisted"):
+        asyncio.run(module.check_event_allowed(allowed, malformed_policy))
+
 
 def test_runtime_extension_activation_requires_gate_contract_and_capability_negotiation() -> None:
     api = _FakeModuleApi()
@@ -893,6 +931,30 @@ def test_runtime_extension_activation_requires_gate_contract_and_capability_nego
     )
     with pytest.raises(SynapseError, match="unsupported capabilities"):
         asyncio.run(module.check_event_allowed(unsupported_capability, {}))
+
+    bool_contract = _DummyEvent(
+        RUNTIME_EXTENSION_EVENT_TYPE,
+        {
+            "extension_id": "ext-bool",
+            "contract_version": True,
+            "requested_capabilities": ["stego:processor"],
+        },
+        event_id="$ext-contract-bool",
+    )
+    with pytest.raises(SynapseError, match="requires integer contract_version"):
+        asyncio.run(module.check_event_allowed(bool_contract, {}))
+
+    empty_capabilities = _DummyEvent(
+        RUNTIME_EXTENSION_EVENT_TYPE,
+        {
+            "extension_id": "ext-empty",
+            "contract_version": 2,
+            "requested_capabilities": [],
+        },
+        event_id="$ext-capability-empty",
+    )
+    with pytest.raises(SynapseError, match="requested_capabilities must be a list"):
+        asyncio.run(module.check_event_allowed(empty_capabilities, {}))
 
     disabled_api = _FakeModuleApi()
     disabled_module = _build_module(
