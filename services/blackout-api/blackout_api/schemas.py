@@ -73,3 +73,20 @@ class MessageOut(BaseModel):
     sender_app_user_id: str
     body: str
     created_at: datetime
+
+
+class UserRegisterRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=8)
+
+
+class UserLoginRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1)
+
+
+class UserAuthOut(BaseModel):
+    app_user_id: str
+    matrix_user_id: str
+    token: str
+    matrix_access_token: str

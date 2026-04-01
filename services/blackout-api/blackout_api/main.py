@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import httpx
 import jwt
 from alembic import command
 from alembic.config import Config
@@ -13,7 +14,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocke
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .db import ChannelMap, MembershipMap, Message, ServerMap, get_db
+from .db import ChannelMap, MembershipMap, Message, ServerMap, UserMap, get_db
 from .schemas import (
     ChannelCreateRequest,
     ChannelOut,
@@ -25,15 +26,19 @@ from .schemas import (
     ServerCreateRequest,
     ServerOut,
     ServerPatchRequest,
+    UserAuthOut,
+    UserLoginRequest,
+    UserRegisterRequest,
 )
 
-app = FastAPI(title="Blackout API", version="0.2.0")
+app = FastAPI(title="Blackout API", version="0.3.0")
 
 JWT_SECRET = os.getenv("BLACKOUT_API_JWT_SECRET", "change-me")
 JWT_ALGORITHM = os.getenv("BLACKOUT_API_JWT_ALGORITHM", "HS256")
 JWT_AUDIENCE = os.getenv("BLACKOUT_API_JWT_AUDIENCE", "blackout-api")
 JWT_ISSUER = os.getenv("BLACKOUT_API_JWT_ISSUER", "blackout-auth")
 RUN_MIGRATIONS = os.getenv("BLACKOUT_API_RUN_MIGRATIONS", "true").lower() == "true"
+SYNAPSE_URL = os.getenv("BLACKOUT_API_SYNAPSE_URL", "http://localhost:8008")
 
 
 @app.on_event("startup")
@@ -69,6 +74,29 @@ class GatewayManager:
 manager = GatewayManager()
 
 
+def _mint_jwt(sub: str, role: str = "member") -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": sub,
+        "role": role,
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
+        "exp": now + timedelta(hours=24),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def _decode_jwt(token: str) -> dict:
+    return jwt.decode(
+        token,
+        JWT_SECRET,
+        algorithms=[JWT_ALGORITHM],
+        audience=JWT_AUDIENCE,
+        issuer=JWT_ISSUER,
+        options={"require": ["exp", "aud", "iss", "sub"]},
+    )
+
+
 def require_auth(
     authorization: str = Header(default="", alias="Authorization"),
     matrix_access_token: str = Header(default="", alias="X-Matrix-Access-Token"),
@@ -78,14 +106,7 @@ def require_auth(
     token = authorization.split(" ", 1)[1]
 
     try:
-        payload = jwt.decode(
-            token,
-            JWT_SECRET,
-            algorithms=[JWT_ALGORITHM],
-            audience=JWT_AUDIENCE,
-            issuer=JWT_ISSUER,
-            options={"require": ["exp", "aud", "iss", "sub"]},
-        )
+        payload = _decode_jwt(token)
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=401, detail="Invalid token") from exc
 
@@ -96,6 +117,18 @@ def require_auth(
         "sub": str(payload["sub"]),
         "matrix_access_token": matrix_access_token,
     }
+
+
+def _upsert_user_map(db: Session, matrix_user_id: str) -> str:
+    existing = db.execute(
+        select(UserMap).where(UserMap.matrix_user_id == matrix_user_id)
+    ).scalar_one_or_none()
+    if existing:
+        return existing.app_user_id
+    app_user_id = str(uuid.uuid4())
+    db.add(UserMap(app_user_id=app_user_id, matrix_user_id=matrix_user_id, status="active"))
+    db.commit()
+    return app_user_id
 
 
 def get_server_or_404(db: Session, server_id: str) -> ServerMap:
@@ -139,6 +172,80 @@ def get_channel_or_404(db: Session, channel_id: str) -> ChannelMap:
 @app.get("/healthz")
 def health() -> Dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/v1/users/register", response_model=UserAuthOut)
+async def register_user(
+    payload: UserRegisterRequest,
+    db: Session = Depends(get_db),
+) -> Dict[str, str]:
+    async with httpx.AsyncClient() as client:
+        r1 = await client.post(
+            f"{SYNAPSE_URL}/_matrix/client/v3/register",
+            json={"username": payload.username, "password": payload.password},
+        )
+        if r1.status_code == 200:
+            data = r1.json()
+        elif r1.status_code == 401:
+            session = r1.json().get("session")
+            r2 = await client.post(
+                f"{SYNAPSE_URL}/_matrix/client/v3/register",
+                json={
+                    "username": payload.username,
+                    "password": payload.password,
+                    "auth": {"type": "m.login.dummy", "session": session},
+                },
+            )
+            if r2.status_code != 200:
+                raise HTTPException(
+                    status_code=400, detail=r2.json().get("error", "Registration failed")
+                )
+            data = r2.json()
+        else:
+            raise HTTPException(
+                status_code=400, detail=r1.json().get("error", "Registration failed")
+            )
+
+    matrix_user_id: str = data["user_id"]
+    matrix_access_token: str = data["access_token"]
+    app_user_id = _upsert_user_map(db, matrix_user_id)
+
+    return {
+        "app_user_id": app_user_id,
+        "matrix_user_id": matrix_user_id,
+        "token": _mint_jwt(app_user_id),
+        "matrix_access_token": matrix_access_token,
+    }
+
+
+@app.post("/v1/users/login", response_model=UserAuthOut)
+async def login_user(
+    payload: UserLoginRequest,
+    db: Session = Depends(get_db),
+) -> Dict[str, str]:
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"{SYNAPSE_URL}/_matrix/client/v3/login",
+            json={
+                "type": "m.login.password",
+                "identifier": {"type": "m.id.user", "user": payload.username},
+                "password": payload.password,
+            },
+        )
+        if r.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        data = r.json()
+
+    matrix_user_id: str = data["user_id"]
+    matrix_access_token: str = data["access_token"]
+    app_user_id = _upsert_user_map(db, matrix_user_id)
+
+    return {
+        "app_user_id": app_user_id,
+        "matrix_user_id": matrix_user_id,
+        "token": _mint_jwt(app_user_id),
+        "matrix_access_token": matrix_access_token,
+    }
 
 
 @app.post("/v1/servers", response_model=ServerOut)
@@ -356,6 +463,17 @@ async def post_message(
     channel = get_channel_or_404(db, channel_id)
     require_server_membership(db, channel.app_server_id, auth["sub"])
 
+    txn_id = str(uuid.uuid4()).replace("-", "")
+    async with httpx.AsyncClient() as client:
+        synapse_resp = await client.put(
+            f"{SYNAPSE_URL}/_matrix/client/v3/rooms/{channel.matrix_room_id}"
+            f"/send/m.room.message/{txn_id}",
+            headers={"Authorization": f"Bearer {auth['matrix_access_token']}"},
+            json={"msgtype": "m.text", "body": payload.body},
+        )
+    if synapse_resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Failed to forward message to Synapse")
+
     message = Message(
         message_id=str(uuid.uuid4()),
         app_channel_id=channel_id,
@@ -371,6 +489,14 @@ async def post_message(
 
 @app.websocket("/gateway")
 async def gateway(websocket: WebSocket) -> None:
+    token = websocket.query_params.get("token", "")
+    try:
+        if not token:
+            raise jwt.InvalidTokenError("missing token")
+        _decode_jwt(token)
+    except jwt.PyJWTError:
+        await websocket.close(code=4001)
+        return
     await manager.connect(websocket)
     try:
         while True:
@@ -378,16 +504,3 @@ async def gateway(websocket: WebSocket) -> None:
             await websocket.send_json({"type": "ack"})
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-
-
-def mint_dev_token(sub: str, role: str = "member") -> str:
-    """Helper for local testing only."""
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": sub,
-        "role": role,
-        "iss": JWT_ISSUER,
-        "aud": JWT_AUDIENCE,
-        "exp": now + timedelta(hours=1),
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
