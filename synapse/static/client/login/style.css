@@ -125,3 +125,42 @@ form {
     margin-bottom: 14px;
     min-height: 20px;
 }
+
+.post_login_options {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.post_login_option {
+    display: block;
+    text-decoration: none;
+    border: 1px solid #d8dff1;
+    border-radius: 12px;
+    background: #f8faff;
+    padding: 12px;
+}
+
+.post_login_option:hover {
+    border-color: #4659df;
+    box-shadow: 0 6px 18px rgba(70, 89, 223, 0.15);
+}
+
+.option_title {
+    display: block;
+    font-weight: 600;
+    color: #1d2b44;
+}
+
+.option_hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.86rem;
+    color: #5a6a88;
+}
+
+.post_login_message {
+    margin: 12px 0 0;
+    font-size: 0.9rem;
+    color: #32425f;
+}

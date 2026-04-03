@@ -116,6 +116,7 @@ function bindFlowSelector() {
 }
 
 function showLogin(inhibitRedirect) {
+    $("#post_login_flow").hide();
     setTitle(TITLE_PRE_AUTH);
 
     // If inhibitRedirect is false, and SSO is the only supported login method,
@@ -164,7 +165,40 @@ function showLogin(inhibitRedirect) {
 /*
  * Hides the forms and shows a loading throbber.
  */
+
+/*
+ * Show post-login actions for a default successful sign-in flow.
+ */
+function showPostLogin(response) {
+    showFlow();
+    $("#flow_selector").hide();
+    $("#no_login_types").hide();
+    $("#loading").hide();
+
+    var queryParams = parseQsFromUrl();
+    var redirectUrl = queryParams.redirectUrl;
+
+    if (redirectUrl) {
+        $("#redirect_action").attr("href", redirectUrl).show();
+    }
+    else {
+        $("#redirect_action").hide();
+    }
+
+    var userId = response && response.user_id ? response.user_id : "";
+    if (userId) {
+        $("#post_login_message").text("Signed in as " + userId + ".");
+    }
+    else {
+        $("#post_login_message").text("Sign-in successful.");
+    }
+
+    $("#post_login_flow").show();
+    setTitle("You are logged in");
+}
+
 function showSpinner() {
+    $("#post_login_flow").hide();
     showFlow();
     $("#flow_selector").hide();
     $("#no_login_types").hide();
@@ -237,8 +271,7 @@ matrixLogin.passwordLogin = function() {
  * parameter.
  */
 matrixLogin.onLogin = function(response) {
-    // clobber this function
-    console.warn("onLogin - This function should be replaced to proceed.");
+    showPostLogin(response);
 };
 
 /*
