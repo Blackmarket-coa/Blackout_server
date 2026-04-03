@@ -16,24 +16,31 @@
         <span id="feedback"></span>
 
         <div id="loading">
-            <img src="spinner.gif" />
+            <img src="spinner.gif" alt="Loading" />
+        </div>
+
+        <div id="flow_selector" style="display: none;" aria-label="Choose login method">
+            <button id="select_password" class="flow_selector_button" type="button">Password</button>
+            <button id="select_sso" class="flow_selector_button" type="button">Single sign-on</button>
         </div>
 
         <div id="sso_flow" class="login_flow" style="display: none;">
-            Single-sign on:
+            <h2>Single sign-on</h2>
+            <p class="flow_description">Use your organization account to authenticate securely.</p>
             <form id="sso_form" action="/_matrix/client/r0/login/sso/redirect" method="get">
                 <input id="sso_redirect_url" type="hidden" name="redirectUrl" value=""/>
-                <input type="submit" value="Log in"/>
+                <input type="submit" value="Continue with SSO"/>
             </form>
         </div>
 
         <div id="password_flow" class="login_flow" style="display: none;">
-            Password Authentication:
+            <h2>Password login</h2>
+            <p class="flow_description">Enter your Matrix ID and password to sign in.</p>
             <form onsubmit="matrixLogin.passwordLogin(); return false;">
-                <input id="user_id" size="32" type="text" placeholder="Matrix ID (e.g. bob)" autocapitalize="off" autocorrect="off" />
-                <br/>
+                <label class="input_label" for="user_id">Matrix ID</label>
+                <input id="user_id" size="32" type="text" placeholder="e.g. @bob:example.org or bob" autocapitalize="off" autocorrect="off" />
+                <label class="input_label" for="password">Password</label>
                 <input id="password" size="32" type="password" placeholder="Password"/>
-                <br/>
 
                 <input type="submit" value="Log in"/>
             </form>

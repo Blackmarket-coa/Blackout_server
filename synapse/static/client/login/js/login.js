@@ -75,6 +75,46 @@ function setFeedbackString(text) {
  * * Configures and shows the SSO form, if the server supports SSO.
  * * Otherwise, shows the password form.
  */
+
+/*
+ * Toggle visibility between available login flows.
+ */
+function showFlow(flowName) {
+    if (flowName === "password") {
+        $("#password_flow").show();
+        $("#sso_flow").hide();
+        $("#select_password").addClass("active");
+        $("#select_sso").removeClass("active");
+        return;
+    }
+
+    if (flowName === "sso") {
+        $("#sso_flow").show();
+        $("#password_flow").hide();
+        $("#select_sso").addClass("active");
+        $("#select_password").removeClass("active");
+        return;
+    }
+
+    $("#password_flow").hide();
+    $("#sso_flow").hide();
+    $("#select_password").removeClass("active");
+    $("#select_sso").removeClass("active");
+}
+
+/*
+ * Bind the login flow selector controls.
+ */
+function bindFlowSelector() {
+    $("#select_password").off("click").on("click", function() {
+        showFlow("password");
+    });
+
+    $("#select_sso").off("click").on("click", function() {
+        showFlow("sso");
+    });
+}
+
 function showLogin(inhibitRedirect) {
     setTitle(TITLE_PRE_AUTH);
 
@@ -96,13 +136,21 @@ function showLogin(inhibitRedirect) {
             $("#sso_form").submit();
             return;
         }
-
-        // Otherwise, show the SSO form
-        $("#sso_flow").show();
     }
 
-    if (matrixLogin.serverAcceptsPassword) {
-        $("#password_flow").show();
+    bindFlowSelector();
+
+    if (matrixLogin.serverAcceptsPassword && matrixLogin.serverAcceptsSso) {
+        $("#flow_selector").show();
+        showFlow("password");
+    }
+    else if (matrixLogin.serverAcceptsPassword) {
+        $("#flow_selector").hide();
+        showFlow("password");
+    }
+    else if (matrixLogin.serverAcceptsSso) {
+        $("#flow_selector").hide();
+        showFlow("sso");
     }
 
     // If neither password or SSO are supported, show an error to the user.
@@ -117,8 +165,8 @@ function showLogin(inhibitRedirect) {
  * Hides the forms and shows a loading throbber.
  */
 function showSpinner() {
-    $("#password_flow").hide();
-    $("#sso_flow").hide();
+    showFlow();
+    $("#flow_selector").hide();
     $("#no_login_types").hide();
     $("#loading").show();
 }
